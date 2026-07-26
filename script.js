@@ -381,7 +381,10 @@ if(indexExtra){
       images:[
         "/media/projects/miunae/01-miunae-logo.jpg",
         {type:"iframe",src:"https://www.miunae.com/",title:"MIUNĀE live website",liveKey:"website"},
-        {type:"curator",src:"https://cdn.curator.io/published/8bcd46ff-7c2b-4fd0-baa3-8d3df4db1ee3.js",title:"@miunae.beauty live feed",liveKey:"instagram"},
+        {type:"mediaCarousel",cards:[
+          {type:"image",src:"/media/projects/miunae/instagram/01.jpg",title:"MIUNĀE Instagram visual 1"},
+          {type:"image",src:"/media/projects/miunae/instagram/02.jpg",title:"MIUNĀE Instagram visual 2"}
+        ],title:"MIUNĀE Instagram gallery"},
         "/media/projects/miunae/04-miunae-all.jpg",
         {type:"iframe",src:"https://www.miunae.com/brand-kit",title:"MIUNĀE live brand kit",liveKey:"brandKit"}
       ]
@@ -510,7 +513,7 @@ if(indexExtra){
   let wheelReset=0;
   let projectSwitching=false;
   let currentCarousel=null;
-  const liveStates={website:false,instagram:false,brandKit:false};
+  const liveStates={website:false,brandKit:false};
   const mobileProjectLayout=window.matchMedia("(max-width: 1024px)");
 
   const esc=s=>String(s).replace(/[&<>'"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
@@ -525,11 +528,6 @@ if(indexExtra){
   };
 
   function liveLabel(key,active){
-    if(key==="instagram"){
-      return active
-        ? '<span class="mf-live-toggle-label">EXIT THE INSTA</span>'
-        : '<span class="mf-live-toggle-label">BROWSE <em>[LIVE]</em> <span class="mf-live-handle">@miunae.beauty</span></span>';
-    }
     if(key==="brandKit"){
       return active
         ? '<span class="mf-live-toggle-label">EXIT THE WEB</span>'
@@ -579,19 +577,6 @@ if(indexExtra){
         <div class="mf-live-site">
           <div class="mf-live-loader" aria-hidden="true"><div class="mf-live-loader-copy">${loaderCopy}<span>_</span></div><div class="mf-live-loader-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
           <iframe src="${esc(media.src)}" title="${esc(media.title||project.title+' live website')}" loading="eager" allow="fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-          <div class="mf-live-shield" aria-hidden="true"></div>
-          <button class="mf-live-toggle" type="button" aria-pressed="${active?'true':'false'}">${liveLabel(key,active)}</button>
-        </div>
-        ${projectMediaCurtain()}
-      </figure>`;
-    }
-    if(media&&typeof media==="object"&&media.type==="curator"){
-      const key=media.liveKey||"instagram";
-      const active=!!liveStates[key];
-      return `<figure class="mf-project-slide mf-project-slide-live mf-project-slide-instagram" data-slide="${i}" data-live-key="${key}" data-curator-src="${esc(media.src)}">
-        <div class="mf-live-site mf-instagram-live-site">
-          <div class="mf-live-loader" aria-hidden="true"><div class="mf-live-loader-copy">LOADING @MIUNAE.BEAUTY<span>_</span></div><div class="mf-live-loader-bars"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-          <div class="mf-instagram-embed-host" aria-label="${esc(media.title||'MIUNĀE Instagram feed')}"><div id="curator-feed-default-feed-layout" class="mf-curator-feed"><a href="https://curator.io" target="_blank" rel="noopener" class="crt-logo crt-tag">Powered by Curator.io</a></div></div>
           <div class="mf-live-shield" aria-hidden="true"></div>
           <button class="mf-live-toggle" type="button" aria-pressed="${active?'true':'false'}">${liveLabel(key,active)}</button>
         </div>
@@ -672,7 +657,6 @@ if(indexExtra){
     slides.innerHTML=project.images.map((media,i)=>renderMedia(project,media,i)).join("")+renderEndCard(key,project.images.length);
 
     setupLiveSlides();
-    setupCurator();
     setupProjectVideoLoaders();
     setupStaticImageSlides();
     setupCarousels(project);
@@ -764,13 +748,11 @@ if(indexExtra){
   function applyLiveState(slide,active){
     const key=slide.dataset.liveKey||"website";
     const frame=slide.querySelector("iframe");
-    const host=slide.querySelector(".mf-instagram-embed-host");
     const toggle=slide.querySelector(".mf-live-toggle");
     liveStates[key]=active;
     slide.classList.toggle("is-browsing",active);
     slide.classList.toggle("is-paused",!active);
     if(frame)frame.style.pointerEvents=active?"auto":"none";
-    if(host)host.style.pointerEvents=active?"auto":"none";
     if(toggle){toggle.setAttribute("aria-pressed",active?"true":"false");toggle.innerHTML=liveLabel(key,active);}
   }
 
@@ -783,24 +765,6 @@ if(indexExtra){
       toggle?.addEventListener("click",event=>{event.preventDefault();event.stopPropagation();applyLiveState(slide,!slide.classList.contains("is-browsing"));});
       applyLiveState(slide,!!liveStates[key]);
     });
-  }
-
-  function setupCurator(){
-    const instagramSlide=slides.querySelector('.mf-project-slide-instagram');
-    if(!instagramSlide)return;
-    const curatorHost=instagramSlide.querySelector('#curator-feed-default-feed-layout');
-    const scriptSrc=instagramSlide.dataset.curatorSrc;
-    let finished=false;
-    const finish=()=>{if(finished)return;finished=true;instagramSlide.classList.add('is-loaded');applyLiveState(instagramSlide,!!liveStates.instagram);};
-    if(!curatorHost||!scriptSrc){finish();return;}
-    const observer=new MutationObserver(()=>{const rendered=curatorHost.querySelector('.crt-feed, .crt-post, .crt-grid-post, iframe')||curatorHost.children.length>1;if(rendered){observer.disconnect();finish();}});
-    observer.observe(curatorHost,{childList:true,subtree:true});
-    document.querySelectorAll('script[data-mf-curator-runtime]').forEach(node=>node.remove());
-    const curatorScript=document.createElement('script');
-    curatorScript.async=true;curatorScript.charset='UTF-8';curatorScript.src=scriptSrc;curatorScript.dataset.mfCuratorRuntime='true';
-    curatorScript.addEventListener('load',()=>setTimeout(finish,900),{once:true});curatorScript.addEventListener('error',finish,{once:true});
-    const firstScript=document.getElementsByTagName('script')[0];firstScript.parentNode.insertBefore(curatorScript,firstScript);
-    setTimeout(()=>{observer.disconnect();finish();},5200);
   }
 
   function setupStaticImageSlides(){
@@ -1424,7 +1388,6 @@ if(indexExtra){
 
   gallery.addEventListener("wheel",event=>{
     if(mobileProjectLayout.matches)return;
-    if(event.target.closest?.(".mf-project-slide-instagram.is-browsing .mf-instagram-embed-host"))return;
     if(event.target.closest?.(".mf-project-slide-live.is-browsing iframe"))return;
     if(event.target.closest?.(".mf-vertical-gallery.is-scroll-enabled .mf-vertical-scroll"))return;
     event.preventDefault();

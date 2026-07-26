@@ -4007,173 +4007,22 @@ body.mf-preload-locked .mf-loader span {
 }
 
 /* ============================================================
-   V33 — MIUNĀE live website + Instagram profile controls
+   V33 — MIUNĀE live website controls
    ============================================================ */
 
-/* Both live panels start paused; the project page receives wheel/touch input
-   until the visitor explicitly enables the embedded experience. */
-.mf-project-slide-live.is-paused .mf-live-site > iframe,
-.mf-project-slide-live.is-paused .mf-instagram-embed-host {
+/* Live website panels remain paused until the visitor explicitly enables
+   the embedded experience. */
+.mf-project-slide-live.is-paused .mf-live-site > iframe {
   pointer-events: none !important;
 }
 
-.mf-project-slide-live.is-browsing .mf-live-site > iframe,
-.mf-project-slide-live.is-browsing .mf-instagram-embed-host {
+.mf-project-slide-live.is-browsing .mf-live-site > iframe {
   pointer-events: auto;
 }
 
-/* Instagram's official profile embed fills the exact same project frame. */
-.mf-instagram-live-site {
-  display: block;
-}
-
-.mf-instagram-embed-host {
-  position: absolute;
-  inset: 0 0 46px;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #000;
-  opacity: 0;
-  transform: scale(1.008);
-  transition:
-    opacity .55s cubic-bezier(.16,1,.3,1),
-    transform .9s cubic-bezier(.16,1,.3,1);
-}
-
-.mf-project-slide-instagram.is-loaded .mf-instagram-embed-host {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.mf-instagram-embed-host .instagram-media,
-.mf-instagram-embed-host iframe {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  height: 100% !important;
-  min-height: 100% !important;
-  margin: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-}
-
-.mf-instagram-fallback {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  color: rgba(244,244,244,.72);
-  font-family: "Geist Mono", monospace;
-  font-size: 10px;
-  letter-spacing: .075em;
-  text-transform: uppercase;
-  transition: color .35s var(--ease);
-}
-
-.mf-instagram-fallback:hover {
-  color: #fff;
-}
-
-/* [LIVE] is green in both MIUNĀE and Instagram controls. */
 .mf-live-toggle em {
   color: #5dff83 !important;
   text-shadow: 0 0 12px rgba(93,255,131,.34) !important;
-}
-
-.mf-live-handle {
-  text-transform: none;
-}
-
-@media (max-width: 900px) {
-  .mf-instagram-embed-host {
-    bottom: 44px;
-  }
-}
-
-/* ============================================================
-   V34 — SociableKIT Instagram feed iframe
-   ============================================================ */
-.mf-instagram-embed-host {
-  align-items: stretch;
-  justify-content: stretch;
-  background: #fff;
-}
-
-.mf-instagram-embed-host iframe {
-  display: block;
-  width: 100% !important;
-  height: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-  border: 0 !important;
-  background: #fff;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-}
-
-/* ============================================================
-   V35 — Curator.io Instagram feed
-   ============================================================ */
-.mf-instagram-embed-host {
-  display: block;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background: #000;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-}
-
-.mf-instagram-embed-host::-webkit-scrollbar {
-  display: none;
-}
-
-.mf-curator-feed,
-#curator-feed-default-feed-layout {
-  width: 100%;
-  min-height: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
-  background: #000;
-}
-
-.mf-curator-feed .crt-feed,
-.mf-curator-feed .crt-feed-container,
-.mf-curator-feed .crt-posts {
-  width: 100% !important;
-  max-width: none !important;
-  margin: 0 !important;
-}
-
-/* ============================================================
-   V36 — Curator color correction + mobile / small-tablet system
-   Desktop rules above remain unchanged.
-   ============================================================ */
-
-/* Curator media must not inherit the grayscale, scale or forced full-frame
-   dimensions used by regular project photographs. */
-.mf-project-slide-instagram .mf-curator-feed img,
-.mf-project-slide-instagram #curator-feed-default-feed-layout img,
-.mf-project-slide-instagram .crt-post img,
-.mf-project-slide-instagram .crt-grid-post img {
-  width: 100% !important;
-  height: auto !important;
-  max-width: 100% !important;
-  object-fit: cover !important;
-  filter: none !important;
-  transform: none !important;
-}
-.mf-project-slide-instagram video {
-  filter: none !important;
 }
 
 @media (max-width: 1024px) {
@@ -4333,12 +4182,6 @@ body.mf-preload-locked .mf-loader span {
   .mf-project-slide img {
     object-position: center !important;
     filter: grayscale(1) contrast(1.08) brightness(.82) !important;
-  }
-  .mf-project-slide-instagram .mf-curator-feed img,
-  .mf-project-slide-instagram #curator-feed-default-feed-layout img,
-  .mf-project-slide-instagram .crt-post img,
-  .mf-project-slide-instagram .crt-grid-post img {
-    filter: none !important;
   }
   .mf-project-counter {
     right: 14px !important;
@@ -5305,12 +5148,6 @@ body.project-open .mf-nav-art {
 .mf-project-slide-live.is-browsing .mf-live-shield {
   pointer-events: none;
 }
-.mf-project-slide-live.is-paused .mf-instagram-embed-host {
-  overflow: hidden !important;
-}
-.mf-project-slide-live.is-browsing .mf-instagram-embed-host {
-  overflow-y: auto !important;
-}
 
 @media (max-width: 1024px) {
   /* Every top-navigation anchor remains visible, including ART and ATTACK ME. */
@@ -5517,7 +5354,7 @@ body.project-open .mf-nav-art {
 }
 
 /* Static image wrapper supports mobile crop panning and tap-to-fit without
-   changing iframe or Curator slides. */
+   changing iframe or carousel slides. */
 .mf-project-image-viewport {
   width: 100%;
   height: 100%;

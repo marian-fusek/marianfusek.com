@@ -466,8 +466,10 @@ if(indexExtra){
             title:"Tomas Bata University",
             subtitle:"Member of Dissertation Committee",
             image:"/media/projects/side-quests/utb.jpg",
-            descriptionHtml:`<p>I was twice invited to serve on a panel of industry professionals evaluating final bachelor's and master's thesis presentations at university.</p><p>On top of this, while leading a design team, we held full-day design talks for students on the Multimedia &amp; Design programme twice over two years. The sessions continued even after I got promoted out of the Design Team Leadership role.</p><p>I made friends with the faculty lead. Had students applying to STRV years later. Lovely stuff.</p>`,
-            mentions:[]
+            descriptionHtml:`<p>I was twice invited to serve on a panel of industry professionals evaluating final bachelor's and master's thesis presentations on the Visual Arts programme at the university.</p><p>On top of this, while leading a design team, we held full-day design talks for students of the Multimedia &amp; Design subject twice over two years. The sessions continued even after I got promoted out of the Design Team Leadership role.</p><p>I made friends with the faculty lead. Had students applying to STRV years later. Lovely stuff.</p>`,
+            mentions:[
+              {name:"Tomas Bata University",url:"https://www.utb.cz/en/"}
+            ]
           },
           {
             title:"Nollie",
@@ -485,7 +487,7 @@ if(indexExtra){
             descriptionHtml:`<p>This was a sweet collab between Next.Move (client), Yiskra Creative Studio (brand) — and my former Creative Studio Nollie (Design &amp; Ops w/ Ales Nesetril).</p><p>I sourced and managed developers, tracked the timeline and reported progress to the client side represented by Veronika Huna.</p><p>The app launched and keeps growing. People work out. Life's good.</p>`,
             mentions:[
               {name:"Next.Move",url:"https://www.instagram.com/nextmove.cz/"},
-              {name:"Yiskra Creative Studio",url:"https://www.instagram.com/nextmove.cz/"},
+              {name:"Yiskra Creative Studio",url:"https://www.yiskra.studio/"},
               {name:"Ales Nesetril",url:"https://www.instagram.com/alesnesetril"},
               {name:"Veronika Huna",url:"https://www.instagram.com/fitveronika"}
             ]

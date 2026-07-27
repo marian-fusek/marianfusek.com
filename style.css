@@ -12616,3 +12616,319 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
     100% { transform:translate3d(7px,-7px,0) rotate(360deg); }
   }
 }
+
+
+/* ============================================================
+   V121 — BIO / HERESY + LIVE
+   Desktop is interaction-led. Mobile stays intentionally straightforward.
+   ============================================================ */
+
+/* These two large panels do not inflate the original BIO tabs while hidden. */
+.mf-bio-panel[data-bio-panel="heresy"],
+.mf-bio-panel[data-bio-panel="live"] {
+  position:absolute !important;
+  inset:0;
+  grid-area:1 / 1;
+  align-self:start;
+}
+.mf-bio-panel[data-bio-panel="heresy"].is-active,
+.mf-bio-panel[data-bio-panel="live"].is-active {
+  position:relative !important;
+  inset:auto;
+}
+
+.mf-about.is-bio-expanded .mf-about-text {
+  grid-column:1 / -1 !important;
+  width:100%;
+}
+.mf-about.is-bio-expanded .mf-photo-wrap {
+  display:none !important;
+}
+.mf-about.is-bio-expanded .mf-about-layout {
+  min-height:0;
+}
+
+/* HERESY */
+.mf-heresy-list {
+  width:100%;
+  border-top:1px solid var(--line-strong);
+}
+.mf-heresy-item {
+  border-bottom:1px solid var(--line);
+}
+.mf-heresy-trigger {
+  width:100%;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  gap:clamp(14px,2vw,30px);
+  align-items:start;
+  padding:clamp(15px,2vh,24px) 0;
+  border:0;
+  background:transparent;
+  color:rgba(255,255,255,.50);
+  text-align:left;
+  cursor:pointer;
+  transition:color .42s var(--ease),padding .7s var(--ease);
+}
+.mf-heresy-number {
+  padding-top:.3em;
+  font:400 10px/1 "Geist Mono",monospace;
+  letter-spacing:.08em;
+  color:rgba(255,255,255,.34);
+  transition:color .42s var(--ease),transform .7s var(--ease);
+}
+.mf-heresy-line {
+  font:400 clamp(17px,1.45vw,25px)/1.02 "Geist",Arial,sans-serif;
+  letter-spacing:-.035em;
+  transition:font-size .78s var(--ease),line-height .78s var(--ease),letter-spacing .78s var(--ease),transform .55s var(--ease),color .42s var(--ease);
+}
+.mf-heresy-trigger:hover,
+.mf-heresy-trigger:focus-visible {
+  color:#fff;
+  outline:none;
+}
+.mf-heresy-trigger:hover .mf-heresy-line,
+.mf-heresy-trigger:focus-visible .mf-heresy-line {
+  transform:translateX(7px);
+}
+.mf-heresy-item.is-open .mf-heresy-trigger {
+  padding-top:clamp(30px,4.8vh,60px);
+  padding-bottom:clamp(19px,2.8vh,34px);
+  color:#fff;
+}
+.mf-heresy-item.is-open .mf-heresy-number {
+  color:rgba(255,255,255,.72);
+  transform:translateY(.45em);
+}
+.mf-heresy-item.is-open .mf-heresy-line {
+  font-size:clamp(42px,6.5vw,112px);
+  line-height:.86;
+  letter-spacing:-.075em;
+  transform:none;
+}
+.mf-heresy-reveal {
+  display:grid;
+  grid-template-rows:0fr;
+  opacity:0;
+  clip-path:inset(0 0 100% 0);
+  transition:grid-template-rows .78s var(--ease),opacity .38s ease,clip-path .82s var(--ease);
+}
+.mf-heresy-reveal-inner {
+  min-height:0;
+  overflow:hidden;
+  padding-left:calc(44px + clamp(14px,2vw,30px));
+}
+.mf-heresy-reveal p {
+  max-width:62em;
+  margin:0;
+  padding:0 0 clamp(30px,5.4vh,70px);
+  color:rgba(255,255,255,.70) !important;
+  font:400 clamp(14px,1.1vw,19px)/1.42 "Geist",Arial,sans-serif !important;
+  letter-spacing:-.018em !important;
+}
+.mf-heresy-item.is-open .mf-heresy-reveal {
+  grid-template-rows:1fr;
+  opacity:1;
+  clip-path:inset(0);
+}
+
+/* LIVE */
+.mf-live-log {
+  width:100%;
+  border-top:1px solid var(--line-strong);
+}
+.mf-live-entry {
+  border-bottom:1px solid var(--line);
+  transition:border-color .4s ease;
+}
+.mf-live-date {
+  width:100%;
+  padding:clamp(18px,2.3vh,28px) 0;
+  border:0;
+  background:transparent;
+  color:rgba(255,255,255,.45);
+  font:400 clamp(18px,1.8vw,30px)/1 "Geist",Arial,sans-serif;
+  letter-spacing:-.035em;
+  text-align:left;
+  cursor:default;
+  transition:color .42s var(--ease),font-size .68s var(--ease),padding .68s var(--ease),transform .55s var(--ease);
+}
+.mf-live-entry:hover .mf-live-date,
+.mf-live-entry:focus-within .mf-live-date,
+.mf-live-entry.is-active .mf-live-date {
+  color:#fff;
+  transform:translateX(6px);
+}
+.mf-live-detail {
+  display:grid;
+  grid-template-rows:0fr;
+  opacity:0;
+  clip-path:inset(0 0 100% 0);
+  transition:grid-template-rows .72s var(--ease),opacity .38s ease,clip-path .78s var(--ease);
+}
+.mf-live-detail-inner {
+  min-height:0;
+  overflow:hidden;
+  padding:0 0 0 clamp(56px,6vw,110px);
+}
+.mf-live-entry:hover .mf-live-detail,
+.mf-live-entry:focus-within .mf-live-detail,
+.mf-live-entry.is-active .mf-live-detail {
+  grid-template-rows:1fr;
+  opacity:1;
+  clip-path:inset(0);
+}
+.mf-live-entry:hover .mf-live-date,
+.mf-live-entry:focus-within .mf-live-date,
+.mf-live-entry.is-active .mf-live-date {
+  padding-top:clamp(28px,4vh,50px);
+  font-size:clamp(28px,3.8vw,68px);
+}
+.mf-live-meta {
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:clamp(16px,2.5vh,30px);
+  font:400 9px/1 "Geist Mono",monospace;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.42);
+}
+.mf-live-progress-copy span,
+.mf-live-progress-copy b {
+  color:hsl(var(--mf-live-hue) 78% 56%);
+}
+.mf-live-detail h3 {
+  margin:0;
+  color:#fff;
+  font:650 clamp(38px,6.2vw,104px)/.84 "Geist",Arial,sans-serif;
+  letter-spacing:-.075em;
+  text-transform:none;
+}
+.mf-live-detail p {
+  max-width:46em;
+  margin:clamp(15px,2.5vh,28px) 0 clamp(26px,4vh,48px) !important;
+  color:rgba(255,255,255,.72) !important;
+  font:400 clamp(15px,1.3vw,21px)/1.35 "Geist",Arial,sans-serif !important;
+  letter-spacing:-.018em !important;
+}
+.mf-live-progress-copy {
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:20px;
+  margin-bottom:9px;
+  font:400 9px/1 "Geist Mono",monospace;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.54);
+}
+.mf-live-progress-copy b {
+  font-weight:400;
+}
+.mf-live-progress-track {
+  position:relative;
+  height:1px;
+  margin-bottom:clamp(34px,5.5vh,72px);
+  background:rgba(255,255,255,.15);
+  overflow:hidden;
+}
+.mf-live-progress-track i {
+  display:block;
+  width:var(--mf-live-progress);
+  height:100%;
+  background:hsl(var(--mf-live-hue) 78% 56%);
+  transform-origin:left center;
+  transform:scaleX(0);
+  transition:transform 1s var(--ease) .12s;
+}
+.mf-live-entry:hover .mf-live-progress-track i,
+.mf-live-entry:focus-within .mf-live-progress-track i,
+.mf-live-entry.is-active .mf-live-progress-track i {
+  transform:scaleX(1);
+}
+
+/* Mobile: no hover dependency, no oversized transformations, no staged reveal. */
+@media (max-width:1024px), (hover:none), (pointer:coarse) {
+  .mf-about.is-bio-expanded .mf-about-layout {
+    margin-top:42px !important;
+  }
+  .mf-heresy-trigger {
+    grid-template-columns:30px minmax(0,1fr);
+    gap:12px;
+    padding:16px 0;
+  }
+  .mf-heresy-line,
+  .mf-heresy-item.is-open .mf-heresy-line {
+    font-size:clamp(19px,5.5vw,28px);
+    line-height:1;
+    letter-spacing:-.04em;
+    transform:none !important;
+  }
+  .mf-heresy-item.is-open .mf-heresy-trigger {
+    padding:20px 0 14px;
+  }
+  .mf-heresy-item.is-open .mf-heresy-number {
+    transform:none;
+  }
+  .mf-heresy-reveal {
+    transition:grid-template-rows .28s ease,opacity .2s ease,clip-path .28s ease;
+  }
+  .mf-heresy-reveal-inner {
+    padding-left:42px;
+  }
+  .mf-heresy-reveal p {
+    padding-bottom:25px;
+    font-size:15px !important;
+    line-height:1.42 !important;
+  }
+  .mf-live-date,
+  .mf-live-entry:hover .mf-live-date,
+  .mf-live-entry:focus-within .mf-live-date,
+  .mf-live-entry.is-active .mf-live-date {
+    padding:20px 0 12px;
+    font-size:clamp(21px,6vw,30px);
+    transform:none;
+    cursor:default;
+  }
+  .mf-live-detail,
+  .mf-live-entry .mf-live-detail {
+    grid-template-rows:1fr !important;
+    opacity:1 !important;
+    clip-path:inset(0) !important;
+    transition:none !important;
+  }
+  .mf-live-detail-inner {
+    padding-left:0;
+  }
+  .mf-live-meta {
+    margin-bottom:14px;
+  }
+  .mf-live-detail h3 {
+    font-size:clamp(34px,10vw,54px);
+    line-height:.9;
+  }
+  .mf-live-detail p {
+    margin:12px 0 22px !important;
+    font-size:15px !important;
+  }
+  .mf-live-progress-track {
+    margin-bottom:28px;
+  }
+  .mf-live-progress-track i,
+  .mf-live-entry .mf-live-progress-track i {
+    transform:scaleX(1) !important;
+    transition:none !important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .mf-heresy-trigger,
+  .mf-heresy-line,
+  .mf-heresy-reveal,
+  .mf-live-date,
+  .mf-live-detail,
+  .mf-live-progress-track i {
+    transition-duration:.01ms !important;
+  }
+}

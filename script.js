@@ -2662,14 +2662,26 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
 
   const buttons=[...menu.querySelectorAll('[data-bio-tab]')];
   const panels=[...wrapper.querySelectorAll('[data-bio-panel]')];
+  const about=document.querySelector('.mf-about');
+  const photoWrap=about?.querySelector('.mf-photo-wrap');
   let active=wrapper.querySelector('.mf-bio-panel.is-active')||panels[0];
   let switching=false;
+
+  function setBioMode(key){
+    const expanded=key==='heresy'||key==='live';
+    about?.classList.toggle('is-bio-expanded',expanded);
+    if(photoWrap){
+      photoWrap.inert=expanded;
+      photoWrap.setAttribute('aria-hidden',expanded?'true':'false');
+    }
+  }
 
   panels.forEach(panel=>{
     const selected=panel===active;
     panel.setAttribute('aria-hidden',selected?'false':'true');
     panel.inert=!selected;
   });
+  setBioMode(active?.dataset.bioPanel||'101');
 
   function setMenu(key){
     buttons.forEach(button=>{
@@ -2703,6 +2715,7 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
     next.classList.add('is-active');
     next.setAttribute('aria-hidden','false');
     next.inert=false;
+    setBioMode(key);
     await nextFrame();
 
     const inAnimation=next.animate(
@@ -2718,6 +2731,51 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
   }
 
   buttons.forEach(button=>button.addEventListener('click',()=>showPanel(button.dataset.bioTab)));
+})();
+
+
+/* BIO / HERESY + LIVE — desktop interaction, deliberately quiet mobile fallback */
+(function(){
+  const heresy=document.getElementById('mfHeresyList');
+  if(heresy){
+    const items=[...heresy.querySelectorAll('.mf-heresy-item')];
+    const close=item=>{
+      item.classList.remove('is-open');
+      item.querySelector('.mf-heresy-trigger')?.setAttribute('aria-expanded','false');
+      item.querySelector('.mf-heresy-reveal')?.setAttribute('aria-hidden','true');
+    };
+    items.forEach(item=>{
+      const trigger=item.querySelector('.mf-heresy-trigger');
+      trigger?.addEventListener('click',()=>{
+        const opening=!item.classList.contains('is-open');
+        items.forEach(other=>close(other));
+        if(opening){
+          item.classList.add('is-open');
+          trigger.setAttribute('aria-expanded','true');
+          item.querySelector('.mf-heresy-reveal')?.setAttribute('aria-hidden','false');
+        }
+      });
+    });
+  }
+
+  const live=document.getElementById('mfLiveLog');
+  if(!live)return;
+  const touchLayout=window.matchMedia('(max-width:1024px), (hover:none), (pointer:coarse)');
+  const entries=[...live.querySelectorAll('.mf-live-entry')];
+  const setEntry=(entry,active)=>{
+    entry.classList.toggle('is-active',active);
+    entry.querySelector('.mf-live-date')?.setAttribute('aria-expanded',active?'true':'false');
+  };
+  entries.forEach(entry=>{
+    entry.addEventListener('pointerenter',()=>{if(!touchLayout.matches)setEntry(entry,true);},{passive:true});
+    entry.addEventListener('pointerleave',()=>{if(!touchLayout.matches)setEntry(entry,false);},{passive:true});
+    entry.addEventListener('focusin',()=>{if(!touchLayout.matches)setEntry(entry,true);});
+    entry.addEventListener('focusout',event=>{if(!touchLayout.matches&&!entry.contains(event.relatedTarget))setEntry(entry,false);});
+    entry.querySelector('.mf-live-date')?.addEventListener('click',()=>{
+      if(!touchLayout.matches)return;
+      setEntry(entry,!entry.classList.contains('is-active'));
+    });
+  });
 })();
 
 /* VARIABLE PROXIMITY — word-safe, link-safe BIO copy */
@@ -2748,7 +2806,7 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
     node.replaceWith(fragment);
   }
 
-  container.querySelectorAll('.mf-bio-panel p, .mf-bio-panel .mf-about-note').forEach(el=>{
+  container.querySelectorAll('.mf-bio-panel:not([data-bio-panel="heresy"]):not([data-bio-panel="live"]) p, .mf-bio-panel:not([data-bio-panel="heresy"]):not([data-bio-panel="live"]) .mf-about-note').forEach(el=>{
     el.setAttribute('aria-label',el.textContent.trim());
     const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode(node){
       return node.parentElement?.closest('.vp-word')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT;

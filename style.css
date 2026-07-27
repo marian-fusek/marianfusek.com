@@ -13064,3 +13064,20 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
     margin-bottom:9px !important;
   }
 }
+
+
+/* ============================================================
+   V125 — BIO title spacing
+   Match the vertical title-to-content gap used by Guidance.
+   ============================================================ */
+@media (min-width:1025px) {
+  .mf-about {
+    row-gap:clamp(28px,5vh,72px) !important;
+  }
+}
+
+@media (max-width:1024px) {
+  .mf-bio-menu {
+    margin-top:clamp(28px,5vh,72px) !important;
+  }
+}

@@ -2734,46 +2734,26 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
 })();
 
 
-/* BIO / HERESY + LIVE — desktop interaction, deliberately quiet mobile fallback */
+/* BIO / HERESY — click-to-expand editorial list */
 (function(){
   const heresy=document.getElementById('mfHeresyList');
-  if(heresy){
-    const items=[...heresy.querySelectorAll('.mf-heresy-item')];
-    const close=item=>{
-      item.classList.remove('is-open');
-      item.querySelector('.mf-heresy-trigger')?.setAttribute('aria-expanded','false');
-      item.querySelector('.mf-heresy-reveal')?.setAttribute('aria-hidden','true');
-    };
-    items.forEach(item=>{
-      const trigger=item.querySelector('.mf-heresy-trigger');
-      trigger?.addEventListener('click',()=>{
-        const opening=!item.classList.contains('is-open');
-        items.forEach(other=>close(other));
-        if(opening){
-          item.classList.add('is-open');
-          trigger.setAttribute('aria-expanded','true');
-          item.querySelector('.mf-heresy-reveal')?.setAttribute('aria-hidden','false');
-        }
-      });
-    });
-  }
-
-  const live=document.getElementById('mfLiveLog');
-  if(!live)return;
-  const touchLayout=window.matchMedia('(max-width:1024px), (hover:none), (pointer:coarse)');
-  const entries=[...live.querySelectorAll('.mf-live-entry')];
-  const setEntry=(entry,active)=>{
-    entry.classList.toggle('is-active',active);
-    entry.querySelector('.mf-live-date')?.setAttribute('aria-expanded',active?'true':'false');
+  if(!heresy)return;
+  const items=[...heresy.querySelectorAll('.mf-heresy-item')];
+  const close=item=>{
+    item.classList.remove('is-open');
+    item.querySelector('.mf-heresy-trigger')?.setAttribute('aria-expanded','false');
+    item.querySelector('.mf-heresy-reveal')?.setAttribute('aria-hidden','true');
   };
-  entries.forEach(entry=>{
-    entry.addEventListener('pointerenter',()=>{if(!touchLayout.matches)setEntry(entry,true);},{passive:true});
-    entry.addEventListener('pointerleave',()=>{if(!touchLayout.matches)setEntry(entry,false);},{passive:true});
-    entry.addEventListener('focusin',()=>{if(!touchLayout.matches)setEntry(entry,true);});
-    entry.addEventListener('focusout',event=>{if(!touchLayout.matches&&!entry.contains(event.relatedTarget))setEntry(entry,false);});
-    entry.querySelector('.mf-live-date')?.addEventListener('click',()=>{
-      if(!touchLayout.matches)return;
-      setEntry(entry,!entry.classList.contains('is-active'));
+  items.forEach(item=>{
+    const trigger=item.querySelector('.mf-heresy-trigger');
+    trigger?.addEventListener('click',()=>{
+      const opening=!item.classList.contains('is-open');
+      items.forEach(other=>close(other));
+      if(opening){
+        item.classList.add('is-open');
+        trigger.setAttribute('aria-expanded','true');
+        item.querySelector('.mf-heresy-reveal')?.setAttribute('aria-hidden','false');
+      }
     });
   });
 })();

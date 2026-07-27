@@ -12619,11 +12619,11 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
 
 
 /* ============================================================
-   V121 — BIO / HERESY + LIVE
-   Desktop is interaction-led. Mobile stays intentionally straightforward.
+   V122 — BIO / HERESY + LIVE
+   Stable desktop frame, editorial HERESY and always-on LIVE board.
    ============================================================ */
 
-/* These two large panels do not inflate the original BIO tabs while hidden. */
+/* The two long-form panels stay out of the shared hidden-panel height. */
 .mf-bio-panel[data-bio-panel="heresy"],
 .mf-bio-panel[data-bio-panel="live"] {
   position:absolute !important;
@@ -12646,6 +12646,29 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
 }
 .mf-about.is-bio-expanded .mf-about-layout {
   min-height:0;
+}
+
+/* Desktop BIO menu is measured once against the original content top, then
+   taken out of the changing content flow. Panel height can no longer move it. */
+@media (min-width:1025px) {
+  .mf-about {
+    position:relative;
+    align-content:start !important;
+  }
+  .mf-bio-menu {
+    position:absolute !important;
+    z-index:8;
+    left:0;
+    top:auto;
+    width:auto;
+    margin:0 !important;
+    padding:0 !important;
+    transform:none !important;
+  }
+  .mf-bio-panel[data-bio-panel="heresy"],
+  .mf-bio-panel[data-bio-panel="live"] {
+    margin-top:0 !important;
+  }
 }
 
 /* HERESY */
@@ -12732,82 +12755,57 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
   clip-path:inset(0);
 }
 
-/* LIVE */
+/* LIVE — an always-visible project status board, not a timeline. */
+.mf-live-title {
+  max-width:11.5em;
+  margin:0 0 clamp(46px,7vh,92px);
+  color:#fff;
+  font:650 clamp(44px,6.45vw,112px)/.86 "Geist",Arial,sans-serif;
+  letter-spacing:-.075em;
+}
 .mf-live-log {
   width:100%;
   border-top:1px solid var(--line-strong);
 }
 .mf-live-entry {
+  position:relative;
+  padding:clamp(28px,4.2vh,54px) 0 0;
   border-bottom:1px solid var(--line);
-  transition:border-color .4s ease;
+  transition:opacity .45s var(--ease),border-color .45s ease;
 }
-.mf-live-date {
-  width:100%;
-  padding:clamp(18px,2.3vh,28px) 0;
-  border:0;
-  background:transparent;
-  color:rgba(255,255,255,.45);
-  font:400 clamp(18px,1.8vw,30px)/1 "Geist",Arial,sans-serif;
-  letter-spacing:-.035em;
-  text-align:left;
-  cursor:default;
-  transition:color .42s var(--ease),font-size .68s var(--ease),padding .68s var(--ease),transform .55s var(--ease);
+.mf-live-log:has(.mf-live-entry:hover) .mf-live-entry:not(:hover) {
+  opacity:.32;
 }
-.mf-live-entry:hover .mf-live-date,
-.mf-live-entry:focus-within .mf-live-date,
-.mf-live-entry.is-active .mf-live-date {
-  color:#fff;
-  transform:translateX(6px);
-}
-.mf-live-detail {
-  display:grid;
-  grid-template-rows:0fr;
-  opacity:0;
-  clip-path:inset(0 0 100% 0);
-  transition:grid-template-rows .72s var(--ease),opacity .38s ease,clip-path .78s var(--ease);
-}
-.mf-live-detail-inner {
-  min-height:0;
-  overflow:hidden;
-  padding:0 0 0 clamp(56px,6vw,110px);
-}
-.mf-live-entry:hover .mf-live-detail,
-.mf-live-entry:focus-within .mf-live-detail,
-.mf-live-entry.is-active .mf-live-detail {
-  grid-template-rows:1fr;
-  opacity:1;
-  clip-path:inset(0);
-}
-.mf-live-entry:hover .mf-live-date,
-.mf-live-entry:focus-within .mf-live-date,
-.mf-live-entry.is-active .mf-live-date {
-  padding-top:clamp(28px,4vh,50px);
-  font-size:clamp(28px,3.8vw,68px);
+.mf-live-entry:hover {
+  border-bottom-color:rgba(255,255,255,.28);
 }
 .mf-live-meta {
   display:flex;
   justify-content:space-between;
+  align-items:flex-start;
   gap:24px;
-  margin-bottom:clamp(16px,2.5vh,30px);
+  margin-bottom:clamp(22px,3.2vh,38px);
   font:400 9px/1 "Geist Mono",monospace;
   letter-spacing:.11em;
   text-transform:uppercase;
   color:rgba(255,255,255,.42);
 }
-.mf-live-progress-copy span,
-.mf-live-progress-copy b {
-  color:hsl(var(--mf-live-hue) 78% 56%);
-}
-.mf-live-detail h3 {
+.mf-live-entry h3 {
   margin:0;
   color:#fff;
-  font:650 clamp(38px,6.2vw,104px)/.84 "Geist",Arial,sans-serif;
+  font:650 clamp(42px,6.4vw,108px)/.84 "Geist",Arial,sans-serif;
   letter-spacing:-.075em;
   text-transform:none;
+  transform-origin:left center;
+  transition:transform .7s var(--ease),font-weight .45s ease;
 }
-.mf-live-detail p {
+.mf-live-entry:hover h3 {
+  transform:scale(1.025);
+  font-weight:750;
+}
+.mf-live-entry > p {
   max-width:46em;
-  margin:clamp(15px,2.5vh,28px) 0 clamp(26px,4vh,48px) !important;
+  margin:clamp(15px,2.5vh,28px) 0 clamp(34px,5vh,62px) !important;
   color:rgba(255,255,255,.72) !important;
   font:400 clamp(15px,1.3vw,21px)/1.35 "Geist",Arial,sans-serif !important;
   letter-spacing:-.018em !important;
@@ -12823,8 +12821,17 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
   text-transform:uppercase;
   color:rgba(255,255,255,.54);
 }
+.mf-live-progress-copy span,
+.mf-live-progress-copy b {
+  color:hsl(var(--mf-live-hue) 78% 56%);
+}
 .mf-live-progress-copy b {
   font-weight:400;
+  transform-origin:right bottom;
+  transition:transform .65s var(--ease);
+}
+.mf-live-entry:hover .mf-live-progress-copy b {
+  transform:scale(1.45);
 }
 .mf-live-progress-track {
   position:relative;
@@ -12832,6 +12839,7 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
   margin-bottom:clamp(34px,5.5vh,72px);
   background:rgba(255,255,255,.15);
   overflow:hidden;
+  transition:height .4s var(--ease),box-shadow .4s ease;
 }
 .mf-live-progress-track i {
   display:block;
@@ -12839,16 +12847,26 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
   height:100%;
   background:hsl(var(--mf-live-hue) 78% 56%);
   transform-origin:left center;
-  transform:scaleX(0);
-  transition:transform 1s var(--ease) .12s;
-}
-.mf-live-entry:hover .mf-live-progress-track i,
-.mf-live-entry:focus-within .mf-live-progress-track i,
-.mf-live-entry.is-active .mf-live-progress-track i {
   transform:scaleX(1);
 }
+.mf-live-entry:hover .mf-live-progress-track {
+  height:3px;
+  box-shadow:0 0 18px hsl(var(--mf-live-hue) 78% 56% / .34);
+}
+.mf-live-entry[style*="100%"]:hover .mf-live-progress-track::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  width:18%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.72),transparent);
+  transform:translateX(-110%);
+  animation:mfLiveCompleteScan .82s var(--ease) 1;
+}
+@keyframes mfLiveCompleteScan {
+  to { transform:translateX(660%); }
+}
 
-/* Mobile: no hover dependency, no oversized transformations, no staged reveal. */
+/* Mobile stays static and completely readable. */
 @media (max-width:1024px), (hover:none), (pointer:coarse) {
   .mf-about.is-bio-expanded .mf-about-layout {
     margin-top:42px !important;
@@ -12882,43 +12900,49 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
     font-size:15px !important;
     line-height:1.42 !important;
   }
-  .mf-live-date,
-  .mf-live-entry:hover .mf-live-date,
-  .mf-live-entry:focus-within .mf-live-date,
-  .mf-live-entry.is-active .mf-live-date {
-    padding:20px 0 12px;
-    font-size:clamp(21px,6vw,30px);
-    transform:none;
-    cursor:default;
+  .mf-live-title {
+    max-width:12em;
+    margin-bottom:44px;
+    font-size:clamp(40px,12vw,62px);
+    line-height:.88;
   }
-  .mf-live-detail,
-  .mf-live-entry .mf-live-detail {
-    grid-template-rows:1fr !important;
+  .mf-live-entry {
+    padding-top:26px;
     opacity:1 !important;
-    clip-path:inset(0) !important;
-    transition:none !important;
-  }
-  .mf-live-detail-inner {
-    padding-left:0;
   }
   .mf-live-meta {
-    margin-bottom:14px;
+    margin-bottom:19px;
+    gap:14px;
+    font-size:8px;
+    line-height:1.3;
   }
-  .mf-live-detail h3 {
-    font-size:clamp(34px,10vw,54px);
-    line-height:.9;
+  .mf-live-meta span:last-child {
+    text-align:right;
   }
-  .mf-live-detail p {
-    margin:12px 0 22px !important;
+  .mf-live-entry h3,
+  .mf-live-entry:hover h3 {
+    font-size:clamp(36px,11vw,58px);
+    line-height:.88;
+    transform:none;
+    font-weight:650;
+  }
+  .mf-live-entry > p {
+    margin:12px 0 28px !important;
     font-size:15px !important;
   }
-  .mf-live-progress-track {
-    margin-bottom:28px;
+  .mf-live-progress-copy b,
+  .mf-live-entry:hover .mf-live-progress-copy b {
+    transform:none;
   }
-  .mf-live-progress-track i,
-  .mf-live-entry .mf-live-progress-track i {
-    transform:scaleX(1) !important;
-    transition:none !important;
+  .mf-live-progress-track,
+  .mf-live-entry:hover .mf-live-progress-track {
+    height:1px;
+    margin-bottom:32px;
+    box-shadow:none;
+  }
+  .mf-live-entry[style*="100%"]:hover .mf-live-progress-track::after {
+    content:none;
+    animation:none;
   }
 }
 
@@ -12926,9 +12950,13 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
   .mf-heresy-trigger,
   .mf-heresy-line,
   .mf-heresy-reveal,
-  .mf-live-date,
-  .mf-live-detail,
-  .mf-live-progress-track i {
+  .mf-live-entry,
+  .mf-live-entry h3,
+  .mf-live-progress-copy b,
+  .mf-live-progress-track {
     transition-duration:.01ms !important;
+  }
+  .mf-live-progress-track::after {
+    animation:none !important;
   }
 }

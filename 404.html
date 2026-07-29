@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Page Not Found — Marian Fusek</title>
+  <link rel="icon" type="image/png" href="favicon/favicon.png">
+  <style>
+    @font-face{font-family:"Geist";src:url("./fonts/Geist-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+    @font-face{font-family:"Geist";src:url("./fonts/Geist-SemiBold.woff2") format("woff2");font-weight:650;font-style:normal;font-display:swap}
+    @font-face{font-family:"Geist Mono";src:url("./fonts/GeistMono-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+    :root{--bg:#050505;--fg:#f4f4f4;--muted:rgba(244,244,244,.48);--ease:cubic-bezier(.16,1,.3,1)}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--fg);overflow:hidden}
+    body{font-family:"Geist",Arial,sans-serif;-webkit-font-smoothing:antialiased;user-select:none}
+    .error-page{position:fixed;inset:0;width:100%;height:100%;isolation:isolate;overflow:hidden;background:#050505}
+    .error-grid{position:absolute;inset:0;z-index:-3;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:clamp(72px,8vw,150px) clamp(72px,8vw,150px);opacity:.42}
+    .error-noise{position:absolute;inset:-40%;z-index:-2;pointer-events:none;opacity:.13;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E");animation:noiseShift .18s steps(2) infinite}
+    @keyframes noiseShift{0%{transform:translate3d(-1%,1%,0)}25%{transform:translate3d(1%,-1%,0)}50%{transform:translate3d(.5%,1%,0)}75%{transform:translate3d(-.5%,-1%,0)}100%{transform:translate3d(-1%,1%,0)}}
+    .error-ascii{position:absolute;z-index:1;font:400 clamp(7px,.58vw,10px)/1.1 "Geist Mono",monospace;letter-spacing:.08em;color:rgba(255,255,255,.32);text-transform:uppercase;pointer-events:none;white-space:nowrap;transition:opacity .45s ease,transform .75s var(--ease)}
+    .error-shell{position:absolute;inset:0;z-index:2;width:100%;height:100%;padding:0}
+    .error-code{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:min(60vw,1180px);min-width:0;line-height:.78;isolation:isolate;overflow:visible}
+    .error-code-source,.error-code-clone{display:block;font-family:"Geist",Arial,sans-serif;font-size:clamp(120px,25vw,480px);font-weight:650;line-height:.78;letter-spacing:-.085em;white-space:nowrap;color:#f4f4f4;-webkit-text-fill-color:#f4f4f4;transform-origin:center center}
+    .error-code-grid{--x:-9999px;--y:-9999px;--radius:clamp(140px,19vw,320px);position:absolute;inset:-16% -8%;z-index:3;opacity:0;pointer-events:none;overflow:visible;-webkit-mask-image:radial-gradient(circle var(--radius) at var(--x) var(--y),#000 0%,rgba(0,0,0,.98) 30%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.28) 82%,transparent 100%);mask-image:radial-gradient(circle var(--radius) at var(--x) var(--y),#000 0%,rgba(0,0,0,.98) 30%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.28) 82%,transparent 100%);transition:opacity .28s var(--ease)}
+    .error-code-grid.is-active{opacity:1}
+    .error-code-cell{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:visible;will-change:transform}
+    .error-code-clone{text-shadow:-3px 0 rgba(255,40,70,.9),3px 0 rgba(20,200,255,.86);filter:saturate(1.2)}
+    .error-button{position:absolute;left:50%;top:calc(50% + clamp(120px,13vw,225px));transform:translateX(-50%);display:inline-flex;align-items:center;justify-content:center;margin-top:0;padding:15px 23px;border:1px solid rgba(255,255,255,.44);background:transparent;color:#fff;font:400 10px/1 "Geist Mono",monospace;letter-spacing:.13em;text-decoration:none;transition:background .38s var(--ease),color .38s var(--ease),transform .5s var(--ease)}
+    .error-button:hover{background:#f4f4f4;color:#050505;transform:translate(-50%,-2px)}
+    .cursor{position:fixed;left:0;top:0;z-index:1000;width:6px;height:6px;pointer-events:none;opacity:0;transform:translate3d(-100px,-100px,0);transition:opacity .16s ease}
+    .cursor.is-visible{opacity:1}
+    .cursor-dot{position:absolute;left:0;top:0;width:6px;height:6px;border-radius:50%;background:#fff;transform:translate(-50%,-50%)}
+    .cursor-trail{position:fixed;z-index:999;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.48);pointer-events:none;transform:translate(-50%,-50%);animation:trailFade 1.45s cubic-bezier(.22,.61,.36,1) forwards}
+    @keyframes trailFade{0%{opacity:.48;filter:blur(0)}100%{opacity:0;filter:blur(2px);transform:translate(-50%,-50%) scale(.3)}}
+    .cursor-ring{position:fixed;z-index:1001;width:10px;height:10px;border:.45px solid rgba(255,255,255,.82);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) scale(.32);animation:ring .66s cubic-bezier(.2,.72,.12,1) forwards}
+    @keyframes ring{0%{opacity:.72;transform:translate(-50%,-50%) scale(.32)}100%{opacity:0;transform:translate(-50%,-50%) scale(4)}}
+    @media (pointer:fine){body,body *{cursor:none!important}}
+    @media (max-width:720px){.error-shell{padding:6vh 18px}.error-code{width:100%}.error-code-source,.error-code-clone{font-size:clamp(92px,29vw,190px)}.error-button{top:calc(50% + 110px)}.error-code-grid{inset:-22% -10%}}
+    @media (hover:none),(pointer:coarse),(prefers-reduced-motion:reduce){.error-code-grid{display:none}.error-noise{animation:none}.cursor,.cursor-trail,.cursor-ring{display:none!important}}
+  </style>
+</head>
+<body>
+  <main class="error-page" aria-labelledby="errorCode">
+    <div class="error-grid" aria-hidden="true"></div>
+    <div class="error-noise" aria-hidden="true"></div>
+    <div id="asciiField" aria-hidden="true"></div>
+    <section class="error-shell">
+      <div class="error-code" id="errorCodeHost">
+        <span class="error-code-source" id="errorCode">4oh4</span>
+      </div>
+      <a class="error-button" href="https://marianfusek.com/">RECALIBRATE</a>
+    </section>
+  </main>
+  <div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-dot"></span></div>
+  <script>
+    (()=>{
+      const field=document.getElementById('asciiField');
+      const phrases=['SIGNAL_LOST()','MF / NULL','PATH ≠ FOUND','RETRY? Y/N','ERR_404','LOST_IN_TIME','1 3 5 7 ?','// RECALIBRATING','NO ROUTE','RETURN_HOME()'];
+      const nodes=phrases.map((text,index)=>{
+        const node=document.createElement('span');
+        node.className='error-ascii';node.textContent=text;field.appendChild(node);
+        const place=()=>{node.style.left=`${4+Math.random()*88}%`;node.style.top=`${5+Math.random()*88}%`;node.style.opacity=String(.15+Math.random()*.32);node.style.transform=`translate3d(${Math.round(Math.random()*18-9)}px,${Math.round(Math.random()*18-9)}px,0)`};
+        place();setTimeout(()=>setInterval(()=>{node.textContent=phrases[Math.floor(Math.random()*phrases.length)];place()},2600+index*170),index*140);return node;
+      });
+
+      const host=document.getElementById('errorCodeHost');
+      const source=document.getElementById('errorCode');
+      if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+        const overlay=document.createElement('span');overlay.className='error-code-grid';overlay.setAttribute('aria-hidden','true');host.appendChild(overlay);
+        const columns=10,rows=5,cells=[];
+        for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
+          const cell=document.createElement('span');cell.className='error-code-cell';
+          cell.style.clipPath=`inset(${row/rows*100}% ${(columns-column-1)/columns*100}% ${(rows-row-1)/rows*100}% ${column/columns*100}%)`;
+          const clone=source.cloneNode(true);clone.removeAttribute('id');clone.className='error-code-clone';cell.appendChild(clone);overlay.appendChild(cell);
+          cells.push({cell,x:(column+.5)/columns,y:(row+.5)/rows,row,column,tx:0,ty:0,cx:0,cy:0});
+        }
+        let px=-9999,py=-9999,lx=px,ly=py,vx=0,vy=0,inside=false,raf=0;
+        const run=()=>{raf=0;const rect=overlay.getBoundingClientRect();const radius=Math.max(140,Math.min(rect.width*.24,320));overlay.style.setProperty('--radius',`${radius}px`);cells.forEach(item=>{const cx=item.x*rect.width,cy=item.y*rect.height,dx=cx-px,dy=cy-py,d=Math.hypot(dx,dy)||1,inf=inside?Math.pow(Math.max(0,1-d/radius),1.6):0,push=24*inf;item.tx=dx/d*push+vx*.14*inf+(item.row%2?1:-1)*2.7*inf;item.ty=dy/d*push*.64+vy*.1*inf+(item.column%2?1:-1)*1.8*inf;item.cx+=(item.tx-item.cx)*.23;item.cy+=(item.ty-item.cy)*.23;item.cell.style.transform=`translate3d(${item.cx.toFixed(2)}px,${item.cy.toFixed(2)}px,0)`});vx*=.76;vy*=.76;if(inside||cells.some(i=>Math.abs(i.tx-i.cx)>.08||Math.abs(i.ty-i.cy)>.08))raf=requestAnimationFrame(run)};
+        const queue=()=>{if(!raf)raf=requestAnimationFrame(run)};
+        host.addEventListener('pointerenter',e=>{const r=overlay.getBoundingClientRect();px=e.clientX-r.left;py=e.clientY-r.top;lx=px;ly=py;inside=true;overlay.style.setProperty('--x',`${px}px`);overlay.style.setProperty('--y',`${py}px`);overlay.classList.add('is-active');queue()},{passive:true});
+        host.addEventListener('pointermove',e=>{const r=overlay.getBoundingClientRect(),nx=e.clientX-r.left,ny=e.clientY-r.top;vx=nx-lx;vy=ny-ly;px=nx;py=ny;lx=nx;ly=ny;overlay.style.setProperty('--x',`${px}px`);overlay.style.setProperty('--y',`${py}px`);queue()},{passive:true});
+        host.addEventListener('pointerleave',()=>{inside=false;vx=vy=0;overlay.classList.remove('is-active');queue()},{passive:true});
+      }
+
+      const cursor=document.getElementById('cursor');
+      if(matchMedia('(pointer:fine)').matches){
+        let x=-100,y=-100,lx=x,ly=y,last=0,visible=false;
+        addEventListener('pointermove',e=>{x=e.clientX;y=e.clientY;cursor.style.transform=`translate3d(${x}px,${y}px,0)`;visible=true;cursor.classList.add('is-visible');const now=performance.now(),d=Math.hypot(x-lx,y-ly);if(now-last>20&&d>3){const trail=document.createElement('span');trail.className='cursor-trail';trail.style.left=`${x}px`;trail.style.top=`${y}px`;document.body.appendChild(trail);setTimeout(()=>trail.remove(),1500);lx=x;ly=y;last=now}},{passive:true});
+        addEventListener('pointerdown',e=>{if(e.button!==0||!visible)return;const ring=document.createElement('span');ring.className='cursor-ring';ring.style.left=`${e.clientX}px`;ring.style.top=`${e.clientY}px`;document.body.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true})},{passive:true});
+        addEventListener('pointerleave',()=>cursor.classList.remove('is-visible'));
+      }
+    })();
+  </script>
+</body>
+</html>

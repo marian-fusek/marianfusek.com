@@ -1,0 +1,8 @@
+/* TEAM */
+Creative Director, Designer & Mindset Coach: Marian Fusek
+Website: https://marianfusek.com/
+Contact: email@marianfusek.com
+
+/* SITE */
+Language: English
+Standards: HTML5, CSS3, JavaScript

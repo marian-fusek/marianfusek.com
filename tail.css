@@ -1,0 +1,580 @@
+  letter-spacing:-.022em !important;
+}
+.mf-guidance-overlay.is-mindset .mf-guidance-review-parts {
+  order:-1 !important;
+  margin:0 0 clamp(24px,3.2vh,38px) !important;
+}
+.mf-guidance-overlay.is-mindset .mf-guidance-part-panels { order:0 !important; }
+.mf-guidance-overlay.is-mindset .mf-guidance-copy-shell { display:flex !important;flex-direction:column !important; }
+.mf-guidance-overlay.is-mindset .is-guidance-next-nav span:nth-child(2) { white-space:nowrap; }
+
+/* Full-slide links between the two Guidance sections. */
+.mf-guidance-review.is-guidance-next {
+  min-height:100vh !important;
+  min-height:100dvh !important;
+  display:flex !important;
+  align-items:flex-end !important;
+  padding:8vh 4vw 8vh 50vw !important;
+  scroll-snap-align:start !important;
+  scroll-snap-stop:always !important;
+}
+.mf-leadership-guidance-next {
+  width:100vw !important;
+  margin:clamp(90px,14vh,180px) 0 0 !important;
+  padding:0 4vw 5vh 50vw !important;
+}
+.mf-guidance-next-link {
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  gap:.16em;
+  width:100%;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+  font-family:"Geist",Arial,sans-serif;
+  font-size:clamp(48px,7.25vw,128px);
+  line-height:.84;
+  letter-spacing:-.072em;
+  font-weight:650;
+  text-align:left;
+  cursor:pointer;
+  overflow:visible;
+}
+.mf-guidance-next-label { display:inline-flex;flex-wrap:nowrap;white-space:nowrap; }
+.mf-guidance-next-char,
+.mf-guidance-next-arrow {
+  display:inline-block;
+  opacity:0;
+  transform:translate3d(0,1.05em,0);
+  filter:blur(7px);
+  transition:opacity .48s ease,transform .9s var(--ease),filter .7s var(--ease);
+}
+.mf-guidance-next-link.is-in-view .mf-guidance-next-char {
+  opacity:1;
+  transform:none;
+  filter:none;
+  transition-delay:calc(var(--char) * 19ms);
+}
+.mf-guidance-next-link.is-in-view .mf-guidance-next-arrow {
+  opacity:1;
+  transform:none;
+  filter:none;
+  transition-delay:.34s;
+}
+.mf-guidance-next-arrow { position:relative;letter-spacing:0; }
+.mf-guidance-next-arrow::before,
+.mf-guidance-next-arrow::after {
+  content:"→";
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
+}
+.mf-guidance-next-link:hover .mf-guidance-next-arrow { animation:mfGuidanceArrowBase .42s steps(2,end) infinite; }
+.mf-guidance-next-link:hover .mf-guidance-next-arrow::before {
+  color:#ff4e4e;
+  -webkit-text-fill-color:#ff4e4e;
+  opacity:.58;
+  animation:mfGuidanceArrowGlitchA .42s steps(2,end) infinite;
+}
+.mf-guidance-next-link:hover .mf-guidance-next-arrow::after {
+  color:#70c9ff;
+  -webkit-text-fill-color:#70c9ff;
+  opacity:.58;
+  animation:mfGuidanceArrowGlitchB .42s steps(2,end) infinite;
+}
+@keyframes mfGuidanceArrowBase { 0%,100%{transform:translate(0,0)} 45%{transform:translate(2px,-1px)} 65%{transform:translate(-1px,1px)} }
+@keyframes mfGuidanceArrowGlitchA { 0%,100%{transform:translate(-2px,0);clip-path:inset(0 0 55% 0)} 50%{transform:translate(3px,-1px);clip-path:inset(42% 0 0 0)} }
+@keyframes mfGuidanceArrowGlitchB { 0%,100%{transform:translate(2px,1px);clip-path:inset(55% 0 0 0)} 50%{transform:translate(-3px,0);clip-path:inset(0 0 48% 0)} }
+
+/* Leadership copy hierarchy and additions. */
+.mf-guidance-overlay.is-leadership .mf-leadership-projects {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:12px;
+  margin:clamp(38px,5vh,62px) 0 clamp(62px,8vh,98px) !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-projects small {
+  color:rgba(255,255,255,.46) !important;
+  -webkit-text-fill-color:rgba(255,255,255,.46) !important;
+  font:600 11px/1 "Geist",Arial,sans-serif !important;
+  letter-spacing:.11em !important;
+  text-transform:uppercase !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-projects p { margin:0 !important; }
+.mf-guidance-overlay.is-leadership .mf-leadership-secondary-xp {
+  margin-top:0 !important;
+  margin-bottom:30px !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-stats strong {
+  display:flex !important;
+  align-items:baseline !important;
+  gap:.18em !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-stats strong span { display:inline-block; }
+
+/* Active reviewer enlarges by 50% while every portrait remains top-aligned. */
+.mf-guidance-overlay.is-leadership .mf-leadership-people-strip {
+  align-items:flex-start !important;
+  margin-bottom:clamp(15px,2vh,24px) !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-person-card {
+  flex-basis:clamp(72px,6vw,94px) !important;
+  width:clamp(72px,6vw,94px) !important;
+  transform-origin:top left !important;
+  transition:flex-basis .72s var(--ease),width .72s var(--ease),opacity .48s var(--ease),transform .72s var(--ease) !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-person-card.is-active {
+  flex-basis:clamp(108px,9vw,141px) !important;
+  width:clamp(108px,9vw,141px) !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-review-head { margin-bottom:20px !important; }
+.mf-guidance-overlay.is-leadership .mf-leadership-review-meta { margin-top:14px !important; }
+.mf-guidance-overlay.is-leadership .mf-leadership-review-meta span:first-child {
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-review-meta span:last-child {
+  color:rgba(255,255,255,.48) !important;
+  -webkit-text-fill-color:rgba(255,255,255,.48) !important;
+}
+.mf-guidance-overlay.is-light .mf-leadership-review-meta span:first-child {
+  color:#171717 !important;
+  -webkit-text-fill-color:#171717 !important;
+}
+.mf-guidance-overlay.is-light .mf-leadership-review-meta span:last-child {
+  color:rgba(23,23,23,.48) !important;
+  -webkit-text-fill-color:rgba(23,23,23,.48) !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-review-body { margin-top:0 !important; }
+
+/* Leadership-only lower viewport blur. Homepage blur remains unchanged. */
+.mf-guidance-overlay.is-leadership::after {
+  content:"";
+  position:fixed;
+  z-index:450;
+  left:0;
+  right:0;
+  bottom:0;
+  height:14vh;
+  pointer-events:none;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 0%,transparent 100%);
+  opacity:1;
+}
+
+/* Side Quests: active title group starts with its number instead of climbing above it. */
+.mf-sidequest-panel.is-active .mf-sidequest-trigger {
+  align-items:start !important;
+  padding-top:clamp(16px,2vh,24px) !important;
+  padding-bottom:10px !important;
+}
+.mf-sidequest-panel.is-active .mf-sidequest-number { padding-top:.42em; }
+.mf-sidequest-panel.is-active .mf-sidequest-heading { transform:none !important; }
+
+/* Refined desktop pointer: 1px pulse, true zero-opacity finish and a tiny trail. */
+.mf-global-cursor {
+  position:fixed;
+  z-index:20000;
+  left:0;
+  top:0;
+  width:4px;
+  height:4px;
+  margin:-2px 0 0 -2px;
+  pointer-events:none;
+  opacity:0;
+  transform:translate3d(-100px,-100px,0);
+  transition:opacity .18s linear;
+  will-change:transform;
+}
+.mf-global-cursor.is-visible { opacity:1; }
+.mf-global-cursor-dot {
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 5px rgba(255,255,255,.22);
+}
+.mf-global-cursor-pulse {
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:10px;
+  height:10px;
+  margin:-5px;
+  border:1px solid rgba(255,255,255,.48);
+  border-radius:50%;
+  animation:mfCursorPulse 1.25s cubic-bezier(.16,1,.3,1) infinite;
+}
+@keyframes mfCursorPulse {
+  0% { transform:scale(.25);opacity:.48; }
+  82% { opacity:.08; }
+  100% { transform:scale(3.4);opacity:0; }
+}
+.mf-global-cursor-trail {
+  position:fixed;
+  z-index:19999;
+  width:2px;
+  height:2px;
+  margin:-1px 0 0 -1px;
+  border-radius:50%;
+  background:rgba(255,255,255,.22);
+  pointer-events:none;
+  animation:mfCursorTrail .42s ease-out forwards;
+}
+@keyframes mfCursorTrail { to { opacity:0;transform:scale(.2); } }
+@media (pointer:fine) {
+  body.mf-custom-cursor:not(.project-open):not(.art-open),
+  body.mf-custom-cursor:not(.project-open):not(.art-open) a,
+  body.mf-custom-cursor:not(.project-open):not(.art-open) button { cursor:none !important; }
+}
+
+@media (max-width:1250px) {
+  .mf-guidance-overlay.is-leadership .mf-leadership-stats strong {
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:0 !important;
+  }
+  .mf-guidance-overlay.is-leadership .mf-leadership-stats strong span { display:block !important; }
+}
+
+@media (max-width:1024px) {
+  .mf-guidance-theme-toggle {
+    position:absolute;
+    top:27vh;
+    left:18px;
+    width:calc(100% - 36px);
+  }
+  .mf-guidance-review.is-guidance-next,
+  .mf-leadership-guidance-next {
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+  .mf-guidance-next-link { font-size:clamp(42px,14vw,78px); }
+  .mf-guidance-overlay.is-leadership .mf-leadership-person-card.is-active {
+    flex-basis:108px !important;
+    width:108px !important;
+  }
+  .mf-guidance-overlay.is-mindset .mf-guidance-review-universal .mf-guidance-single-copy,
+  .mf-guidance-overlay.is-mindset .mf-guidance-review-universal .mf-guidance-part-panel {
+    font-size:clamp(18px,5.1vw,26px) !important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .mf-guidance-overlay.is-mindset .mf-guidance-review,
+  .mf-guidance-overlay.is-leadership .mf-guidance-scroll-reveal,
+  .mf-guidance-next-char,
+  .mf-guidance-next-arrow,
+  .mf-guidance-overlay [data-theme-node] { transition-duration:.01ms !important;transition-delay:0ms !important; }
+  .mf-global-cursor-pulse { animation:none !important; }
+}
+
+/* V83 light-mode specificity guard against older Guidance white locks. */
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-overlay-aside h2,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-overlay-aside h2 *,
+.mf-guidance-overlay.is-light.is-leadership .mf-guidance-overlay-aside h2,
+.mf-guidance-overlay.is-light.is-leadership .mf-guidance-overlay-aside h2 *,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-person-name,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-person-name *,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-person-role,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-page h3,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-page h4,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-page p,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-page li,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-review-meta span:first-child,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-stats strong,
+.mf-guidance-overlay.is-light.is-leadership .mf-weight-link,
+.mf-guidance-overlay.is-light.is-leadership .mf-weight-link span,
+.mf-guidance-overlay.is-light .mf-guidance-next-link,
+.mf-guidance-overlay.is-light .mf-guidance-next-link * {
+  color:#171717 !important;
+  -webkit-text-fill-color:#171717 !important;
+}
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-review-universal .mf-guidance-single-copy,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-review-universal .mf-guidance-single-copy *,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-review-universal .mf-guidance-part-panel,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-review-universal .mf-guidance-part-panel * {
+  color:rgba(23,23,23,.67) !important;
+  -webkit-text-fill-color:rgba(23,23,23,.67) !important;
+}
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-person-company,
+.mf-guidance-overlay.is-light.is-mindset .mf-guidance-person-country,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-review-meta span:last-child,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-copy-block h3,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-stats small,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-projects small,
+.mf-guidance-overlay.is-light.is-leadership .mf-leadership-graduates-photo figcaption {
+  color:rgba(23,23,23,.46) !important;
+  -webkit-text-fill-color:rgba(23,23,23,.46) !important;
+}
+.mf-guidance-theme-toggle { text-transform:none !important; }
+@media (max-width:1024px) {
+  .mf-guidance-theme-toggle { top:clamp(235px,32vh,310px) !important; }
+}
+
+
+/* ============================================================
+   V88 — focused restoration and repairs
+   ============================================================ */
+
+/* Loader percentages use Geist, never the mono face. */
+.mf-loader > .mf-loader-progress,
+.mf-art-runtime-loader .mf-loader-progress,
+.mf-project-video-loader-percent,
+.mf-carousel-runtime-loader-percent {
+  font-family:"Geist",Arial,sans-serif !important;
+}
+
+/* The removed reading-mode UI and all old lens markup stay inert. */
+.mf-guidance-theme-toggle,
+.mf-hero-name-lens { display:none !important; }
+.mf-guidance-overlay,
+.mf-guidance-overlay .mf-guidance-overlay-aside,
+.mf-guidance-overlay .mf-guidance-reviews,
+.mf-guidance-overlay .mf-leadership-page {
+  background-color:#050505 !important;
+  color:#fff !important;
+}
+
+/* Hero-name grid deformation: RGB edges and a soft radial boundary. */
+.mf-hero-name { isolation:isolate; }
+.mf-hero-grid-distortion {
+  --mf-grid-radius:clamp(150px,20vw,310px);
+  position:absolute;
+  inset:0;
+  z-index:3;
+  pointer-events:none;
+  opacity:0;
+  overflow:visible;
+  -webkit-mask-image:radial-gradient(circle var(--mf-grid-radius) at var(--mf-grid-x,-999px) var(--mf-grid-y,-999px),#000 0%,rgba(0,0,0,.98) 30%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.28) 82%,transparent 100%);
+  mask-image:radial-gradient(circle var(--mf-grid-radius) at var(--mf-grid-x,-999px) var(--mf-grid-y,-999px),#000 0%,rgba(0,0,0,.98) 30%,rgba(0,0,0,.72) 58%,rgba(0,0,0,.28) 82%,transparent 100%);
+  transition:opacity .28s cubic-bezier(.16,1,.3,1);
+  will-change:opacity,-webkit-mask-image,mask-image;
+}
+.mf-hero-grid-distortion.is-active { opacity:1; }
+.mf-hero-grid-cell {
+  position:absolute;
+  inset:0;
+  display:block;
+  will-change:transform;
+}
+.mf-hero-grid-clone {
+  display:inline-block;
+  width:auto;
+  transform-origin:left bottom;
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  text-shadow:-2.4px 0 0 rgba(255,51,75,.82),2.4px 0 0 rgba(38,198,255,.8) !important;
+  filter:saturate(1.14);
+}
+.mf-hero-grid-clone .nc {
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  opacity:1 !important;
+  filter:none !important;
+  text-shadow:inherit !important;
+}
+@media (hover:none),(pointer:coarse),(prefers-reduced-motion:reduce) {
+  .mf-hero-grid-distortion { display:none !important; }
+}
+
+/* Desktop cursor: fixed dot, pulse only on press, and a genuinely visible micro trail. */
+.mf-global-cursor-pulse {
+  opacity:0;
+  animation:none !important;
+  border-width:1px !important;
+}
+.mf-global-cursor.is-clicking .mf-global-cursor-pulse {
+  animation:mfCursorClickPulse .55s cubic-bezier(.16,1,.3,1) both !important;
+}
+@keyframes mfCursorClickPulse {
+  0% { transform:scale(.28);opacity:.58; }
+  72% { opacity:.14; }
+  100% { transform:scale(3.5);opacity:0; }
+}
+.mf-global-cursor-trail {
+  width:2.5px !important;
+  height:2.5px !important;
+  margin:-1.25px 0 0 -1.25px !important;
+  background:rgba(255,255,255,.42) !important;
+  box-shadow:0 0 5px rgba(255,255,255,.18);
+  transform:scale(var(--trail-scale,1));
+  animation:mfCursorTrailV88 .58s cubic-bezier(.16,1,.3,1) forwards !important;
+}
+@keyframes mfCursorTrailV88 {
+  0% { opacity:.72;transform:scale(var(--trail-scale,1)); }
+  100% { opacity:0;transform:scale(.12); }
+}
+
+/* Side Quests left copy fills the usable project-info column in the same style as project details. */
+.mf-project-shell.is-sidequests-project .mf-project-intro {
+  width:100% !important;
+  max-width:none !important;
+  margin:22px 0 0 !important;
+  color:rgba(255,255,255,.58) !important;
+  -webkit-text-fill-color:rgba(255,255,255,.58) !important;
+  font-family:"Geist Mono",monospace !important;
+  font-size:10px !important;
+  line-height:1.5 !important;
+  letter-spacing:.025em !important;
+  box-sizing:border-box !important;
+}
+
+/* Collapsed and expanded Side Quest headers are independent states. */
+.mf-sidequest-panel:not(.is-active) {
+  grid-template-rows:minmax(0,1fr) 0fr !important;
+}
+.mf-sidequest-panel:not(.is-active) .mf-sidequest-trigger {
+  height:100% !important;
+  min-height:0 !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  align-items:center !important;
+}
+.mf-sidequest-panel:not(.is-active) .mf-sidequest-heading {
+  justify-content:center !important;
+  transform:none;
+}
+.mf-sidequest-panel:not(.is-active):hover .mf-sidequest-heading {
+  transform:translateX(9px) !important;
+}
+.mf-sidequest-panel:not(.is-active) .mf-sidequest-number { padding-top:0 !important; }
+.mf-sidequest-panel:not(.is-active) .mf-sidequest-content {
+  height:0 !important;
+  min-height:0 !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  overflow:hidden !important;
+}
+.mf-sidequest-panel.is-active {
+  grid-template-rows:auto minmax(0,1fr) !important;
+}
+.mf-sidequest-panel.is-active .mf-sidequest-trigger {
+  min-height:clamp(112px,15vh,156px) !important;
+  padding-top:clamp(15px,2vh,23px) !important;
+  padding-bottom:clamp(28px,4vh,48px) !important;
+  align-items:start !important;
+}
+.mf-sidequest-panel.is-active .mf-sidequest-heading {
+  transform:translateY(-4px) !important;
+  gap:10px !important;
+}
+.mf-sidequest-panel.is-active .mf-sidequest-number { padding-top:.1em !important; }
+.mf-sidequest-panel.is-active .mf-sidequest-subtitle {
+  color:rgba(255,255,255,.46) !important;
+  -webkit-text-fill-color:rgba(255,255,255,.46) !important;
+  opacity:1 !important;
+  transform:none !important;
+}
+
+/* Team Leadership returns to one full-width visual page. */
+@media (min-width:1025px) {
+  .mf-guidance-overlay.is-leadership .mf-leadership-page {
+    padding-top:0 !important;
+  }
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-photo {
+    display:block !important;
+    width:100vw !important;
+    max-width:none !important;
+    height:calc(100dvh - 58px) !important;
+    min-height:620px !important;
+    margin:0 0 clamp(76px,10vh,132px) !important;
+    padding:0 !important;
+    overflow:hidden !important;
+  }
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-photo img {
+    width:100% !important;
+    height:100% !important;
+    object-fit:cover !important;
+    object-position:center !important;
+  }
+}
+@media (max-width:1024px) {
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-photo {
+    width:100vw !important;
+    height:78svh !important;
+    margin:0 0 72px !important;
+  }
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-photo img {
+    width:100% !important;
+    height:100% !important;
+    aspect-ratio:auto !important;
+    object-fit:cover !important;
+  }
+}
+
+/* Give the expanded review a little breathing room below the portrait carousel. */
+.mf-guidance-overlay.is-leadership .mf-leadership-people-strip {
+  margin-bottom:clamp(38px,5vh,62px) !important;
+}
+
+/* Cross-links must remain visible even if an intersection callback arrives late. */
+.mf-guidance-review.is-guidance-next.is-in-view .mf-guidance-next-char,
+.mf-guidance-review.is-guidance-next.is-in-view .mf-guidance-next-arrow,
+.mf-leadership-guidance-next.is-in-view .mf-guidance-next-char,
+.mf-leadership-guidance-next.is-in-view .mf-guidance-next-arrow,
+.mf-guidance-next-link.is-in-view .mf-guidance-next-char,
+.mf-guidance-next-link.is-in-view .mf-guidance-next-arrow {
+  opacity:1 !important;
+  transform:none !important;
+  filter:none !important;
+}
+.mf-guidance-review.is-guidance-next .mf-guidance-next-link,
+.mf-leadership-guidance-next .mf-guidance-next-link {
+  min-height:.9em;
+  visibility:visible !important;
+}
+
+/* The navigation item is not useful while either Guidance detail is open. */
+body.mf-guidance-open .mf-nav-guidance { display:none !important; }
+
+
+/* ============================================================
+   V91 — Side Quests header alignment + image colour previews
+   ============================================================ */
+
+/* Expanded state: move only the number down and only the title left. */
+.mf-project-slide-sidequests .mf-sidequest-panel.is-active .mf-sidequest-number {
+  position:relative !important;
+  top:3px !important;
+}
+.mf-project-slide-sidequests .mf-sidequest-panel.is-active .mf-sidequest-title {
+  position:relative !important;
+  left:-3px !important;
+}
+
+/* Collapsed state: the number keys off the top of the two-line heading,
+   while the heading remains vertically centred as one unit. */
+.mf-project-slide-sidequests .mf-sidequest-panel:not(.is-active) .mf-sidequest-heading {
+  gap:10px !important;
+}
+.mf-project-slide-sidequests .mf-sidequest-panel:not(.is-active) .mf-sidequest-number {
+  position:relative !important;
+  top:-11px !important;
+}
+
+/* Side Quest images remain monochrome until directly explored. */
+.mf-project-slide-sidequests .mf-sidequest-image img {
+  filter:grayscale(1) contrast(1.12) brightness(.76) !important;
+}
+.mf-project-slide-sidequests .mf-sidequest-image:hover img,
+.mf-project-slide-sidequests .mf-sidequest-image:focus-within img {
+  filter:none !important;
+}
+
+@media (max-width:620px) {
+  .mf-project-slide-sidequests .mf-sidequest-panel:not(.is-active) .mf-sidequest-heading {
+    gap:7px !important;
+  }
+  .mf-project-slide-sidequests .mf-sidequest-panel:not(.is-active) .mf-sidequest-number {
+    top:-8px !important;
+  }
+}

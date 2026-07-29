@@ -1,5 +1,5 @@
-V126
-- Hero name now uses optical glyph bounds on desktop instead of the font advance box.
-- The established visible right gap is mirrored on the M, keeping both ends visually balanced.
-- Existing hero reveal, character effects and RGB grid deformation are preserved.
+V127
+- Restored the proven desktop right-side hero anchor so the K cannot overflow.
+- The name now scales down from that fixed anchor until the painted M has the matching 30px optical gap.
+- Existing hero reveal, character effects and RGB grid deformation remain unchanged.
 - Mobile keeps the existing safe 8px box-fit behavior.

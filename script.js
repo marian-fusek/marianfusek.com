@@ -1429,9 +1429,9 @@ if(indexExtra){
 
   window._mfOpenProject=openProject;
 })();
-/* HERO NAME — optical fit. The final K keeps its established visual gap;
-   the painted edge of the M now receives that same gap instead of fitting
-   the font's invisible advance box. This changes positioning only. */
+/* HERO NAME — anchor-preserving optical fit. The right side keeps the
+   proven desktop anchor. Only the scale is reduced enough for the painted
+   edge of the M to receive the same 30px visual gap. Animations are untouched. */
 let mfHeroFitFrame=0;
 function scaleHeroName(){
   const hero=document.getElementById("heroName");
@@ -1454,33 +1454,26 @@ function scaleHeroName(){
     scale=(viewport-pad*2)/layoutWidth;
     offset=pad;
   }else{
+    const visualPad=30;
+    const rightAnchor=viewport-visualPad;
     const computed=getComputedStyle(wrap);
     const canvas=scaleHeroName.canvas||(scaleHeroName.canvas=document.createElement("canvas"));
     const context=canvas.getContext("2d");
-    const text=(wrap.textContent||"MARIAN FUSEK").replace(/\u00a0/g," ");
-    let visualLeft=0;
-    let visualRight=layoutWidth;
-    let rightBearing=0;
+    let mInset=0;
 
     if(context){
       context.font=`${computed.fontStyle||"normal"} ${computed.fontWeight||"400"} ${computed.fontSize||"300px"} ${computed.fontFamily||"Geist, Arial, sans-serif"}`;
       if("fontKerning" in context)context.fontKerning=computed.fontKerning==="none"?"none":"normal";
-      const metrics=context.measureText(text);
-      const advance=Number.isFinite(metrics.width)?metrics.width:layoutWidth;
+      const metrics=context.measureText("M");
       const actualLeft=Number.isFinite(metrics.actualBoundingBoxLeft)?metrics.actualBoundingBoxLeft:0;
-      const actualRight=Number.isFinite(metrics.actualBoundingBoxRight)?metrics.actualBoundingBoxRight:advance;
-      visualLeft=-actualLeft;
-      rightBearing=advance-actualRight;
-      visualRight=layoutWidth-rightBearing;
+      mInset=Math.max(0,-actualLeft);
     }
 
-    const visibleWidth=Math.max(1,visualRight-visualLeft);
-    /* Preserve the right-side spacing from the previous fit, then mirror it
-       optically on the left. The clamp is only a safety net for bad metrics. */
-    const legacyScale=(viewport+22-30)/layoutWidth;
-    const opticalPad=Math.max(24,Math.min(64,30+rightBearing*legacyScale));
-    scale=(viewport-opticalPad*2)/visibleWidth;
-    offset=opticalPad-visualLeft*scale;
+    /* Keep the original right endpoint fixed. Shrinking around that anchor
+       creates the matching left optical gap without risking K overflow. */
+    const visibleRun=Math.max(1,layoutWidth-mInset);
+    scale=(rightAnchor-visualPad)/visibleRun;
+    offset=rightAnchor-layoutWidth*scale;
   }
 
   wrap.style.transform=`translateX(${offset}px) scale(${scale})`;

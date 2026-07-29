@@ -13081,3 +13081,13 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
     margin-top:clamp(28px,5vh,72px) !important;
   }
 }
+
+
+/* ============================================================
+   V128 — hero role copy width
+   Keep the existing F-aligned position, but let the copy use the
+   full remaining viewport width so authored line breaks stay intact.
+   ============================================================ */
+@media (max-width:1024px) {
+  .mf-hero-info { max-width:none !important; }
+}

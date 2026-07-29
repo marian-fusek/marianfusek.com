@@ -1,4 +1,5 @@
-V127
+V128
+- Hero role copy keeps its existing position but now uses the full available width on smaller screens, preserving the intended authored line breaks.
 - Restored the proven desktop right-side hero anchor so the K cannot overflow.
 - The name now scales down from that fixed anchor until the painted M has the matching 30px optical gap.
 - Existing hero reveal, character effects and RGB grid deformation remain unchanged.

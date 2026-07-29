@@ -1488,9 +1488,12 @@ function scaleHeroName(){
     const fChar=hero.querySelector(".n-f");
     if(fChar){
       const fRect=fChar.getBoundingClientRect();
-      info.style.left=(fRect.left+20)+"px";
+      const textLeft=fRect.left+20;
+      const textRightGap=30;
+      info.style.left=textLeft+"px";
       info.style.right="auto";
-      info.style.width=Math.min(560,(window.innerWidth-fRect.left)*.55)+"px";
+      info.style.width=Math.max(280,window.innerWidth-textLeft-textRightGap)+"px";
+      info.style.maxWidth="none";
       info.style.top="22%";
       info.style.bottom="auto";
     }
@@ -1498,6 +1501,7 @@ function scaleHeroName(){
     info.style.left="";
     info.style.right="";
     info.style.width="";
+    info.style.maxWidth="";
     info.style.bottom="";
     info.style.top="";
   }

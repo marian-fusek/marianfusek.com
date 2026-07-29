@@ -1429,8 +1429,110 @@ if(indexExtra){
 
   window._mfOpenProject=openProject;
 })();
-function scaleHeroName(){const hero=document.getElementById("heroName"),wrap=document.getElementById("nameWrap"),info=document.querySelector(".mf-hero-info");if(!hero||!wrap)return;hero.style.fontSize="300px";wrap.style.transform="none";const width=wrap.scrollWidth,viewport=window.innerWidth,isMobile=viewport<=1024,leftPad=isMobile?8:-22,rightPad=isMobile?8:30,scale=(viewport-leftPad-rightPad)/width,offset=leftPad;wrap.style.transform=`translateX(${offset}px) scale(${scale})`;wrap.style.transformOrigin="left bottom";const lensWrap=document.getElementById("heroNameLensWrap");if(lensWrap){lensWrap.style.transform=wrap.style.transform;lensWrap.style.transformOrigin=wrap.style.transformOrigin;}if(info&&window.innerWidth>1000){const fChar=hero.querySelector(".n-f");if(fChar){const fRect=fChar.getBoundingClientRect();info.style.left=(fRect.left+20)+"px";info.style.right="auto";info.style.width=Math.min(560,(window.innerWidth-fRect.left)*.55)+"px";info.style.top="22%";info.style.bottom="auto"}}else if(info){info.style.left="";info.style.right="";info.style.width="";info.style.bottom="";info.style.top=""}}
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(scaleHeroName);else setTimeout(scaleHeroName,200);scaleHeroName();window.addEventListener("resize",scaleHeroName);
+/* HERO NAME — optical fit. The final K keeps its established visual gap;
+   the painted edge of the M now receives that same gap instead of fitting
+   the font's invisible advance box. This changes positioning only. */
+let mfHeroFitFrame=0;
+function scaleHeroName(){
+  const hero=document.getElementById("heroName");
+  const wrap=document.getElementById("nameWrap");
+  const info=document.querySelector(".mf-hero-info");
+  if(!hero||!wrap)return;
+
+  hero.style.fontSize="300px";
+  wrap.style.transform="none";
+  wrap.style.transformOrigin="left bottom";
+
+  const layoutWidth=wrap.getBoundingClientRect().width||wrap.scrollWidth;
+  const viewport=window.innerWidth;
+  const isMobile=viewport<=1024;
+  let scale=1;
+  let offset=0;
+
+  if(isMobile){
+    const pad=8;
+    scale=(viewport-pad*2)/layoutWidth;
+    offset=pad;
+  }else{
+    const computed=getComputedStyle(wrap);
+    const canvas=scaleHeroName.canvas||(scaleHeroName.canvas=document.createElement("canvas"));
+    const context=canvas.getContext("2d");
+    const text=(wrap.textContent||"MARIAN FUSEK").replace(/\u00a0/g," ");
+    let visualLeft=0;
+    let visualRight=layoutWidth;
+    let rightBearing=0;
+
+    if(context){
+      context.font=`${computed.fontStyle||"normal"} ${computed.fontWeight||"400"} ${computed.fontSize||"300px"} ${computed.fontFamily||"Geist, Arial, sans-serif"}`;
+      if("fontKerning" in context)context.fontKerning=computed.fontKerning==="none"?"none":"normal";
+      const metrics=context.measureText(text);
+      const advance=Number.isFinite(metrics.width)?metrics.width:layoutWidth;
+      const actualLeft=Number.isFinite(metrics.actualBoundingBoxLeft)?metrics.actualBoundingBoxLeft:0;
+      const actualRight=Number.isFinite(metrics.actualBoundingBoxRight)?metrics.actualBoundingBoxRight:advance;
+      visualLeft=-actualLeft;
+      rightBearing=advance-actualRight;
+      visualRight=layoutWidth-rightBearing;
+    }
+
+    const visibleWidth=Math.max(1,visualRight-visualLeft);
+    /* Preserve the right-side spacing from the previous fit, then mirror it
+       optically on the left. The clamp is only a safety net for bad metrics. */
+    const legacyScale=(viewport+22-30)/layoutWidth;
+    const opticalPad=Math.max(24,Math.min(64,30+rightBearing*legacyScale));
+    scale=(viewport-opticalPad*2)/visibleWidth;
+    offset=opticalPad-visualLeft*scale;
+  }
+
+  wrap.style.transform=`translateX(${offset}px) scale(${scale})`;
+  const lensWrap=document.getElementById("heroNameLensWrap");
+  if(lensWrap){
+    lensWrap.style.transform=wrap.style.transform;
+    lensWrap.style.transformOrigin=wrap.style.transformOrigin;
+  }
+  window.dispatchEvent(new CustomEvent("mf:hero-fit"));
+
+  if(info&&window.innerWidth>1000){
+    const fChar=hero.querySelector(".n-f");
+    if(fChar){
+      const fRect=fChar.getBoundingClientRect();
+      info.style.left=(fRect.left+20)+"px";
+      info.style.right="auto";
+      info.style.width=Math.min(560,(window.innerWidth-fRect.left)*.55)+"px";
+      info.style.top="22%";
+      info.style.bottom="auto";
+    }
+  }else if(info){
+    info.style.left="";
+    info.style.right="";
+    info.style.width="";
+    info.style.bottom="";
+    info.style.top="";
+  }
+}
+function queueHeroNameFit(){
+  cancelAnimationFrame(mfHeroFitFrame);
+  mfHeroFitFrame=requestAnimationFrame(scaleHeroName);
+}
+(function initHeroNameFit(){
+  const hero=document.getElementById("heroName");
+  if(!hero)return;
+  hero.style.visibility="hidden";
+  let revealed=false;
+  const fitAndReveal=()=>{
+    queueHeroNameFit();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(revealed)return;
+      revealed=true;
+      hero.style.visibility="";
+    }));
+  };
+  if(document.fonts){
+    const exact=document.fonts.load?document.fonts.load('400 300px "Geist"',"MARIAN FUSEK"):Promise.resolve();
+    Promise.all([document.fonts.ready,exact]).then(fitAndReveal).catch(fitAndReveal);
+    setTimeout(fitAndReveal,1800);
+  }else setTimeout(fitAndReveal,200);
+  window.addEventListener("resize",queueHeroNameFit,{passive:true});
+})();
 
 (function(){const hero=document.getElementById("heroName"),baseWrap=document.getElementById("nameWrap");if(!hero||!baseWrap)return;const wait=ms=>new Promise(r=>setTimeout(r,ms));const chars=()=>Array.from(baseWrap.querySelectorAll(".nc")).filter(c=>!c.classList.contains("n-sp"));async function accentA(){const a=hero.querySelector(".n-a2");if(!a)return;a.textContent="Á";await wait(600);a.textContent="A"}async function accentU(){const u=hero.querySelector(".n-u");if(!u)return;u.textContent="Ů";await wait(600);u.textContent="U"}async function disappear(){const list=["n-a1","n-r","n-i","n-a2","n-n","n-u","n-s","n-e","n-k"].map(c=>hero.querySelector("."+c)).filter(Boolean);list.forEach(el=>el.style.opacity="0");await wait(2100);list.forEach(el=>el.style.opacity="");await wait(400)}async function rgb(){const all=chars(),picks=[...all].sort(()=>Math.random()-.5).slice(0,3);let frame=0,total=120;const timer=setInterval(()=>{frame++;const t=frame/total,amp=Math.sin(t*Math.PI)*4,j=(Math.random()-.5)*.8,x=(amp+j).toFixed(2),nx=(-(amp+j*.7)).toFixed(2);picks.forEach(el=>{el.style.textShadow=`${x}px 0 3px rgba(226,27,22,.8),${nx}px 0 3px rgba(0,167,255,.8)`});if(frame>=total)clearInterval(timer)},16);await wait(2050);picks.forEach(el=>el.style.textShadow="")}async function blurFx(){const all=chars();all.forEach(el=>{el.style.transition=`filter .5s cubic-bezier(.16,1,.3,1)`;el.style.filter="blur(3px)"});await wait(1300);all.forEach(el=>{el.style.transition=`filter .8s cubic-bezier(.16,1,.3,1)`;el.style.filter="blur(0)"});await wait(900);all.forEach(el=>{el.style.transition="";el.style.filter=""})}const effects=[accentA,accentU,disappear,rgb,blurFx];function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}let queue=[];async function run(){while(!document.body.classList.contains("mf-page-revealed"))await wait(100);await wait(2500);while(true){if(!queue.length)queue=shuffle(effects);await queue.shift()();await wait(2500)}}run();})();
 
@@ -3653,6 +3755,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     });
   };
   sync();
+  window.addEventListener("mf:hero-fit",sync);
   new MutationObserver(sync).observe(source,{subtree:true,childList:true,characterData:true});
 
   let pointerX=-9999,pointerY=-9999,velocityX=0,velocityY=0,lastX=pointerX,lastY=pointerY,inside=false,raf=0;

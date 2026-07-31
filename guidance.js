@@ -213,7 +213,7 @@
       </div>
       <figure class="mf-leadership-graduates-photo mf-guidance-scroll-reveal">
         <img src="/media/guidance/leadership/academy-designers.jpg" alt="Academy designers" loading="lazy">
-        <figcaption>MY FIRST DESIGN GRADUATES</figcaption>
+        <figcaption>MY Y2 DESIGN GRADUATES</figcaption>
       </figure>
       <div class="mf-leadership-copy-block mf-leadership-reviews-intro mf-guidance-scroll-reveal">
         <h3>REVIEWS</h3>

@@ -13091,3 +13091,48 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
 @media (max-width:1024px) {
   .mf-hero-info { max-width:none !important; }
 }
+
+
+/* ============================================================
+   V130 — Team Leadership hero scroll cue
+   ============================================================ */
+.mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue {
+  position:absolute;
+  z-index:4;
+  right:clamp(18px,2.4vw,42px);
+  bottom:clamp(18px,2.6vh,34px);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0;
+  color:rgba(255,255,255,.82);
+  -webkit-text-fill-color:rgba(255,255,255,.82);
+  font:400 10px/1.1 "Geist Mono",monospace;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+  pointer-events:none;
+  text-shadow:0 1px 12px rgba(0,0,0,.48);
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue b {
+  display:inline-block;
+  font:400 14px/1 "Geist Mono",monospace;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+  animation:mfLeadershipScrollCue 1.8s var(--ease) infinite;
+}
+@keyframes mfLeadershipScrollCue {
+  0%,100% { transform:translateY(0);opacity:.7; }
+  45% { transform:translateY(4px);opacity:1; }
+}
+@media (max-width:620px) {
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue {
+    right:18px;
+    bottom:18px;
+    max-width:calc(100% - 36px);
+    font-size:9px;
+    letter-spacing:.09em;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue b { animation:none !important; }
+}

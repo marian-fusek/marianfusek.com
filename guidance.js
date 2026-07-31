@@ -183,6 +183,9 @@
   const leadershipContent=()=>`<div class="mf-leadership-page">
     <figure class="mf-leadership-hero-photo mf-guidance-scroll-reveal">
       <img src="/media/guidance/leadership/marian-fusek_chill.jpg" alt="Marian Fusek portrait" loading="eager" decoding="async" fetchpriority="high">
+      <figcaption class="mf-leadership-hero-scroll-cue">
+        <span>CHILL AND SCROLL FOR THE READS</span><b aria-hidden="true">↓</b>
+      </figcaption>
     </figure>
     <section class="mf-leadership-section" id="leadership-xp">
       <div class="mf-leadership-copy-block mf-guidance-scroll-reveal">

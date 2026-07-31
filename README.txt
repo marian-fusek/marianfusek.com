@@ -1,4 +1,3 @@
-V129
-- Added WEZZAA to LIVE: iOS App, updated Jul 29, 2026, Minimalistic Weather App, Pending App Store Submission, 97%.
-- Renamed HERESY 09 to “Immediate Answers Kill Optimization.”
-- All V128 hero positioning and animations remain unchanged.
+V130
+- Added a bottom-right Team Leadership hero cue: “CHILL AND SCROLL FOR THE READS ↓”.
+- Preserved the existing hero image, veil, scrolling and distortion behavior.

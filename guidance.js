@@ -167,7 +167,7 @@
 
   const modes={
     mindset:{title:'Mindset<br>Coaching',kicker:'',intro:`I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No “do it like this.” Your style all the way — nothing forced.\n\nCertified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac','roman-bartos','darja-arefjeva','anastasiia-kozina','mako-ueda','ilja-panic','marie-lauren','tomas-lodnan','kristyna-peckova','jakub-nespor','tomas-bruzda','maros-novak','next-leadership']},
-    leadership:{title:'Team<br>Leadership',kicker:'',intro:'',order:leadershipEntries.map(entry=>entry.id)}
+    leadership:{title:'Team<br>Leadership',kicker:'',intro:`Yeah... and a fitting photo of just me with no team around. I'm not a photo kinda guy, relax... I mean, chill!`,order:leadershipEntries.map(entry=>entry.id)}
   };
 
   const partMarkup=entry=>`<div class="mf-guidance-copy-shell"><nav class="mf-guidance-review-parts" aria-label="Review parts">${entry.parts.map((_,index)=>`<button class="mf-guidance-part-button${index===0?' is-active':''}" type="button" data-review-part="${index}">PART ${String(index+1).padStart(2,'0')}</button>`).join('')}</nav><div class="mf-guidance-part-panels">${entry.parts.map((part,index)=>`<div class="mf-guidance-part-panel${index===0?' is-active':''}" data-review-part-panel="${index}"${index===0?'':' aria-hidden="true"'}>${nl(part)}</div>`).join('')}</div></div>`;
@@ -183,9 +183,8 @@
   const leadershipContent=()=>`<div class="mf-leadership-page">
     <figure class="mf-leadership-hero-photo mf-guidance-scroll-reveal">
       <img src="/media/guidance/leadership/marian-fusek_chill.jpg" alt="Marian Fusek portrait" loading="eager" decoding="async" fetchpriority="high">
-      <figcaption class="mf-leadership-hero-note">Yeah... and a fitting photo of just me with no team around. I'm not a photo kinda guy, relax... I mean, chill!</figcaption>
       <div class="mf-leadership-hero-scroll-cue" aria-hidden="true">
-        <span>CHILL AND SCROLL FOR THE READS</span><b>↓</b>
+        <span>THE READS</span><b>↓</b>
       </div>
     </figure>
     <section class="mf-leadership-section" id="leadership-xp">

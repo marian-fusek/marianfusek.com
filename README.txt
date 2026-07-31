@@ -1,5 +1,6 @@
-V131
-- Added a bottom-right Team Leadership hero cue: “CHILL AND SCROLL FOR THE READS ↓”.
-- Preserved the existing hero image, veil, scrolling and distortion behavior.
-- Team Leadership hero now shows the chill-scroll cue and the supplied photo note.
-- The “Well said MF!” CTA keeps its layout footprint after the third click.
+V132
+- Moved the Team Leadership photo note beneath the fixed title, matching project-detail copy styling.
+- Renamed the hero scroll cue to “THE READS ↓”.
+- Balanced the cue from the bottom using the same visual inset as the title from the top.
+- Preserved the existing Team Leadership hero image, scroll, reveal and distortion behavior.
+- Preserved the fixed “Well said MF!” button footprint after its third click.

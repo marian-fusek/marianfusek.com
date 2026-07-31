@@ -13182,3 +13182,40 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
     line-height:1.45;
   }
 }
+
+
+/* ============================================================
+   V132 — Team Leadership hero annotation alignment
+   Move the photo note beneath the fixed Team Leadership title and
+   balance THE READS from the bottom using the title's top inset.
+   ============================================================ */
+.mf-guidance-overlay.is-leadership .mf-guidance-overlay-aside > p {
+  display:block !important;
+  width:min(20vw,320px) !important;
+  max-width:100% !important;
+  margin:22px 0 0 !important;
+  color:rgba(255,255,255,.58) !important;
+  -webkit-text-fill-color:rgba(255,255,255,.58) !important;
+  font:400 10px/1.5 "Geist Mono",monospace !important;
+  letter-spacing:.025em !important;
+  text-transform:none !important;
+  opacity:1 !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-hero-note {
+  display:none !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue {
+  right:clamp(18px,2.35vw,42px) !important;
+  bottom:clamp(50px,7vh,90px) !important;
+}
+@media (max-width:1024px) {
+  .mf-guidance-overlay.is-leadership .mf-guidance-overlay-aside > p {
+    width:100% !important;
+    max-width:42em !important;
+    margin-top:20px !important;
+  }
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue {
+    right:18px !important;
+    bottom:clamp(32px,7vh,68px) !important;
+  }
+}

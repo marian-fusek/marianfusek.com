@@ -13136,3 +13136,49 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
 @media (prefers-reduced-motion:reduce) {
   .mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue b { animation:none !important; }
 }
+
+
+/* ============================================================
+   V131 — Leadership hero copy + stable CTA footprint
+   Keep the hero annotations visible over the image and preserve the
+   final section's geometry after the third CTA click.
+   ============================================================ */
+.mf-guidance-overlay.is-leadership .mf-leadership-hero-note {
+  position:absolute;
+  z-index:4;
+  left:clamp(18px,2.35vw,42px);
+  bottom:clamp(18px,2.6vh,34px);
+  width:min(390px,42vw);
+  margin:0;
+  color:rgba(255,255,255,.58);
+  -webkit-text-fill-color:rgba(255,255,255,.58);
+  font:400 10px/1.5 "Geist Mono",monospace;
+  letter-spacing:.025em;
+  text-transform:none;
+  pointer-events:none;
+  text-shadow:0 1px 12px rgba(0,0,0,.58);
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-hero-scroll-cue {
+  z-index:5 !important;
+}
+.mf-guidance-overlay.is-leadership .mf-leadership-cta.is-removing {
+  opacity:0 !important;
+  visibility:hidden !important;
+  transform:none !important;
+  border-color:transparent !important;
+  background:#050505 !important;
+  color:transparent !important;
+  -webkit-text-fill-color:transparent !important;
+  pointer-events:none !important;
+}
+@media (max-width:720px) {
+  .mf-guidance-overlay.is-leadership .mf-leadership-hero-note {
+    left:18px;
+    right:18px;
+    bottom:58px;
+    width:auto;
+    max-width:360px;
+    font-size:9px;
+    line-height:1.45;
+  }
+}

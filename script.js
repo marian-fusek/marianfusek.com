@@ -1866,6 +1866,10 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
   const leadershipContent=()=>`<div class="mf-leadership-page">
     <figure class="mf-leadership-hero-photo mf-guidance-scroll-reveal">
       <img src="${LEADERSHIP_HERO_SRC}" alt="Marian Fusek portrait" loading="eager" decoding="async" fetchpriority="high">
+      <figcaption class="mf-leadership-hero-note">Yeah... and a fitting photo of just me with no team around. I'm not a photo kinda guy, relax... I mean, chill!</figcaption>
+      <div class="mf-leadership-hero-scroll-cue" aria-hidden="true">
+        <span>CHILL AND SCROLL FOR THE READS</span><b>↓</b>
+      </div>
     </figure>
     <section class="mf-leadership-section" id="leadership-xp">
       <div class="mf-leadership-copy-block mf-guidance-scroll-reveal">
@@ -2595,7 +2599,9 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
       copyClicks+=1;
       if(copyClicks>=3){
         copyBtn.classList.add('is-removing');
-        setTimeout(()=>copyBtn.remove(),340);
+        copyBtn.disabled=true;
+        copyBtn.setAttribute('aria-hidden','true');
+        copyBtn.tabIndex=-1;
         return;
       }
 

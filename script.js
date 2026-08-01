@@ -1429,97 +1429,157 @@ if(indexExtra){
 
   window._mfOpenProject=openProject;
 })();
-/* HERO NAME — anchor-preserving optical fit. The right side keeps the
-   proven desktop anchor. Only the scale is reduced enough for the painted
-   edge of the M to receive the same 30px visual gap. Animations are untouched. */
+/* HERO NAME — optical glyph spacing + anchor-preserving fit.
+   Every painted gap inside MARIAN and FUSEK is equalized independently of
+   the font's side-bearings. The larger word gap remains separate. Desktop
+   keeps 30px at the painted M and 40px at the painted K. Animations stay on
+   the original character spans and are not changed here. */
 let mfHeroFitFrame=0;
+function mfHeroMetric(context,glyph){
+  const measured=context.measureText(glyph);
+  return {
+    width:Math.max(0.01,Number(measured.width)||0.01),
+    left:Number.isFinite(measured.actualBoundingBoxLeft)?measured.actualBoundingBoxLeft:0,
+    right:Number.isFinite(measured.actualBoundingBoxRight)?measured.actualBoundingBoxRight:(Number(measured.width)||0)
+  };
+}
+function mfApplyOpticalHeroSpacing(wrap){
+  const children=[...wrap.children];
+  if(!children.length)return {firstInset:0,lastInset:0};
+
+  /* Always measure from the untouched CSS typography, never from a previous
+     fit, so repeated resizes cannot accumulate spacing errors. */
+  wrap.style.letterSpacing='';
+  children.forEach(letter=>{
+    letter.style.display='';
+    letter.style.marginRight='';
+    letter.style.width='';
+    letter.style.fontSize='';
+    letter.style.overflow='';
+  });
+
+  const computed=getComputedStyle(wrap);
+  const fontSize=parseFloat(computed.fontSize)||300;
+  const rawLetterSpacing=parseFloat(computed.letterSpacing);
+  const originalLetterSpacing=Number.isFinite(rawLetterSpacing)?rawLetterSpacing:0;
+  const canvas=mfApplyOpticalHeroSpacing.canvas||(mfApplyOpticalHeroSpacing.canvas=document.createElement('canvas'));
+  const context=canvas.getContext('2d');
+  if(!context)return {firstInset:0,lastInset:0};
+
+  context.font=`${computed.fontStyle||'normal'} ${computed.fontWeight||'400'} ${computed.fontSize||'300px'} ${computed.fontFamily||'Geist, Arial, sans-serif'}`;
+  if('fontKerning' in context)context.fontKerning='none';
+
+  const entries=children.map(letter=>{
+    const isSpace=letter.classList.contains('n-sp');
+    if(!letter.dataset.mfOpticalGlyph&&!isSpace)letter.dataset.mfOpticalGlyph=letter.textContent||'';
+    const glyph=isSpace?' ':(letter.dataset.mfOpticalGlyph||letter.textContent||'');
+    return {letter,isSpace,glyph,metric:mfHeroMetric(context,glyph)};
+  });
+
+  /* Derive the common optical gap from the median of the original design's
+     visible gaps. This preserves its overall tightness while making it even. */
+  const originalGaps=[];
+  for(let index=0;index<entries.length-1;index++){
+    const current=entries[index],next=entries[index+1];
+    if(current.isSpace||next.isSpace)continue;
+    originalGaps.push(current.metric.width+originalLetterSpacing-current.metric.right-next.metric.left);
+  }
+  const sorted=[...originalGaps].sort((a,b)=>a-b);
+  let targetGap=sorted.length?sorted[Math.floor(sorted.length/2)]:0;
+  targetGap=Math.max(-fontSize*.08,Math.min(fontSize*.05,targetGap));
+
+  wrap.style.letterSpacing='0px';
+  const wordGap=Math.max(fontSize*.08,mfHeroMetric(context,' ').width+originalLetterSpacing);
+
+  entries.forEach((entry,index)=>{
+    const {letter,isSpace,metric}=entry;
+    letter.style.display='inline-block';
+    if(isSpace){
+      letter.style.width=`${wordGap}px`;
+      letter.style.fontSize='0px';
+      letter.style.overflow='hidden';
+      letter.style.marginRight='0px';
+      return;
+    }
+    const next=entries[index+1];
+    if(next&&!next.isSpace){
+      const margin=targetGap-metric.width+metric.right+next.metric.left;
+      letter.style.marginRight=`${margin}px`;
+    }else letter.style.marginRight='0px';
+  });
+
+  const visible=entries.filter(entry=>!entry.isSpace);
+  const first=visible[0]?.metric;
+  const last=visible[visible.length-1]?.metric;
+  return {
+    firstInset:first?Math.max(0,-first.left):0,
+    lastInset:last?Math.max(0,last.width-last.right):0
+  };
+}
 function scaleHeroName(){
-  const hero=document.getElementById("heroName");
-  const wrap=document.getElementById("nameWrap");
-  const info=document.querySelector(".mf-hero-info");
+  const hero=document.getElementById('heroName');
+  const wrap=document.getElementById('nameWrap');
+  const info=document.querySelector('.mf-hero-info');
   if(!hero||!wrap)return;
 
-  hero.style.fontSize="300px";
-  wrap.style.transform="none";
-  wrap.style.transformOrigin="left bottom";
+  hero.style.fontSize='300px';
+  wrap.style.transform='none';
+  wrap.style.transformOrigin='left bottom';
 
+  const opticalBounds=mfApplyOpticalHeroSpacing(wrap);
   const layoutWidth=wrap.getBoundingClientRect().width||wrap.scrollWidth;
   const viewport=window.innerWidth;
   const isMobile=viewport<=1024;
-  let scale=1;
-  let offset=0;
-
-  if(isMobile){
-    const pad=8;
-    scale=(viewport-pad*2)/layoutWidth;
-    offset=pad;
-  }else{
-    const visualPad=30;
-    const rightAnchor=viewport-visualPad;
-    const computed=getComputedStyle(wrap);
-    const canvas=scaleHeroName.canvas||(scaleHeroName.canvas=document.createElement("canvas"));
-    const context=canvas.getContext("2d");
-    let mInset=0;
-
-    if(context){
-      context.font=`${computed.fontStyle||"normal"} ${computed.fontWeight||"400"} ${computed.fontSize||"300px"} ${computed.fontFamily||"Geist, Arial, sans-serif"}`;
-      if("fontKerning" in context)context.fontKerning=computed.fontKerning==="none"?"none":"normal";
-      const metrics=context.measureText("M");
-      const actualLeft=Number.isFinite(metrics.actualBoundingBoxLeft)?metrics.actualBoundingBoxLeft:0;
-      mInset=Math.max(0,-actualLeft);
-    }
-
-    /* Keep the original right endpoint fixed. Shrinking around that anchor
-       creates the matching left optical gap without risking K overflow. */
-    const visibleRun=Math.max(1,layoutWidth-mInset);
-    scale=(rightAnchor-visualPad)/visibleRun;
-    offset=rightAnchor-layoutWidth*scale;
-  }
+  const leftPad=isMobile?8:30;
+  const rightPad=isMobile?8:40;
+  const visibleRun=Math.max(1,layoutWidth-opticalBounds.firstInset-opticalBounds.lastInset);
+  const scale=Math.max(.01,(viewport-leftPad-rightPad)/visibleRun);
+  const offset=leftPad-opticalBounds.firstInset*scale;
 
   wrap.style.transform=`translateX(${offset}px) scale(${scale})`;
-  const lensWrap=document.getElementById("heroNameLensWrap");
+  const lensWrap=document.getElementById('heroNameLensWrap');
   if(lensWrap){
     lensWrap.style.transform=wrap.style.transform;
     lensWrap.style.transformOrigin=wrap.style.transformOrigin;
   }
-  window.dispatchEvent(new CustomEvent("mf:hero-fit"));
+  window.dispatchEvent(new CustomEvent('mf:hero-fit'));
 
   if(info&&window.innerWidth>1000){
-    const fChar=hero.querySelector(".n-f");
+    const fChar=hero.querySelector('.n-f');
     if(fChar){
       const fRect=fChar.getBoundingClientRect();
       const fComputed=getComputedStyle(fChar);
-      const canvas=scaleHeroName.fCanvas||(scaleHeroName.fCanvas=document.createElement("canvas"));
-      const context=canvas.getContext("2d");
+      const canvas=scaleHeroName.fCanvas||(scaleHeroName.fCanvas=document.createElement('canvas'));
+      const context=canvas.getContext('2d');
       let paintedInset=0;
 
       if(context){
-        context.font=`${fComputed.fontStyle||"normal"} ${fComputed.fontWeight||"400"} ${fComputed.fontSize||"300px"} ${fComputed.fontFamily||"Geist, Arial, sans-serif"}`;
-        if("fontKerning" in context)context.fontKerning=fComputed.fontKerning==="none"?"none":"normal";
-        const metrics=context.measureText("F");
+        context.font=`${fComputed.fontStyle||'normal'} ${fComputed.fontWeight||'400'} ${fComputed.fontSize||'300px'} ${fComputed.fontFamily||'Geist, Arial, sans-serif'}`;
+        if('fontKerning' in context)context.fontKerning='none';
+        const metrics=context.measureText('F');
         const advance=Math.max(1,metrics.width||1);
         const renderedScale=fRect.width/advance;
         const actualLeft=Number.isFinite(metrics.actualBoundingBoxLeft)?metrics.actualBoundingBoxLeft:0;
         paintedInset=Math.max(0,-actualLeft)*renderedScale;
       }
 
-      /* Align to the visible ink of F, not its invisible font side-bearing. */
+      /* Align the copy to the visible ink of F, not its font box. */
       const textLeft=fRect.left+paintedInset;
       const textRightGap=30;
-      info.style.left=textLeft+"px";
-      info.style.right="auto";
-      info.style.width=Math.max(280,window.innerWidth-textLeft-textRightGap)+"px";
-      info.style.maxWidth="none";
-      info.style.top="22%";
-      info.style.bottom="auto";
+      info.style.left=textLeft+'px';
+      info.style.right='auto';
+      info.style.width=Math.max(280,window.innerWidth-textLeft-textRightGap)+'px';
+      info.style.maxWidth='none';
+      info.style.top='22%';
+      info.style.bottom='auto';
     }
   }else if(info){
-    info.style.left="";
-    info.style.right="";
-    info.style.width="";
-    info.style.maxWidth="";
-    info.style.bottom="";
-    info.style.top="";
+    info.style.left='';
+    info.style.right='';
+    info.style.width='';
+    info.style.maxWidth='';
+    info.style.bottom='';
+    info.style.top='';
   }
 }
 function queueHeroNameFit(){
@@ -3768,8 +3828,18 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     cells.forEach(item=>{
       item.clone.style.transform=transform;
       item.clone.style.transformOrigin=origin;
+      item.clone.style.letterSpacing=source.style.letterSpacing;
       const sourceLetters=[...source.children],cloneLetters=[...item.clone.children];
-      sourceLetters.forEach((letter,index)=>{if(cloneLetters[index])cloneLetters[index].textContent=letter.textContent;});
+      sourceLetters.forEach((letter,index)=>{
+        const cloneLetter=cloneLetters[index];
+        if(!cloneLetter)return;
+        cloneLetter.textContent=letter.textContent;
+        cloneLetter.style.display=letter.style.display;
+        cloneLetter.style.marginRight=letter.style.marginRight;
+        cloneLetter.style.width=letter.style.width;
+        cloneLetter.style.fontSize=letter.style.fontSize;
+        cloneLetter.style.overflow=letter.style.overflow;
+      });
     });
   };
   sync();

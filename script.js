@@ -393,8 +393,8 @@ if(indexExtra){
       title:"GoBaller",
       intro:"A football coaching app for players of all ages. The product makes structured training feel clear, motivating and personal without turning the experience into another generic fitness interface.",
       scope:"Brand identity, product strategy, iOS application design, interaction system and visual direction.",
-      context:"GoBaller had to work for ambitious young players, parents and experienced coaches at the same time. The product contained a deep training system, but the interface could not feel technical or intimidating. It needed credibility on the pitch and clarity in the hand.",
-      approach:"I organized the product around progression, repetition and visible momentum. The identity borrows energy from sport without relying on predictable visual clichés. Every screen was shaped to keep the next useful action obvious while preserving a strong, ownable character.",
+      context:"GoBaller is being built right now from these designs — a training app for young football players, covering workouts, nutrition and the habits that actually move a young athlete forward.",
+      approach:"I stayed away from the sterile coaching-app palette — clean blues, dashboard energy, spreadsheet-with-a-logo. Instead I chased something closer to the actual feel of being on the pitch: dark, a bit poppy, energetic without turning into a toy. The world quiets down, and you leave everything on the grass. The logo came out of a creative attack — deconstructing the letterforms, hunting for a visual metaphor, then reshaping it until it held up at full polish. Copy avoids tech stench and cool-guy distance; it talks the way people actually talk to each other.",
       images:[
         {type:"video",src:"/media/projects/goballer/logo/01-goballer-logo.mp4",title:"GoBaller product film"},
         {type:"carousel",background:"/media/projects/goballer/brand/01-goballer-field.jpg",cards:goballerCards,title:"GoBaller brand system"},
@@ -406,8 +406,8 @@ if(indexExtra){
       title:"AIMS",
       intro:"The most advanced AI search for music catalogs. AIMS translates complex machine-learning capability into a product story that music professionals can understand, trust and use.",
       scope:"Website, brand refresh, marketing & sales assets.",
-      context:"AIMS had technology with unusual depth, but its value was difficult to communicate outside technical conversations. Buyers needed to understand the advantage quickly while still believing the system could handle professional-scale catalogs. The brand had to bridge engineering precision and creative intuition.",
-      approach:"I reframed the platform around the moments where search changes the work itself. Product language became more direct, the identity gained focus and the sales story moved from feature inventory to practical leverage. The system gives the technology room to feel sophisticated without becoming abstract.",
+      context:"AIMS is an AI search engine for music catalogs — sound, lyrics, video, the whole meaning of a track, searchable in seconds. It serves six very different buyers, from production music companies to broadcasters to music tech startups, and the site had to speak to all of them without turning into a feature dump. Buyers needed to grasp the advantage fast, still trust it could handle catalogs at professional scale, and feel both the engineering precision and the creative intuition behind it.",
+      approach:"I built three distinct visual systems to separate what the company is, what it makes, and who it's for — company, products, and use cases each get their own logic. Every section rewards a second look: a color hierarchy that signals what matters where, and an interaction layer that ties it all together smoothly. From that foundation I built out the marketing and sales material — the same system carried straight through.",
       images:[
         {type:"video",src:"/media/projects/aims/logo/01-aims-logo.mp4",title:"AIMS logo animation",note:"[NOT PART OF THE REDESIGN]"},
         {type:"verticalGallery",background:"/media/projects/aims/web/00-aims-bgr.jpg",cards:[
@@ -1488,7 +1488,23 @@ function scaleHeroName(){
     const fChar=hero.querySelector(".n-f");
     if(fChar){
       const fRect=fChar.getBoundingClientRect();
-      const textLeft=fRect.left+20;
+      const fComputed=getComputedStyle(fChar);
+      const canvas=scaleHeroName.fCanvas||(scaleHeroName.fCanvas=document.createElement("canvas"));
+      const context=canvas.getContext("2d");
+      let paintedInset=0;
+
+      if(context){
+        context.font=`${fComputed.fontStyle||"normal"} ${fComputed.fontWeight||"400"} ${fComputed.fontSize||"300px"} ${fComputed.fontFamily||"Geist, Arial, sans-serif"}`;
+        if("fontKerning" in context)context.fontKerning=fComputed.fontKerning==="none"?"none":"normal";
+        const metrics=context.measureText("F");
+        const advance=Math.max(1,metrics.width||1);
+        const renderedScale=fRect.width/advance;
+        const actualLeft=Number.isFinite(metrics.actualBoundingBoxLeft)?metrics.actualBoundingBoxLeft:0;
+        paintedInset=Math.max(0,-actualLeft)*renderedScale;
+      }
+
+      /* Align to the visible ink of F, not its invisible font side-bearing. */
+      const textLeft=fRect.left+paintedInset;
       const textRightGap=30;
       info.style.left=textLeft+"px";
       info.style.right="auto";

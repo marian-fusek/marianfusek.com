@@ -4284,7 +4284,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
 
 
 /* ============================================================
-   V136 — AFTER HOURS title cycle, desktop hover image follow,
+   V137 — AFTER HOURS title cycle, stronger desktop hover image follow,
    mobile tap-to-reveal and one-time progress entrance.
    ============================================================ */
 (function(){
@@ -4315,8 +4315,8 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
       const rect=row.getBoundingClientRect();
       const nx=Math.max(-.5,Math.min(.5,(event.clientX-rect.left)/Math.max(1,rect.width)-.5));
       const ny=Math.max(-.5,Math.min(.5,(event.clientY-rect.top)/Math.max(1,rect.height)-.5));
-      row.style.setProperty('--mf-after-follow-x',`${(nx*22).toFixed(2)}px`);
-      row.style.setProperty('--mf-after-follow-y',`${(ny*14).toFixed(2)}px`);
+      row.style.setProperty('--mf-after-follow-x',`${(nx*64).toFixed(2)}px`);
+      row.style.setProperty('--mf-after-follow-y',`${(ny*40).toFixed(2)}px`);
     },{passive:true});
     row.addEventListener('pointerleave',()=>{
       row.style.setProperty('--mf-after-follow-x','0px');

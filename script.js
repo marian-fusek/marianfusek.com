@@ -2850,7 +2850,7 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
   let switching=false;
 
   function setBioMode(key){
-    const expanded=key==='heresy'||key==='live';
+    const expanded=key==='heresy';
     about?.classList.toggle('is-bio-expanded',expanded);
     if(photoWrap){
       photoWrap.inert=expanded;
@@ -2968,7 +2968,7 @@ Certified ICF-ACSTH & EMCC, if credentials matter to you.`,order:['michal-bohac'
     node.replaceWith(fragment);
   }
 
-  container.querySelectorAll('.mf-bio-panel:not([data-bio-panel="heresy"]):not([data-bio-panel="live"]) p, .mf-bio-panel:not([data-bio-panel="heresy"]):not([data-bio-panel="live"]) .mf-about-note').forEach(el=>{
+  container.querySelectorAll('.mf-bio-panel:not([data-bio-panel="heresy"]) p, .mf-bio-panel:not([data-bio-panel="heresy"]) .mf-about-note').forEach(el=>{
     el.setAttribute('aria-label',el.textContent.trim());
     const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,{acceptNode(node){
       return node.parentElement?.closest('.vp-word')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT;
@@ -4280,4 +4280,122 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
 
   initStaticTargets();
   new MutationObserver(initStaticTargets).observe(document.body,{childList:true,subtree:true});
+})();
+
+
+/* ============================================================
+   V136 — AFTER HOURS title cycle, desktop hover image follow,
+   mobile tap-to-reveal and one-time progress entrance.
+   ============================================================ */
+(function(){
+  const section=document.getElementById('afterHours');
+  const list=document.getElementById('mfAfterHoursList');
+  const title=document.getElementById('mfAfterHoursTitle');
+  if(!section||!list||!title)return;
+
+  const rows=[...list.querySelectorAll('.mf-after-hours-row')];
+  const mobile=window.matchMedia('(max-width:1024px), (hover:none), (pointer:coarse)');
+  const reduced=window.matchMedia('(prefers-reduced-motion:reduce)');
+
+  const closeMobileRows=except=>{
+    rows.forEach(row=>{
+      if(row===except)return;
+      row.classList.remove('is-mobile-open');
+      row.querySelector('.mf-after-hours-trigger')?.setAttribute('aria-expanded','false');
+      row.querySelector('.mf-after-hours-preview')?.setAttribute('aria-hidden','true');
+    });
+  };
+
+  rows.forEach(row=>{
+    const trigger=row.querySelector('.mf-after-hours-trigger');
+    const preview=row.querySelector('.mf-after-hours-preview');
+
+    row.addEventListener('pointermove',event=>{
+      if(mobile.matches)return;
+      const rect=row.getBoundingClientRect();
+      const nx=Math.max(-.5,Math.min(.5,(event.clientX-rect.left)/Math.max(1,rect.width)-.5));
+      const ny=Math.max(-.5,Math.min(.5,(event.clientY-rect.top)/Math.max(1,rect.height)-.5));
+      row.style.setProperty('--mf-after-follow-x',`${(nx*22).toFixed(2)}px`);
+      row.style.setProperty('--mf-after-follow-y',`${(ny*14).toFixed(2)}px`);
+    },{passive:true});
+    row.addEventListener('pointerleave',()=>{
+      row.style.setProperty('--mf-after-follow-x','0px');
+      row.style.setProperty('--mf-after-follow-y','0px');
+    },{passive:true});
+
+    trigger?.addEventListener('click',()=>{
+      if(!mobile.matches)return;
+      const opening=!row.classList.contains('is-mobile-open');
+      closeMobileRows(opening?row:null);
+      row.classList.toggle('is-mobile-open',opening);
+      trigger.setAttribute('aria-expanded',opening?'true':'false');
+      preview?.setAttribute('aria-hidden',opening?'false':'true');
+    });
+  });
+
+  const resetForDesktop=()=>{
+    if(mobile.matches)return;
+    closeMobileRows(null);
+    rows.forEach(row=>row.querySelector('.mf-after-hours-preview')?.setAttribute('aria-hidden','true'));
+  };
+  mobile.addEventListener?.('change',resetForDesktop);
+
+  const sectionObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        section.classList.add('is-after-hours-visible');
+        sectionObserver.disconnect();
+      }
+    });
+  },{threshold:.2});
+  sectionObserver.observe(section);
+
+  if(reduced.matches)return;
+  const hours=[...title.querySelectorAll('[data-after-word="hours"] i')];
+  const dark=[...title.querySelectorAll('[data-after-word="dark"] i')];
+  let titleStarted=false;
+  const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
+  async function animateLetters(chars,show,reverse,total=2500){
+    if(!chars.length)return;
+    const duration=720;
+    const stagger=chars.length>1?(total-duration)/(chars.length-1):0;
+    const sequence=reverse?[...chars].reverse():chars;
+    const animations=sequence.map((char,index)=>{
+      const delay=index*stagger;
+      const keyframes=show
+        ?[{opacity:0,filter:'blur(7px)',transform:'translate3d(0,.34em,0)'},{opacity:1,filter:'blur(0px)',transform:'translate3d(0,0,0)'}]
+        :[{opacity:1,filter:'blur(0px)',transform:'translate3d(0,0,0)'},{opacity:0,filter:'blur(7px)',transform:'translate3d(0,-.34em,0)'}];
+      const animation=char.animate(keyframes,{duration,delay,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
+      return animation.finished.catch(()=>{}).then(()=>{
+        char.style.opacity=show?'1':'0';
+        char.style.filter=show?'none':'blur(7px)';
+        char.style.transform=show?'none':'translate3d(0,-.34em,0)';
+        animation.cancel();
+      });
+    });
+    await Promise.all(animations);
+  }
+
+  async function runTitleCycle(){
+    while(title.isConnected){
+      await wait(1500);
+      await animateLetters(hours,false,true,2500);
+      await animateLetters(dark,true,false,2500);
+      await wait(4000);
+      await animateLetters(dark,false,true,2500);
+      await animateLetters(hours,true,false,2500);
+      await wait(2500);
+    }
+  }
+
+  const titleObserver=new IntersectionObserver(entries=>{
+    if(titleStarted)return;
+    if(entries.some(entry=>entry.isIntersecting)){
+      titleStarted=true;
+      titleObserver.disconnect();
+      runTitleCycle();
+    }
+  },{threshold:.35});
+  titleObserver.observe(section);
 })();

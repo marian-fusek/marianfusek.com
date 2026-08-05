@@ -1,3 +1,10 @@
+V144
+
+- Fixed /staging/index.html asset paths.
+- Loads the shared root style.css and script.js correctly.
+- Loads staging/staging.css after the shared stylesheet.
+- Live root index.html remains unchanged.
+
 MARIAN FUSEK WEBSITE — V143
 
 LIVE

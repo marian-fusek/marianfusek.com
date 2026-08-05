@@ -32,3 +32,7 @@ V150 STAGING
 - Added INDEX wrapper hover, project optical title alignment and bottom-anchored Scope.
 - Unified ART/footer Cloud field and removed gallery frame.
 - Live index.html remains V139 and unchanged.
+
+
+V151 STAGING
+- Corrected hero accent positioning, grid ownership, filled OPEN cursor, full Geist-only type, stronger INDEX and Guidance interactions, darker XP particles, After Hours padding, ART separator removal.

@@ -3240,7 +3240,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
 
         /* Fine motion trail: only becomes visible while particles travel. */
         if(motion>.06){
-          lightStudy?p.stroke(198,15,54,pt.alpha*motion*.42):p.stroke(0,0,98,pt.alpha*motion*.34);
+          lightStudy?p.stroke(198,24,43,Math.min(.82,pt.alpha*motion*.72)):p.stroke(0,0,98,pt.alpha*motion*.34);
           p.strokeWeight(Math.max(.28,pt.sz*.42));
           p.line(
             pt.pos.x-pt.vel.x*pt.trail,
@@ -3251,7 +3251,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
         }
 
         p.noStroke();
-        lightStudy?p.fill(198,15,54,Math.min(.88,pt.alpha+motion*.16)):p.fill(0,0,98,Math.min(.94,pt.alpha+motion*.16));
+        lightStudy?p.fill(198,25,46,Math.min(.98,pt.alpha+.24+motion*.2)):p.fill(0,0,98,Math.min(.94,pt.alpha+motion*.16));
         p.circle(pt.pos.x,pt.pos.y,pt.sz*(1+motion*.14));
       });
     };
@@ -4128,7 +4128,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
   document.body.classList.add('mf-custom-cursor');
 
   let x=-100,y=-100,lastX=-100,lastY=-100,lastTrailAt=0,visible=false;
-  const hiddenZone=target=>!!target?.closest?.('.mf-carousel-zone,.mf-art-overlay,.mf-art-preview,.mf-wip-gate');
+  const hiddenZone=target=>!!target?.closest?.('.mf-carousel-zone,.mf-art-overlay,.mf-wip-gate');
   const place=()=>{cursor.style.transform=`translate3d(${x}px,${y}px,0)`;};
   const addTrail=(trailX,trailY,scale=1)=>{
     const trail=document.createElement('span');
@@ -4483,4 +4483,22 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     }
   },{threshold:.35});
   titleObserver.observe(section);
+})();
+
+
+/* V151 — hard guarantee that staging never falls back to Geist Mono,
+   including content inserted after overlays open. */
+(function enforceStagingGeist(){
+  const apply=root=>{
+    const nodes=[];
+    if(root?.nodeType===1)nodes.push(root);
+    if(root?.querySelectorAll)nodes.push(...root.querySelectorAll('*'));
+    nodes.forEach(node=>{
+      if(/^(STYLE|SCRIPT|PATH)$/i.test(node.tagName||''))return;
+      node.style?.setProperty('font-family','"Geist", Arial, sans-serif','important');
+    });
+  };
+  apply(document.body);
+  new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(apply)))
+    .observe(document.body,{childList:true,subtree:true});
 })();

@@ -15,3 +15,6 @@ STAGING
 - Applies the Cloud / White / Black / Blue-Grey full-site palette study.
 - Sampled reference palette: #E4E6E7, #F0F0F0, #ACB8BC, #050505.
 - No staging scroll-capture script is used.
+
+
+V145 — Staging-only semantic light color system. Rebuilt the cloud background, grid, hierarchy, Index, Guidance, XP particles/effects, BIO, After Hours, ART/Ko-fi surface, footer, and project/guidance overlays. Live index.html remains V139 and unchanged.

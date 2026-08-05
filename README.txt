@@ -1,38 +1,22 @@
-V149
-
-Staging-only update:
-- Restored expanding After Hours hover panels.
-- Active panel hides its surrounding divider lines.
-- Increased app-icon rounding to a fuller iOS-style squircle.
-- Preserved live index.html unchanged.
-
-MARIAN FUSEK WEBSITE — V147
+MARIAN FUSEK WEBSITE — V153
 
 LIVE
-- Root /index.html, /style.css and /script.js remain the unchanged V139 live site.
+- Root /index.html, /style.css and /script.js remain byte-for-byte identical to V139.
 
 STAGING
-- /staging/index.html remains the Cloud Dancer light-system experiment.
-- Added /staging/staging.js so staging animation changes are fully isolated from live.
-- Completed a full color-leak audit across Guidance, project details, BIO, XP, ART, footer and dynamic overlays.
-- Rebuilt the staging typography into semantic roles for section titles, chapter titles, item titles, body copy, metadata, actions and pills.
-- Removed RGB/white-highlight deconstruction from hero and photographic hover effects while preserving structural displacement.
-- Reworked hero accent, M/F isolation and blur-wave animation easing.
-- AFTER HOURS now combines app type and status on the same metadata line.
+- /staging/index.html is the only redesigned experience.
+- Rebuilt homepage into a full-screen stage system with quiet numbered wayfinding instead of large standalone section headers.
+- INDEX now uses adaptive rows: the active project becomes a large outer window, neighboring rows yield space, and preview media preserves each image's real aspect ratio.
+- Guidance now uses a deterministic 76/24 focus transfer: the active chapter gains spatial authority while the inactive chapter collapses and its typography scales down.
+- AFTER HOURS now uses the same adaptive-window grammar as INDEX without exposing the original strip corners; icons use a slightly tighter iOS squircle and preview imagery is rounded.
+- ART now enters directly as a full-screen stage with no section separator or framed gallery stroke; footer continues without a divider.
+- All staging typography is Geist regular/system weights; Geist Mono is no longer used in the staging UI.
+- Hero accents use nested real Á / Ů glyph overlays, preserving the original glyph position while fading only.
+- Hero grid is constrained to the hero and dissolves before INDEX.
+- OPEN cursor remains a filled difference-blended circle on INDEX, Guidance and ART.
+- XP particles have stronger visibility.
 
-
-V147 staging: completed rendered-state light-theme audit; rebuilt MIUNAE live controls and Side Quests light states; fixed Mindset/Leadership inherited white text; restored XP particle visibility; removed RGB layer generation; made hero effect order deterministic; reserved After Hours app-icon columns. Live root index remains V139.
-
-
-V150 STAGING
-- Restored original Mindset handoff and Team Leadership geometry.
-- Retired Geist Mono throughout staging.
-- Added OPEN cursor to INDEX, Guidance and ART opener.
-- Corrected hero accent fade, FUSEK offset and grid fade.
-- Added INDEX wrapper hover, project optical title alignment and bottom-anchored Scope.
-- Unified ART/footer Cloud field and removed gallery frame.
-- Live index.html remains V139 and unchanged.
-
-
-V151 STAGING
-- Corrected hero accent positioning, grid ownership, filled OPEN cursor, full Geist-only type, stronger INDEX and Guidance interactions, darker XP particles, After Hours padding, ART separator removal.
+VALIDATION
+- staging.js passes node --check.
+- Desktop hover states were rendered and reviewed for INDEX, Guidance, AFTER HOURS and ART.
+- Mobile stage layouts were rendered at 390px with no horizontal overflow.

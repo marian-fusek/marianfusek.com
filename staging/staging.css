@@ -2458,323 +2458,602 @@ html body.mf-cloud-study .mf-guidance-portals[data-mc-tl-version="3"] .mf-guidan
 html body.mf-cloud-study .mf-guidance-portals[data-mc-tl-version="3"] .mf-guidance-particle-stage { z-index:1 !important; }
 
 /* ============================================================
-   V152 — stage system pass
-   - bigger outer hover wrappers for INDEX / AFTER HOURS
-   - respectful preview AR
-   - homepage guidance 70/30 transfer
-   - remove remaining mono on staging UI
-   - restore accent positions / fade only
-   - art separator cleanup / footer separator
+   V153 — FULL-SCREEN STAGE SYSTEM
+   Structural rebuild for staging only.
    ============================================================ */
 
-/* global meta uses Geist regular, not Geist Mono */
-html body.mf-cloud-study .mf-strip-num,
-html body.mf-cloud-study .mf-strip-meta,
-html body.mf-cloud-study .mf-guidance-portal-index,
-html body.mf-cloud-study .mf-guidance-open-label,
-html body.mf-cloud-study .mf-xp-year,
-html body.mf-cloud-study .mf-timeline-label,
-html body.mf-cloud-study .mf-about-note,
-html body.mf-cloud-study .mf-heresy-number,
-html body.mf-cloud-study .mf-after-hours-number,
-html body.mf-cloud-study .mf-after-hours-type,
-html body.mf-cloud-study .mf-after-hours-description,
-html body.mf-cloud-study .mf-after-hours-percent,
-html body.mf-cloud-study .mf-after-hours-intro,
-html body.mf-cloud-study .mf-guidance-portal-tags,
-html body.mf-cloud-study .mf-guidance-portal-tags i,
-html body.mf-cloud-study .mf-project-index,
-html body.mf-cloud-study .mf-project-section h3,
-html body.mf-cloud-study .mf-project-counter,
-html body.mf-cloud-study .mf-project-controls-hint,
-html body.mf-cloud-study .mf-guidance-overlay-kicker,
-html body.mf-cloud-study .mf-guidance-review-type,
-html body.mf-cloud-study .mf-guidance-person-role,
-html body.mf-cloud-study .mf-guidance-person-country,
-html body.mf-cloud-study .mf-guidance-review-meta,
-html body.mf-cloud-study .mf-art-hint,
-html body.mf-cloud-study .mf-footer-bottom,
-html body.mf-cloud-study .mf-meta-row,
-html body.mf-cloud-study .mf-ascii,
-html body.mf-cloud-study .mf-bio-menu-item,
-html body.mf-cloud-study .mf-nav,
-html body.mf-cloud-study .mf-nav a,
-html body.mf-cloud-study .mf-nav-logo,
-html body.mf-cloud-study .mf-strip-preview-more {
+/* One type family across staging. */
+html body.mf-cloud-study.mf-stage-system,
+html body.mf-cloud-study.mf-stage-system *,
+html body.mf-cloud-study.mf-stage-system *::before,
+html body.mf-cloud-study.mf-stage-system *::after {
   font-family:"Geist",Arial,sans-serif !important;
-  font-weight:420 !important;
-  letter-spacing:.055em !important;
 }
 
-/* hero accent marks: exact original position, fade only */
-html body.mf-cloud-study .mf-hero-name .has-accent-acute::after,
-html body.mf-cloud-study .mf-hero-name .has-accent-ring::after {
-  content:'' !important;
-  position:absolute !important;
-  z-index:4 !important;
-  display:block !important;
-  opacity:0 !important;
-  color:inherit !important;
-  -webkit-text-fill-color:inherit !important;
-  font:inherit !important;
+/* Full-screen rhythm and quiet wayfinding. */
+html body.mf-cloud-study.mf-stage-system .mf-stage {
+  position:relative !important;
+  min-height:100svh !important;
+}
+html body.mf-cloud-study.mf-stage-system .mf-stage-label {
+  position:absolute;
+  z-index:40;
+  top:clamp(72px,8.4vh,104px);
+  left:6vw;
+  color:var(--mf-meta) !important;
+  font-size:10px !important;
   line-height:1 !important;
-  letter-spacing:inherit !important;
-  text-align:left !important;
-  transform:translateX(-50%) !important;
-  filter:none !important;
-  pointer-events:none !important;
-  transition:opacity .52s cubic-bezier(.16,1,.3,1) !important;
+  letter-spacing:.075em !important;
+  text-transform:uppercase;
+  pointer-events:none;
 }
-html body.mf-cloud-study .mf-hero-name .has-accent-acute::after {
-  content:'´' !important;
-  left:58% !important;
-  top:-.11em !important;
-}
-html body.mf-cloud-study .mf-hero-name .has-accent-ring::after {
-  content:'˚' !important;
-  left:50% !important;
-  top:-.13em !important;
-}
-html body.mf-cloud-study .mf-hero-name .is-accent-visible::after { opacity:1 !important; }
-
-/* stronger hero-only grid, then it falls away sooner */
-html body.mf-cloud-study .mf-grid {
-  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 34%,rgba(0,0,0,.72) 40%,rgba(0,0,0,.24) 46%,rgba(0,0,0,.06) 52%,transparent 58%) !important;
-  mask-image:linear-gradient(to bottom,#000 0%,#000 34%,rgba(0,0,0,.72) 40%,rgba(0,0,0,.24) 46%,rgba(0,0,0,.06) 52%,transparent 58%) !important;
-}
-html body.mf-cloud-study .mf-grid,
-html body.mf-cloud-study .mf-grid.is-soft {
-  will-change:opacity,transform;
-  transform:translateZ(0);
+html body.mf-cloud-study.mf-stage-system .mf-index-title,
+html body.mf-cloud-study.mf-stage-system .mf-guidance-title,
+html body.mf-cloud-study.mf-stage-system .mf-timeline-label,
+html body.mf-cloud-study.mf-stage-system .mf-about-title,
+html body.mf-cloud-study.mf-stage-system .mf-art-showcase-copy > h2 {
+  display:none !important;
 }
 
-/* OPEN cursor = solid black difference circle */
-html body.mf-cloud-study .mf-global-cursor {
-  mix-blend-mode:difference !important;
+/* Exact accented glyph overlay: same glyph position, opacity only. */
+html body.mf-cloud-study.mf-stage-system .n-a2,
+html body.mf-cloud-study.mf-stage-system .n-u {
+  position:relative !important;
 }
-html body.mf-cloud-study .mf-global-cursor.is-open-mode {
-  width:88px !important;
-  height:88px !important;
-  margin:-44px 0 0 -44px !important;
+html body.mf-cloud-study.mf-stage-system .mf-base-glyph {
+  position:relative;
+  display:inline-block;
+}
+html body.mf-cloud-study.mf-stage-system .mf-accent-glyph {
+  position:absolute;
+  inset:0;
+  display:block;
+  opacity:0;
+  color:inherit;
+  -webkit-text-fill-color:inherit;
+  font:inherit;
+  line-height:inherit;
+  letter-spacing:inherit;
+  pointer-events:none;
+  transition:opacity .52s cubic-bezier(.16,1,.3,1);
+}
+html body.mf-cloud-study.mf-stage-system .is-accent-visible .mf-accent-glyph { opacity:1; }
+html body.mf-cloud-study.mf-stage-system .has-accent-acute::after,
+html body.mf-cloud-study.mf-stage-system .has-accent-ring::after { display:none !important;content:none !important; }
+
+/* Hero grid belongs to hero and dissolves before INDEX. */
+html body.mf-cloud-study.mf-stage-system .mf-grid {
+  position:absolute !important;
+  inset:0 !important;
+  height:100svh !important;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 31%,rgba(0,0,0,.72) 37%,rgba(0,0,0,.26) 43%,rgba(0,0,0,.06) 49%,transparent 55%) !important;
+  mask-image:linear-gradient(to bottom,#000 0%,#000 31%,rgba(0,0,0,.72) 37%,rgba(0,0,0,.26) 43%,rgba(0,0,0,.06) 49%,transparent 55%) !important;
+  contain:paint;
+}
+
+/* OPEN cursor: solid black/difference field, no outline. */
+html body.mf-cloud-study.mf-stage-system .mf-global-cursor.is-open-mode {
+  width:90px !important;
+  height:90px !important;
+  margin:-45px 0 0 -45px !important;
   border:0 !important;
+  outline:0 !important;
   background:#fff !important;
   box-shadow:none !important;
+  mix-blend-mode:difference !important;
 }
-html body.mf-cloud-study .mf-global-cursor.is-open-mode .mf-global-cursor-dot,
-html body.mf-cloud-study .mf-global-cursor.is-open-mode .mf-global-cursor-pulse { display:none !important; }
-html body.mf-cloud-study .mf-global-cursor.is-open-mode .mf-global-cursor-open {
+html body.mf-cloud-study.mf-stage-system .mf-global-cursor.is-open-mode .mf-global-cursor-dot,
+html body.mf-cloud-study.mf-stage-system .mf-global-cursor.is-open-mode .mf-global-cursor-pulse { display:none !important; }
+html body.mf-cloud-study.mf-stage-system .mf-global-cursor.is-open-mode .mf-global-cursor-open {
   color:#000 !important;
   opacity:1 !important;
-  transform:scale(1) !important;
+  transform:none !important;
   font-size:10px !important;
   font-weight:560 !important;
+  letter-spacing:.08em !important;
 }
 
-/* INDEX — bigger wrapper that expands outside the strip without pushing content */
 @media (min-width:1025px) and (hover:hover) and (pointer:fine) {
-  html body.mf-cloud-study .mf-strips {
+  /* ========================================================
+     INDEX — one viewport, adaptive rows, media emerges inside
+     a true outer window without moving the fixed columns.
+     ======================================================== */
+  html body.mf-cloud-study.mf-stage-system .mf-work {
+    height:100svh !important;
+    min-height:100svh !important;
+    padding:clamp(108px,12vh,142px) 7.5vw clamp(44px,5vh,66px) !important;
+    display:flex !important;
+    flex-direction:column !important;
     overflow:visible !important;
-    gap:12px !important;
   }
-  html body.mf-cloud-study .mf-strip {
+  html body.mf-cloud-study.mf-stage-system .mf-work .mf-stage-label { left:7.5vw; }
+  html body.mf-cloud-study.mf-stage-system .mf-strips {
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:10px !important;
+    overflow:visible !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip {
+    --mf-strip-flex:1;
     position:relative !important;
     isolation:isolate !important;
+    flex:var(--mf-strip-flex) 1 0 !important;
+    min-height:0 !important;
     overflow:visible !important;
-    min-height:11.4vh !important;
+    border:0 !important;
     background:transparent !important;
-    transition:min-height .58s var(--ease),transform .52s var(--ease) !important;
+    grid-template-columns:7.5vw minmax(140px,1.02fr) minmax(170px,.9fr) minmax(260px,1.55fr) 34px !important;
+    padding:0 !important;
+    transition:flex .78s cubic-bezier(.16,1,.3,1),opacity .5s ease,filter .5s ease !important;
   }
-  html body.mf-cloud-study .mf-strip::after {
-    content:'';
+  html body.mf-cloud-study.mf-stage-system .mf-strip::before {
+    content:"" !important;
+    position:absolute !important;
+    z-index:0 !important;
+    inset:-5px clamp(-58px,-3.2vw,-34px) !important;
+    border:0 !important;
+    border-radius:clamp(28px,2vw,38px) !important;
+    background:rgba(249,249,249,.82) !important;
+    box-shadow:0 0 0 1px rgba(174,185,189,.12),0 18px 44px rgba(117,132,138,.075) !important;
+    opacity:0 !important;
+    transform:scale(.986) !important;
+    transform-origin:center !important;
+    transition:opacity .34s ease,transform .72s cubic-bezier(.16,1,.3,1) !important;
+    pointer-events:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip::after {
+    content:"";
     position:absolute;
-    z-index:0;
-    left:-28px;
-    right:-28px;
-    top:50%;
-    height:calc(100% + 18px);
-    border-radius:34px;
-    background:rgba(249,249,249,.78);
-    box-shadow:0 0 0 1px rgba(174,185,189,.16), 0 14px 34px rgba(117,132,138,.06);
-    opacity:0;
-    transform:translateY(-50%) scale(.985);
-    transition:opacity .36s ease,transform .56s cubic-bezier(.16,1,.3,1),box-shadow .56s cubic-bezier(.16,1,.3,1);
-    pointer-events:none;
+    z-index:-2;
+    left:0;right:0;bottom:-5px;
+    height:1px;
+    background:var(--mf-line);
+    transition:opacity .35s ease;
   }
-  html body.mf-cloud-study .mf-strip:hover,
-  html body.mf-cloud-study .mf-strip:focus-within {
-    min-height:14.1vh !important;
-    background:transparent !important;
+  html body.mf-cloud-study.mf-stage-system .mf-strip:first-child::after { display:block; }
+  html body.mf-cloud-study.mf-stage-system .mf-strips:has(.mf-strip:hover) .mf-strip,
+  html body.mf-cloud-study.mf-stage-system .mf-strips:has(.mf-strip:focus-within) .mf-strip {
+    --mf-strip-flex:.68;
+    opacity:.44 !important;
+    filter:none !important;
   }
-  html body.mf-cloud-study .mf-strip:hover::after,
-  html body.mf-cloud-study .mf-strip:focus-within::after {
-    opacity:1;
-    transform:translateY(-50%) scale(1);
+  html body.mf-cloud-study.mf-stage-system .mf-strips:has(.mf-strip:hover) .mf-strip:hover,
+  html body.mf-cloud-study.mf-stage-system .mf-strips:has(.mf-strip:focus-within) .mf-strip:focus-within {
+    --mf-strip-flex:2.45;
+    opacity:1 !important;
+    z-index:12 !important;
   }
-  html body.mf-cloud-study .mf-strip:hover .mf-strip-num,
-  html body.mf-cloud-study .mf-strip:hover .mf-strip-title,
-  html body.mf-cloud-study .mf-strip:hover .mf-strip-meta,
-  html body.mf-cloud-study .mf-strip:hover .mf-strip-desc,
-  html body.mf-cloud-study .mf-strip:hover .mf-strip-plus {
-    transform:translateY(-2.45vh) !important;
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover::before,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within::before {
+    opacity:1 !important;
+    transform:scale(1) !important;
   }
-  html body.mf-cloud-study .mf-strip-preview {
-    left:56% !important;
-    right:3.2vw !important;
-    bottom:12px !important;
-    height:8.8vh !important;
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover::after,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within::after,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover + .mf-strip::after,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within + .mf-strip::after { opacity:0 !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-num,
+  html body.mf-cloud-study.mf-stage-system .mf-strip-title,
+  html body.mf-cloud-study.mf-stage-system .mf-strip-meta,
+  html body.mf-cloud-study.mf-stage-system .mf-strip-desc,
+  html body.mf-cloud-study.mf-stage-system .mf-strip-plus {
+    z-index:4 !important;
+    transition:transform .72s cubic-bezier(.16,1,.3,1),font-size .72s cubic-bezier(.16,1,.3,1),opacity .42s ease,color .42s ease !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-num,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-title,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-meta,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-desc,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-plus,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-num,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-title,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-meta,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-desc,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-plus {
+    transform:translateY(clamp(-62px,-5.2vh,-42px)) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-title,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-title {
+    color:var(--mf-ink) !important;
+    font-size:clamp(28px,2.15vw,42px) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview {
+    position:absolute !important;
+    z-index:3 !important;
+    left:34.5% !important;
+    right:2.2vw !important;
+    bottom:clamp(12px,1.8vh,24px) !important;
+    height:clamp(88px,11.5vh,150px) !important;
     display:flex !important;
     align-items:flex-end !important;
+    justify-content:flex-end !important;
     gap:10px !important;
-    width:auto !important;
+    opacity:0 !important;
+    transform:translateY(18px) !important;
+    pointer-events:none !important;
+    transition:opacity .34s ease .08s,transform .72s cubic-bezier(.16,1,.3,1) !important;
   }
-  html body.mf-cloud-study .mf-strip-preview-frame,
-  html body.mf-cloud-study .mf-strip-preview-more {
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-preview,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-preview {
+    opacity:1 !important;
+    transform:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-frame,
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-more {
+    flex:none !important;
     width:auto !important;
     min-width:0 !important;
-    flex:none !important;
-    height:100% !important;
-    border-radius:20px !important;
+    border-radius:clamp(14px,1.1vw,22px) !important;
     overflow:hidden !important;
+    opacity:0 !important;
+    transform:translateY(12px) scale(.97) !important;
+    transition:opacity .3s ease,transform .65s cubic-bezier(.16,1,.3,1) !important;
+    transition-delay:calc(var(--preview-order,0) * 60ms + 100ms) !important;
   }
-  html body.mf-cloud-study .mf-strip-preview-frame img {
-    width:auto !important;
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-preview-frame,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:hover .mf-strip-preview-more,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-preview-frame,
+  html body.mf-cloud-study.mf-stage-system .mf-strip:focus-within .mf-strip-preview-more {
+    opacity:1 !important;
+    transform:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-frame:nth-child(1) { height:100% !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-frame:nth-child(2) { height:84% !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-frame:nth-child(3) { height:70% !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-frame img {
+    display:block !important;
+    width:100% !important;
     height:100% !important;
-    max-width:min(15.5vw,230px) !important;
     object-fit:contain !important;
     object-position:center !important;
-    border-radius:20px !important;
-    background:rgba(255,255,255,.18) !important;
-    padding:0 !important;
-    filter:grayscale(1) contrast(.98) brightness(.96) !important;
+    background:rgba(228,230,231,.22) !important;
+    filter:grayscale(1) contrast(.99) brightness(.97) !important;
   }
-  html body.mf-cloud-study .mf-strip-preview-more {
+  html body.mf-cloud-study.mf-stage-system .mf-strip-preview-more {
+    height:55% !important;
+    min-width:112px !important;
     display:flex !important;
     align-items:center !important;
     justify-content:center !important;
-    min-width:110px !important;
     padding:0 14px !important;
-    background:rgba(249,249,249,.84) !important;
     border:1px solid rgba(174,185,189,.34) !important;
+    background:rgba(249,249,249,.72) !important;
   }
-}
 
-/* guidance homepage — 70 / 30 spatial transfer */
-@media (min-width:1025px) and (hover:hover) and (pointer:fine) {
-  html body.mf-cloud-study .mf-guidance-portals {
+  /* ========================================================
+     GUIDANCE — one stage, 76/24 transfer, active side carries
+     image/particles/copy while the other side yields.
+     ======================================================== */
+  html body.mf-cloud-study.mf-stage-system .mf-guidance {
+    height:100svh !important;
+    min-height:100svh !important;
+    padding:clamp(108px,12vh,142px) 7.5vw clamp(44px,5vh,66px) !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:0 !important;
     overflow:visible !important;
-    gap:12px !important;
-    background:transparent !important;
   }
-  html body.mf-cloud-study .mf-guidance-portal {
-    position:relative !important;
-    overflow:visible !important;
+  html body.mf-cloud-study.mf-stage-system .mf-guidance .mf-stage-label { left:7.5vw; }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals[data-mc-tl-version="3"] {
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    display:flex !important;
+    gap:12px !important;
     border:0 !important;
-    min-height:70vh !important;
+    background:transparent !important;
+    overflow:visible !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal {
+    position:relative !important;
+    min-width:0 !important;
+    min-height:0 !important;
     flex:1 1 50% !important;
-    transition:flex-basis .68s cubic-bezier(.16,1,.3,1),transform .58s cubic-bezier(.16,1,.3,1),background-color .42s ease !important;
+    padding:clamp(28px,3vw,58px) !important;
+    border:0 !important;
+    border-radius:clamp(30px,2.2vw,42px) !important;
+    background:rgba(249,249,249,.36) !important;
+    overflow:hidden !important;
+    transition:flex-basis .82s cubic-bezier(.16,1,.3,1),background-color .48s ease,opacity .48s ease !important;
   }
-  html body.mf-cloud-study .mf-guidance-portal::after {
-    content:'';
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal::after {
+    content:"";
     position:absolute;
-    z-index:-1;
-    inset:-14px;
-    border-radius:40px;
-    background:rgba(249,249,249,.68);
-    box-shadow:0 0 0 1px rgba(174,185,189,.16), 0 18px 38px rgba(117,132,138,.06);
-    opacity:0;
-    transform:scale(.985);
-    transition:opacity .34s ease,transform .58s cubic-bezier(.16,1,.3,1);
-  }
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal,
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal {
-    flex-basis:31% !important;
-  }
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:hover,
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:focus-visible {
-    flex-basis:69% !important;
-  }
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:not(:hover) .mf-guidance-portal-title,
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:not(:focus-visible) .mf-guidance-portal-title {
-    transform:scale(.78) !important;
-    transform-origin:left top !important;
-    opacity:.92 !important;
-  }
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:hover::after,
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:focus-visible::after {
-    opacity:1;
-    transform:scale(1);
-  }
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:hover .mf-guidance-portal-title,
-  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:focus-visible .mf-guidance-portal-title {
-    color:var(--mf-ink) !important;
-  }
-}
-
-/* XP / TRACK particles a touch more visible */
-html body.mf-cloud-study .mf-xp-shape,
-html body.mf-cloud-study .mf-xp-shape canvas {
-  opacity:1 !important;
-  filter:brightness(0) saturate(100%) invert(51%) sepia(9%) saturate(493%) hue-rotate(147deg) brightness(96%) contrast(92%) !important;
-}
-
-/* AFTER HOURS — same bigger wrapper language, smaller icon radius */
-@media (min-width:1025px) and (hover:hover) and (pointer:fine) {
-  html body.mf-cloud-study .mf-after-hours-list {
-    overflow:visible !important;
-    gap:12px !important;
-  }
-  html body.mf-cloud-study .mf-after-hours-row {
-    overflow:visible !important;
-    border-top:0 !important;
-  }
-  html body.mf-cloud-study .mf-after-hours-row::after {
-    content:'';
-    position:absolute;
+    inset:0;
     z-index:0;
-    left:-28px;
-    right:-28px;
-    top:50%;
-    height:calc(100% + 20px);
-    border-radius:34px;
-    background:rgba(249,249,249,.76);
-    box-shadow:0 0 0 1px rgba(174,185,189,.16), 0 14px 34px rgba(117,132,138,.06);
-    opacity:0;
-    transform:translateY(-50%) scale(.985);
-    transition:opacity .36s ease,transform .56s cubic-bezier(.16,1,.3,1),box-shadow .56s cubic-bezier(.16,1,.3,1);
+    border-radius:inherit;
+    background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(249,249,249,.20) 55%,rgba(117,132,138,.06));
+    opacity:.36;
+    transition:opacity .55s ease;
     pointer-events:none;
   }
-  html body.mf-cloud-study .mf-after-hours-row:hover::after,
-  html body.mf-cloud-study .mf-after-hours-row:focus-within::after {
-    opacity:1;
-    transform:translateY(-50%) scale(1);
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-mindset .mf-guidance-portal-mindset,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-leadership .mf-guidance-portal-leadership,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal:hover,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal:focus-visible {
+    flex-basis:76% !important;
+    background:rgba(249,249,249,.82) !important;
   }
-  html body.mf-cloud-study .mf-after-hours-trigger {
-    min-height:8.75vh !important;
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-mindset .mf-guidance-portal-leadership,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-leadership .mf-guidance-portal-mindset,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:not(:hover) {
+    flex-basis:24% !important;
+    background:rgba(228,230,231,.24) !important;
   }
-  html body.mf-cloud-study .mf-after-hours-icon {
-    border-radius:23% !important;
-    overflow:hidden !important;
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal-title {
+    position:absolute !important;
+    z-index:4 !important;
+    top:16% !important;
+    left:clamp(28px,3vw,58px) !important;
+    margin:0 !important;
+    font-size:clamp(64px,7.2vw,132px) !important;
+    line-height:.76 !important;
+    letter-spacing:-.078em !important;
+    font-weight:560 !important;
+    transform-origin:left top !important;
+    transition:transform .82s cubic-bezier(.16,1,.3,1),font-size .82s cubic-bezier(.16,1,.3,1),color .42s ease,opacity .42s ease !important;
   }
-  html body.mf-cloud-study .mf-after-hours-preview {
-    --mf-after-preview-box:clamp(480px,42vw,760px) !important;
-    left:77.2% !important;
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal-index {
+    position:absolute !important;
+    z-index:4 !important;
+    right:clamp(28px,3vw,58px) !important;
+    top:clamp(24px,2.6vw,48px) !important;
+    font-size:clamp(72px,8vw,150px) !important;
+    line-height:.75 !important;
+    letter-spacing:-.075em !important;
+    color:var(--mf-title) !important;
+    transition:font-size .82s cubic-bezier(.16,1,.3,1),opacity .42s ease,transform .82s cubic-bezier(.16,1,.3,1) !important;
   }
-  html body.mf-cloud-study .mf-after-hours-preview img {
-    border-radius:24px !important;
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal-copy {
+    position:absolute !important;
+    z-index:4 !important;
+    left:clamp(28px,3vw,58px) !important;
+    bottom:clamp(30px,4.2vw,72px) !important;
+    width:min(36vw,560px) !important;
+    color:var(--mf-body) !important;
+    font-size:clamp(17px,1.45vw,25px) !important;
+    line-height:1.14 !important;
+    letter-spacing:-.028em !important;
+    opacity:.72 !important;
+    transform:none !important;
+    transition:opacity .42s ease,transform .82s cubic-bezier(.16,1,.3,1),width .82s cubic-bezier(.16,1,.3,1) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-particle-stage {
+    position:absolute !important;
+    z-index:2 !important;
+    right:-6% !important;
+    top:50% !important;
+    width:58% !important;
+    height:82% !important;
+    opacity:.17 !important;
+    transform:translateY(-50%) scale(.9) !important;
+    transition:opacity .7s ease,transform .95s cubic-bezier(.16,1,.3,1) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-mindset .mf-guidance-portal-mindset .mf-guidance-particle-stage,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-leadership .mf-guidance-portal-leadership .mf-guidance-particle-stage,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal:hover .mf-guidance-particle-stage {
+    opacity:.66 !important;
+    transform:translateY(-50%) scale(1.04) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-mindset .mf-guidance-portal-leadership .mf-guidance-portal-title,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-leadership .mf-guidance-portal-mindset .mf-guidance-portal-title,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:not(:hover) .mf-guidance-portal-title {
+    transform:scale(.58) !important;
+    opacity:.82 !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-mindset .mf-guidance-portal-leadership .mf-guidance-portal-index,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-leadership .mf-guidance-portal-mindset .mf-guidance-portal-index,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:not(:hover) .mf-guidance-portal-index {
+    font-size:clamp(48px,4.5vw,84px) !important;
+    opacity:.35 !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-mindset .mf-guidance-portal-leadership .mf-guidance-portal-copy,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals.is-focus-leadership .mf-guidance-portal-mindset .mf-guidance-portal-copy,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:not(:hover) .mf-guidance-portal-copy {
+    opacity:0 !important;
+    transform:translateY(12px) !important;
+  }
+
+  /* ========================================================
+     PRACTICE / XP / BIO — full-screen chapters with small labels.
+     ======================================================== */
+  html body.mf-cloud-study.mf-stage-system .mf-practice,
+  html body.mf-cloud-study.mf-stage-system .mf-xp,
+  html body.mf-cloud-study.mf-stage-system .mf-about {
+    height:100svh !important;
+    min-height:100svh !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-practice { padding-top:56px !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-xp { padding:clamp(108px,12vh,142px) 6vw clamp(56px,6vh,84px) !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-about { padding-top:clamp(108px,12vh,142px) !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-xp-shape,
+  html body.mf-cloud-study.mf-stage-system .mf-xp-shape canvas {
+    opacity:1 !important;
+    filter:none !important;
+    mix-blend-mode:multiply !important;
+  }
+
+  /* ========================================================
+     AFTER HOURS — adaptive full-screen rows using same window
+     grammar as INDEX. Fixed columns do not shift inward.
+     ======================================================== */
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours {
+    height:100svh !important;
+    min-height:100svh !important;
+    padding:clamp(94px,10.5vh,126px) 7.5vw clamp(42px,4.8vh,62px) !important;
+    overflow:visible !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours .mf-stage-label { left:7.5vw; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-title-wrap { position:absolute !important;top:clamp(118px,13vh,154px) !important;left:7.5vw !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-body {
+    height:100% !important;
+    margin:0 !important;
+    padding-top:clamp(126px,15vh,174px) !important;
+    display:flex !important;
+    flex-direction:column !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-intro { flex:0 0 auto !important;margin:0 0 clamp(18px,2.2vh,30px) !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-list {
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:9px !important;
+    overflow:visible !important;
+    border:0 !important;
+    background:transparent !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row {
+    --mf-after-flex:1;
+    position:relative !important;
+    isolation:isolate !important;
+    flex:var(--mf-after-flex) 1 0 !important;
+    min-height:0 !important;
+    overflow:visible !important;
+    border:0 !important;
+    background:transparent !important;
+    transition:flex .76s cubic-bezier(.16,1,.3,1),opacity .48s ease !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row::before { display:none !important;content:none !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row::after {
+    content:"" !important;
+    position:absolute !important;
+    z-index:0 !important;
+    inset:-5px clamp(-58px,-3.2vw,-34px) !important;
+    border-radius:clamp(28px,2vw,38px) !important;
+    background:rgba(249,249,249,.82) !important;
+    box-shadow:0 0 0 1px rgba(174,185,189,.12),0 18px 44px rgba(117,132,138,.075) !important;
+    opacity:0 !important;
+    transform:scale(.986) !important;
+    transition:opacity .34s ease,transform .72s cubic-bezier(.16,1,.3,1) !important;
+    pointer-events:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row + .mf-after-hours-row { border-top:1px solid var(--mf-line) !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-list:has(.mf-after-hours-row:hover) .mf-after-hours-row,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-list:has(.mf-after-hours-row:focus-within) .mf-after-hours-row {
+    --mf-after-flex:.72;
+    opacity:.46 !important;
+    filter:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-list:has(.mf-after-hours-row:hover) .mf-after-hours-row:hover,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-list:has(.mf-after-hours-row:focus-within) .mf-after-hours-row:focus-within {
+    --mf-after-flex:2.15;
+    opacity:1 !important;
+    z-index:15 !important;
+    border-top-color:transparent !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover + .mf-after-hours-row,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within + .mf-after-hours-row { border-top-color:transparent !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover::after,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within::after {
+    opacity:1 !important;
+    transform:scale(1) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-trigger {
+    min-height:100% !important;
+    height:100% !important;
+    padding:0 !important;
+    grid-template-columns:clamp(30px,3vw,54px) clamp(42px,3.7vw,60px) minmax(130px,1fr) minmax(220px,1.35fr) minmax(250px,1.55fr) 42px !important;
+    grid-template-rows:auto 1px !important;
+    column-gap:clamp(12px,1.55vw,28px) !important;
+    row-gap:clamp(14px,1.7vh,20px) !important;
+    align-items:center !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-number { grid-column:1 !important;grid-row:1 !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-icon { grid-column:2 !important;grid-row:1/3 !important;width:100% !important;max-width:60px !important;border-radius:21% !important;overflow:hidden !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-name { grid-column:3 !important;grid-row:1 !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-type { grid-column:4 !important;grid-row:1 !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-description { grid-column:5 !important;grid-row:1 !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-percent { grid-column:6 !important;grid-row:1 !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-progress { grid-column:3/7 !important;grid-row:2 !important;margin-top:2px !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover .mf-after-hours-name,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within .mf-after-hours-name {
+    transform:translateY(clamp(-15px,-1.4vh,-9px)) !important;
+    color:var(--mf-ink) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover .mf-after-hours-type,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover .mf-after-hours-description,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover .mf-after-hours-percent,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within .mf-after-hours-type,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within .mf-after-hours-description,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within .mf-after-hours-percent {
+    transform:translateY(clamp(-15px,-1.4vh,-9px)) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:hover .mf-after-hours-progress,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-row:focus-within .mf-after-hours-progress {
+    transform:translateY(clamp(14px,1.8vh,22px)) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-preview {
+    --mf-after-preview-box:clamp(430px,37vw,680px) !important;
+    left:76.5% !important;
+    overflow:visible !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-preview img {
     max-width:100% !important;
     max-height:100% !important;
     object-fit:contain !important;
-    background:transparent !important;
+    border-radius:clamp(18px,1.35vw,28px) !important;
+    overflow:hidden !important;
+  }
+
+  /* ========================================================
+     ART / FOOTER — one continuous ending, no module separators.
+     ======================================================== */
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase {
+    height:100svh !important;
+    min-height:100svh !important;
+    padding:clamp(108px,12vh,142px) 6vw clamp(54px,6vh,82px) !important;
+    border:0 !important;
+    box-shadow:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase-inner {
+    min-height:0 !important;
+    height:100% !important;
+    padding:0 !important;
+    border:0 !important;
+    grid-template-columns:minmax(240px,24vw) 1fr !important;
+    gap:clamp(38px,5vw,92px) !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase-copy { min-height:0 !important;height:100% !important;justify-content:flex-end !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase-bottom { margin-top:auto !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-art-preview-frame {
+    min-height:0 !important;
+    height:100% !important;
+    border:0 !important;
+    border-radius:clamp(14px,1vw,20px) !important;
+    box-shadow:none !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-art-preview-frame::after { display:none !important;content:none !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-footer {
+    border:0 !important;
+    box-shadow:none !important;
   }
 }
 
-/* art separator cleanup + cleaner transition into footer */
-html body.mf-cloud-study .mf-art-showcase,
-html body.mf-cloud-study #artShowcase {
-  border-top:0 !important;
-  box-shadow:none !important;
+@media (max-width:1024px) {
+  html body.mf-cloud-study.mf-stage-system .mf-stage-label {
+    top:74px;
+    left:18px;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-index-title,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-title,
+  html body.mf-cloud-study.mf-stage-system .mf-timeline-label,
+  html body.mf-cloud-study.mf-stage-system .mf-about-title,
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase-copy > h2 { display:none !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-work,
+  html body.mf-cloud-study.mf-stage-system .mf-guidance,
+  html body.mf-cloud-study.mf-stage-system .mf-xp,
+  html body.mf-cloud-study.mf-stage-system .mf-about,
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours,
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase {
+    padding-top:112px !important;
+  }
+  html body.mf-cloud-study.mf-stage-system .mf-guidance-portal { border-radius:24px !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-icon { border-radius:21% !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-after-hours-preview img { border-radius:16px !important; }
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase-inner,
+  html body.mf-cloud-study.mf-stage-system .mf-art-showcase,
+  html body.mf-cloud-study.mf-stage-system .mf-footer { border-top:0 !important; }
 }
-html body.mf-cloud-study .mf-footer {
-  border-top:1px solid var(--mf-line) !important;
-}
-

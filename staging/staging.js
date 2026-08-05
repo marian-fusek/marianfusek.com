@@ -331,7 +331,14 @@ if(indexExtra){
       frame.className='mf-strip-preview-frame';
       frame.style.setProperty('--preview-order',i);
       const img=document.createElement('img');
-      img.src=src; img.alt=''; img.loading='eager'; img.decoding='async'; img.onerror=()=>{img.onerror=null;img.src=src.startsWith('/')?'.'+src:src;};
+      img.src=src; img.alt=''; img.loading='eager'; img.decoding='async';
+      img.onload=()=>{
+        const width=Math.max(1,img.naturalWidth||1),height=Math.max(1,img.naturalHeight||1);
+        frame.style.aspectRatio=`${width} / ${height}`;
+        frame.dataset.orientation=width>height*1.12?'landscape':height>width*1.12?'portrait':'square';
+      };
+      img.onerror=()=>{img.onerror=null;img.src=src.startsWith('/')?'.'+src:src;};
+      if(i===0)frame.classList.add('is-primary');
       frame.appendChild(img); preview.appendChild(frame);
     });
     const more=Math.max(0,list.length-3);
@@ -1615,18 +1622,16 @@ function queueHeroNameFit(){
   const ease='cubic-bezier(.16,1,.3,1)';
   const chars=()=>Array.from(baseWrap.querySelectorAll('.nc')).filter(char=>!char.classList.contains('n-sp'));
 
-  async function accent(selector,className){
+  async function accent(selector){
     const letter=hero.querySelector(selector);
     if(!letter)return;
-    letter.classList.add(className);
     requestAnimationFrame(()=>letter.classList.add('is-accent-visible'));
     await wait(620);
     letter.classList.remove('is-accent-visible');
     await wait(420);
-    letter.classList.remove(className);
   }
-  const accentA=()=>accent('.n-a2','has-accent-acute');
-  const accentU=()=>accent('.n-u','has-accent-ring');
+  const accentA=()=>accent('.n-a2');
+  const accentU=()=>accent('.n-u');
 
   async function fadeLetters(list,show,duration){
     const animations=list.map(letter=>letter.animate(
@@ -4117,6 +4122,24 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
   loop();
 })();
 
+
+
+/* V153 GUIDANCE STAGE — explicit focus classes keep the 76/24 transfer
+   deterministic across pointer and keyboard interaction. */
+(function(){
+  const portals=document.querySelector('.mf-guidance-portals[data-mc-tl-version="3"]');
+  if(!portals)return;
+  const mindset=portals.querySelector('.mf-guidance-portal-mindset');
+  const leadership=portals.querySelector('.mf-guidance-portal-leadership');
+  const clear=()=>portals.classList.remove('is-focus-mindset','is-focus-leadership');
+  const focus=side=>{clear();portals.classList.add(`is-focus-${side}`);};
+  mindset?.addEventListener('pointerenter',()=>focus('mindset'));
+  leadership?.addEventListener('pointerenter',()=>focus('leadership'));
+  mindset?.addEventListener('focus',()=>focus('mindset'));
+  leadership?.addEventListener('focus',()=>focus('leadership'));
+  portals.addEventListener('pointerleave',clear);
+  portals.addEventListener('focusout',event=>{if(!portals.contains(event.relatedTarget))clear();});
+})();
 
 /* Desktop cursor — restrained dot, visible micro-trail and pulse only on click. */
 (function(){

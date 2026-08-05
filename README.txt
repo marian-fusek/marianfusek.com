@@ -1,3 +1,11 @@
+V149
+
+Staging-only update:
+- Restored expanding After Hours hover panels.
+- Active panel hides its surrounding divider lines.
+- Increased app-icon rounding to a fuller iOS-style squircle.
+- Preserved live index.html unchanged.
+
 MARIAN FUSEK WEBSITE — V147
 
 LIVE
@@ -14,3 +22,13 @@ STAGING
 
 
 V147 staging: completed rendered-state light-theme audit; rebuilt MIUNAE live controls and Side Quests light states; fixed Mindset/Leadership inherited white text; restored XP particle visibility; removed RGB layer generation; made hero effect order deterministic; reserved After Hours app-icon columns. Live root index remains V139.
+
+
+V150 STAGING
+- Restored original Mindset handoff and Team Leadership geometry.
+- Retired Geist Mono throughout staging.
+- Added OPEN cursor to INDEX, Guidance and ART opener.
+- Corrected hero accent fade, FUSEK offset and grid fade.
+- Added INDEX wrapper hover, project optical title alignment and bottom-anchored Scope.
+- Unified ART/footer Cloud field and removed gallery frame.
+- Live index.html remains V139 and unchanged.

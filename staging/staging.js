@@ -4123,7 +4123,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
   if(!window.matchMedia('(pointer:fine)').matches)return;
   const cursor=document.createElement('div');
   cursor.className='mf-global-cursor';
-  cursor.innerHTML='<span class="mf-global-cursor-pulse"></span><span class="mf-global-cursor-dot"></span>';
+  cursor.innerHTML='<span class="mf-global-cursor-pulse"></span><span class="mf-global-cursor-dot"></span><span class="mf-global-cursor-open">OPEN</span>';
   document.body.appendChild(cursor);
   document.body.classList.add('mf-custom-cursor');
 
@@ -4144,9 +4144,12 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     x=event.clientX;y=event.clientY;place();
     const sideQuestsOpen=document.body.classList.contains('project-open')&&!!document.querySelector('.mf-project-shell.is-sidequests-project');
     const shouldHide=hiddenZone(event.target)||(document.body.classList.contains('project-open')&&!sideQuestsOpen)||document.body.classList.contains('art-open');
+    const openTarget=event.target?.closest?.('.mf-strip,.mf-guidance-portal,#mfArtButton');
+    const openMode=!!openTarget&&!shouldHide;
     const wasVisible=visible;
     visible=!shouldHide;
     cursor.classList.toggle('is-visible',visible);
+    cursor.classList.toggle('is-open-mode',openMode);
     const now=performance.now();
     if(!visible||!wasVisible){lastX=x;lastY=y;lastTrailAt=now;return;}
     const distance=Math.hypot(x-lastX,y-lastY);
@@ -4171,8 +4174,8 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     ring.addEventListener('animationend',()=>ring.remove(),{once:true});
     setTimeout(()=>ring.remove(),900);
   },{passive:true});
-  window.addEventListener('pointerleave',()=>{visible=false;cursor.classList.remove('is-visible');});
-  window.addEventListener('blur',()=>{visible=false;cursor.classList.remove('is-visible');});
+  window.addEventListener('pointerleave',()=>{visible=false;cursor.classList.remove('is-visible','is-open-mode');});
+  window.addEventListener('blur',()=>{visible=false;cursor.classList.remove('is-visible','is-open-mode');});
 })();
 
 

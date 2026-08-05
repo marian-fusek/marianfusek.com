@@ -1,5 +1,5 @@
 /* ============================================================
-   V141 STAGING — scroll-driven Guidance study
+   V142 STAGING — captured Guidance study
    Live index.html intentionally remains V139.
    ============================================================ */
 
@@ -14,8 +14,8 @@ html { scroll-behavior:auto; }
   position:relative !important;
   z-index:5;
   display:block !important;
-  min-height:260svh !important;
-  height:260svh !important;
+  min-height:100svh !important;
+  height:100svh !important;
   padding:0 !important;
   gap:0 !important;
   overflow:visible !important;
@@ -23,8 +23,8 @@ html { scroll-behavior:auto; }
 }
 
 .mf-guidance-sticky {
-  position:sticky;
-  top:0;
+  position:relative;
+  top:auto;
   width:100%;
   height:100svh;
   overflow:hidden;
@@ -204,7 +204,7 @@ html { scroll-behavior:auto; }
   transition:opacity .24s ease;
 }
 
-.mf-guidance-scroll.is-guidance-pinned .mf-guidance-scroll-line { opacity:1; }
+.mf-guidance-scroll.is-guidance-captured .mf-guidance-scroll-line { opacity:1; }
 
 .mf-guidance-scroll-line span {
   position:absolute;
@@ -275,8 +275,8 @@ html { scroll-behavior:auto; }
 
 @media (max-width:1024px), (hover:none), (pointer:coarse) {
   .mf-guidance-scroll {
-    min-height:220svh !important;
-    height:220svh !important;
+    min-height:100svh !important;
+    height:100svh !important;
   }
   .mf-guidance-sticky {
     padding:10vh 18px 22px;
@@ -317,7 +317,7 @@ html { scroll-behavior:auto; }
 }
 
 @media (max-width:560px) {
-  .mf-guidance-scroll { min-height:230svh !important;height:230svh !important; }
+  .mf-guidance-scroll { min-height:100svh !important;height:100svh !important; }
   .mf-guidance-editorial { top:clamp(138px,20vh,180px); }
   .mf-guidance-editorial-image { width:52%;height:42%; }
   .mf-guidance-editorial-chapter { top:44%; }
@@ -331,4 +331,14 @@ html { scroll-behavior:auto; }
   .mf-guidance-editorial-chapter.is-mindset { opacity:1;transform:none; }
   .mf-guidance-editorial-chapter.is-leadership { display:none; }
   .mf-guidance-scroll-line { display:none; }
+}
+
+
+/* V142: Guidance holds the viewport and consumes wheel/touch input internally. */
+html.mf-guidance-input-captured,
+html.mf-guidance-input-captured body {
+  overscroll-behavior:none;
+}
+.mf-guidance-scroll.is-guidance-captured .mf-guidance-sticky {
+  transform:translateZ(0);
 }

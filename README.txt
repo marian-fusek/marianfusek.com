@@ -1,12 +1,11 @@
-V141 — STAGING-ONLY GUIDANCE STUDY
+V142 — STAGING-ONLY CAPTURED GUIDANCE SEQUENCE
 
 - Live root index.html remains byte-for-byte identical to V139.
-- New prototype lives at /staging/index.html.
-- Full-viewport pinned Guidance sequence with 01 Mindset Coaching and 02 Team Leadership.
-- Bottom scroll line completes before the scrubbed image/copy transition.
-- Shared image frame travels from left to right and crossfades between two monochrome abstract placeholders.
-- Existing Guidance title animation and existing overlays are preserved.
-- New large OPEN cursor mode is limited to Guidance, INDEX and the ART gallery opener.
-- No tags and no visible “Open the Human Evidence” labels.
-
-Root index SHA-256 (same as V139): 5911d8b59541d6d722b2ad2561890c1bcb6b728d3c3612cd47d737df3dac426a
+- Prototype remains at /staging/index.html.
+- Replaces the incorrect 260vh sticky-scroll implementation.
+- Guidance is now one real viewport high.
+- When Guidance reaches the viewport, wheel, trackpad, keyboard and touch input are captured.
+- The page position stays fixed while input draws the bottom line and drives the 01 → 02 transition.
+- Native page scrolling is released only after the sequence reaches either boundary and receives a deliberate additional scroll.
+- Existing Guidance title animation, overlays and contextual OPEN cursor are preserved.
+- Root index SHA-256 remains unchanged from V139.

@@ -2456,3 +2456,325 @@ html body.mf-cloud-study .mf-guidance-portals[data-mc-tl-version="3"] .mf-guidan
   z-index:2 !important;
 }
 html body.mf-cloud-study .mf-guidance-portals[data-mc-tl-version="3"] .mf-guidance-particle-stage { z-index:1 !important; }
+
+/* ============================================================
+   V152 — stage system pass
+   - bigger outer hover wrappers for INDEX / AFTER HOURS
+   - respectful preview AR
+   - homepage guidance 70/30 transfer
+   - remove remaining mono on staging UI
+   - restore accent positions / fade only
+   - art separator cleanup / footer separator
+   ============================================================ */
+
+/* global meta uses Geist regular, not Geist Mono */
+html body.mf-cloud-study .mf-strip-num,
+html body.mf-cloud-study .mf-strip-meta,
+html body.mf-cloud-study .mf-guidance-portal-index,
+html body.mf-cloud-study .mf-guidance-open-label,
+html body.mf-cloud-study .mf-xp-year,
+html body.mf-cloud-study .mf-timeline-label,
+html body.mf-cloud-study .mf-about-note,
+html body.mf-cloud-study .mf-heresy-number,
+html body.mf-cloud-study .mf-after-hours-number,
+html body.mf-cloud-study .mf-after-hours-type,
+html body.mf-cloud-study .mf-after-hours-description,
+html body.mf-cloud-study .mf-after-hours-percent,
+html body.mf-cloud-study .mf-after-hours-intro,
+html body.mf-cloud-study .mf-guidance-portal-tags,
+html body.mf-cloud-study .mf-guidance-portal-tags i,
+html body.mf-cloud-study .mf-project-index,
+html body.mf-cloud-study .mf-project-section h3,
+html body.mf-cloud-study .mf-project-counter,
+html body.mf-cloud-study .mf-project-controls-hint,
+html body.mf-cloud-study .mf-guidance-overlay-kicker,
+html body.mf-cloud-study .mf-guidance-review-type,
+html body.mf-cloud-study .mf-guidance-person-role,
+html body.mf-cloud-study .mf-guidance-person-country,
+html body.mf-cloud-study .mf-guidance-review-meta,
+html body.mf-cloud-study .mf-art-hint,
+html body.mf-cloud-study .mf-footer-bottom,
+html body.mf-cloud-study .mf-meta-row,
+html body.mf-cloud-study .mf-ascii,
+html body.mf-cloud-study .mf-bio-menu-item,
+html body.mf-cloud-study .mf-nav,
+html body.mf-cloud-study .mf-nav a,
+html body.mf-cloud-study .mf-nav-logo,
+html body.mf-cloud-study .mf-strip-preview-more {
+  font-family:"Geist",Arial,sans-serif !important;
+  font-weight:420 !important;
+  letter-spacing:.055em !important;
+}
+
+/* hero accent marks: exact original position, fade only */
+html body.mf-cloud-study .mf-hero-name .has-accent-acute::after,
+html body.mf-cloud-study .mf-hero-name .has-accent-ring::after {
+  content:'' !important;
+  position:absolute !important;
+  z-index:4 !important;
+  display:block !important;
+  opacity:0 !important;
+  color:inherit !important;
+  -webkit-text-fill-color:inherit !important;
+  font:inherit !important;
+  line-height:1 !important;
+  letter-spacing:inherit !important;
+  text-align:left !important;
+  transform:translateX(-50%) !important;
+  filter:none !important;
+  pointer-events:none !important;
+  transition:opacity .52s cubic-bezier(.16,1,.3,1) !important;
+}
+html body.mf-cloud-study .mf-hero-name .has-accent-acute::after {
+  content:'´' !important;
+  left:58% !important;
+  top:-.11em !important;
+}
+html body.mf-cloud-study .mf-hero-name .has-accent-ring::after {
+  content:'˚' !important;
+  left:50% !important;
+  top:-.13em !important;
+}
+html body.mf-cloud-study .mf-hero-name .is-accent-visible::after { opacity:1 !important; }
+
+/* stronger hero-only grid, then it falls away sooner */
+html body.mf-cloud-study .mf-grid {
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 34%,rgba(0,0,0,.72) 40%,rgba(0,0,0,.24) 46%,rgba(0,0,0,.06) 52%,transparent 58%) !important;
+  mask-image:linear-gradient(to bottom,#000 0%,#000 34%,rgba(0,0,0,.72) 40%,rgba(0,0,0,.24) 46%,rgba(0,0,0,.06) 52%,transparent 58%) !important;
+}
+html body.mf-cloud-study .mf-grid,
+html body.mf-cloud-study .mf-grid.is-soft {
+  will-change:opacity,transform;
+  transform:translateZ(0);
+}
+
+/* OPEN cursor = solid black difference circle */
+html body.mf-cloud-study .mf-global-cursor {
+  mix-blend-mode:difference !important;
+}
+html body.mf-cloud-study .mf-global-cursor.is-open-mode {
+  width:88px !important;
+  height:88px !important;
+  margin:-44px 0 0 -44px !important;
+  border:0 !important;
+  background:#fff !important;
+  box-shadow:none !important;
+}
+html body.mf-cloud-study .mf-global-cursor.is-open-mode .mf-global-cursor-dot,
+html body.mf-cloud-study .mf-global-cursor.is-open-mode .mf-global-cursor-pulse { display:none !important; }
+html body.mf-cloud-study .mf-global-cursor.is-open-mode .mf-global-cursor-open {
+  color:#000 !important;
+  opacity:1 !important;
+  transform:scale(1) !important;
+  font-size:10px !important;
+  font-weight:560 !important;
+}
+
+/* INDEX — bigger wrapper that expands outside the strip without pushing content */
+@media (min-width:1025px) and (hover:hover) and (pointer:fine) {
+  html body.mf-cloud-study .mf-strips {
+    overflow:visible !important;
+    gap:12px !important;
+  }
+  html body.mf-cloud-study .mf-strip {
+    position:relative !important;
+    isolation:isolate !important;
+    overflow:visible !important;
+    min-height:11.4vh !important;
+    background:transparent !important;
+    transition:min-height .58s var(--ease),transform .52s var(--ease) !important;
+  }
+  html body.mf-cloud-study .mf-strip::after {
+    content:'';
+    position:absolute;
+    z-index:0;
+    left:-28px;
+    right:-28px;
+    top:50%;
+    height:calc(100% + 18px);
+    border-radius:34px;
+    background:rgba(249,249,249,.78);
+    box-shadow:0 0 0 1px rgba(174,185,189,.16), 0 14px 34px rgba(117,132,138,.06);
+    opacity:0;
+    transform:translateY(-50%) scale(.985);
+    transition:opacity .36s ease,transform .56s cubic-bezier(.16,1,.3,1),box-shadow .56s cubic-bezier(.16,1,.3,1);
+    pointer-events:none;
+  }
+  html body.mf-cloud-study .mf-strip:hover,
+  html body.mf-cloud-study .mf-strip:focus-within {
+    min-height:14.1vh !important;
+    background:transparent !important;
+  }
+  html body.mf-cloud-study .mf-strip:hover::after,
+  html body.mf-cloud-study .mf-strip:focus-within::after {
+    opacity:1;
+    transform:translateY(-50%) scale(1);
+  }
+  html body.mf-cloud-study .mf-strip:hover .mf-strip-num,
+  html body.mf-cloud-study .mf-strip:hover .mf-strip-title,
+  html body.mf-cloud-study .mf-strip:hover .mf-strip-meta,
+  html body.mf-cloud-study .mf-strip:hover .mf-strip-desc,
+  html body.mf-cloud-study .mf-strip:hover .mf-strip-plus {
+    transform:translateY(-2.45vh) !important;
+  }
+  html body.mf-cloud-study .mf-strip-preview {
+    left:56% !important;
+    right:3.2vw !important;
+    bottom:12px !important;
+    height:8.8vh !important;
+    display:flex !important;
+    align-items:flex-end !important;
+    gap:10px !important;
+    width:auto !important;
+  }
+  html body.mf-cloud-study .mf-strip-preview-frame,
+  html body.mf-cloud-study .mf-strip-preview-more {
+    width:auto !important;
+    min-width:0 !important;
+    flex:none !important;
+    height:100% !important;
+    border-radius:20px !important;
+    overflow:hidden !important;
+  }
+  html body.mf-cloud-study .mf-strip-preview-frame img {
+    width:auto !important;
+    height:100% !important;
+    max-width:min(15.5vw,230px) !important;
+    object-fit:contain !important;
+    object-position:center !important;
+    border-radius:20px !important;
+    background:rgba(255,255,255,.18) !important;
+    padding:0 !important;
+    filter:grayscale(1) contrast(.98) brightness(.96) !important;
+  }
+  html body.mf-cloud-study .mf-strip-preview-more {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    min-width:110px !important;
+    padding:0 14px !important;
+    background:rgba(249,249,249,.84) !important;
+    border:1px solid rgba(174,185,189,.34) !important;
+  }
+}
+
+/* guidance homepage — 70 / 30 spatial transfer */
+@media (min-width:1025px) and (hover:hover) and (pointer:fine) {
+  html body.mf-cloud-study .mf-guidance-portals {
+    overflow:visible !important;
+    gap:12px !important;
+    background:transparent !important;
+  }
+  html body.mf-cloud-study .mf-guidance-portal {
+    position:relative !important;
+    overflow:visible !important;
+    border:0 !important;
+    min-height:70vh !important;
+    flex:1 1 50% !important;
+    transition:flex-basis .68s cubic-bezier(.16,1,.3,1),transform .58s cubic-bezier(.16,1,.3,1),background-color .42s ease !important;
+  }
+  html body.mf-cloud-study .mf-guidance-portal::after {
+    content:'';
+    position:absolute;
+    z-index:-1;
+    inset:-14px;
+    border-radius:40px;
+    background:rgba(249,249,249,.68);
+    box-shadow:0 0 0 1px rgba(174,185,189,.16), 0 18px 38px rgba(117,132,138,.06);
+    opacity:0;
+    transform:scale(.985);
+    transition:opacity .34s ease,transform .58s cubic-bezier(.16,1,.3,1);
+  }
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal,
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal {
+    flex-basis:31% !important;
+  }
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:hover,
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:focus-visible {
+    flex-basis:69% !important;
+  }
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:not(:hover) .mf-guidance-portal-title,
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:not(:focus-visible) .mf-guidance-portal-title {
+    transform:scale(.78) !important;
+    transform-origin:left top !important;
+    opacity:.92 !important;
+  }
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:hover::after,
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:focus-visible::after {
+    opacity:1;
+    transform:scale(1);
+  }
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:hover) .mf-guidance-portal:hover .mf-guidance-portal-title,
+  html body.mf-cloud-study .mf-guidance-portals:has(.mf-guidance-portal:focus-visible) .mf-guidance-portal:focus-visible .mf-guidance-portal-title {
+    color:var(--mf-ink) !important;
+  }
+}
+
+/* XP / TRACK particles a touch more visible */
+html body.mf-cloud-study .mf-xp-shape,
+html body.mf-cloud-study .mf-xp-shape canvas {
+  opacity:1 !important;
+  filter:brightness(0) saturate(100%) invert(51%) sepia(9%) saturate(493%) hue-rotate(147deg) brightness(96%) contrast(92%) !important;
+}
+
+/* AFTER HOURS — same bigger wrapper language, smaller icon radius */
+@media (min-width:1025px) and (hover:hover) and (pointer:fine) {
+  html body.mf-cloud-study .mf-after-hours-list {
+    overflow:visible !important;
+    gap:12px !important;
+  }
+  html body.mf-cloud-study .mf-after-hours-row {
+    overflow:visible !important;
+    border-top:0 !important;
+  }
+  html body.mf-cloud-study .mf-after-hours-row::after {
+    content:'';
+    position:absolute;
+    z-index:0;
+    left:-28px;
+    right:-28px;
+    top:50%;
+    height:calc(100% + 20px);
+    border-radius:34px;
+    background:rgba(249,249,249,.76);
+    box-shadow:0 0 0 1px rgba(174,185,189,.16), 0 14px 34px rgba(117,132,138,.06);
+    opacity:0;
+    transform:translateY(-50%) scale(.985);
+    transition:opacity .36s ease,transform .56s cubic-bezier(.16,1,.3,1),box-shadow .56s cubic-bezier(.16,1,.3,1);
+    pointer-events:none;
+  }
+  html body.mf-cloud-study .mf-after-hours-row:hover::after,
+  html body.mf-cloud-study .mf-after-hours-row:focus-within::after {
+    opacity:1;
+    transform:translateY(-50%) scale(1);
+  }
+  html body.mf-cloud-study .mf-after-hours-trigger {
+    min-height:8.75vh !important;
+  }
+  html body.mf-cloud-study .mf-after-hours-icon {
+    border-radius:23% !important;
+    overflow:hidden !important;
+  }
+  html body.mf-cloud-study .mf-after-hours-preview {
+    --mf-after-preview-box:clamp(480px,42vw,760px) !important;
+    left:77.2% !important;
+  }
+  html body.mf-cloud-study .mf-after-hours-preview img {
+    border-radius:24px !important;
+    max-width:100% !important;
+    max-height:100% !important;
+    object-fit:contain !important;
+    background:transparent !important;
+  }
+}
+
+/* art separator cleanup + cleaner transition into footer */
+html body.mf-cloud-study .mf-art-showcase,
+html body.mf-cloud-study #artShowcase {
+  border-top:0 !important;
+  box-shadow:none !important;
+}
+html body.mf-cloud-study .mf-footer {
+  border-top:1px solid var(--mf-line) !important;
+}
+

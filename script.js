@@ -4284,7 +4284,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
 
 
 /* ============================================================
-   V138 — AFTER HOURS title cycle, stronger desktop hover image follow,
+   V139 — AFTER HOURS title cycle, stronger desktop hover image follow,
    mobile tap-to-reveal and one-time progress entrance.
    ============================================================ */
 (function(){

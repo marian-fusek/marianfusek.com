@@ -13222,7 +13222,7 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
 
 
 /* ============================================================
-   V138 — AFTER HOURS
+   V139 — AFTER HOURS
    ============================================================ */
 .mf-after-hours {
   position:relative;
@@ -13421,7 +13421,7 @@ html body .mf-art-runtime-loader .mf-loader-progress::after {
   --mf-after-preview-box:clamp(420px,39vw,680px);
   position:absolute;
   z-index:12;
-  left:calc(91% + var(--mf-after-preview-x));
+  left:calc(80% + var(--mf-after-preview-x));
   top:50%;
   width:var(--mf-after-preview-box);
   height:var(--mf-after-preview-box);

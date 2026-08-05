@@ -1476,3 +1476,277 @@ body.mf-cloud-study .mf-project-video-loader-percent {
     font-variation-settings:'wght' var(--mf-weight-body) !important;
   }
 }
+
+
+/* ============================================================
+   V147 STAGING — RENDERED-STATE AUDIT / FINAL LIGHT-SYSTEM LEAKS
+   ============================================================ */
+
+/* Parent controls no longer leak the old white foreground into gaps or
+   dynamically inserted descendants. */
+body.mf-cloud-study .mf-after-hours-trigger,
+body.mf-cloud-study .mf-art-preview-frame {
+  color:var(--mf-body) !important;
+  -webkit-text-fill-color:var(--mf-body) !important;
+}
+
+/* INDEX project end cards follow the same title/action role as every project. */
+body.mf-cloud-study .mf-project-end-link,
+body.mf-cloud-study .mf-project-end-link *,
+body.mf-cloud-study .mf-project-end-arrow,
+body.mf-cloud-study .mf-project-exit-button {
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+  text-shadow:none !important;
+}
+body.mf-cloud-study .mf-project-end-link:hover,
+body.mf-cloud-study .mf-project-end-link:hover * {
+  color:var(--mf-ink) !important;
+  -webkit-text-fill-color:var(--mf-ink) !important;
+}
+
+/* MIUNĀE live browse control: light UI surface, semantic action color, no
+   dark bar and no isolated green state. */
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle,
+body.mf-cloud-study .mf-project-slide-live.is-paused .mf-live-toggle,
+body.mf-cloud-study .mf-project-slide-live.is-browsing .mf-live-toggle {
+  background:rgba(249,249,249,.88) !important;
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+  border-top-color:var(--mf-line) !important;
+  box-shadow:none !important;
+}
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle::before {
+  background:rgba(117,132,138,.07) !important;
+}
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle:hover,
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle:focus-visible {
+  color:var(--mf-ink) !important;
+  -webkit-text-fill-color:var(--mf-ink) !important;
+  background:var(--mf-surface) !important;
+  border-top-color:var(--mf-line-strong) !important;
+}
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle-label,
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle-label * {
+  color:inherit !important;
+  -webkit-text-fill-color:inherit !important;
+  text-shadow:none !important;
+}
+body.mf-cloud-study .mf-project-slide-live .mf-live-toggle em {
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+  text-shadow:none !important;
+}
+body.mf-cloud-study .mf-live-loader-bars i,
+body.mf-cloud-study .mf-project-video-loader-bars i,
+body.mf-cloud-study .mf-carousel-runtime-loader-bars i {
+  background:var(--mf-title) !important;
+}
+
+/* Side Quests needed exact-selector overrides because its late dark-theme
+   rules carried higher specificity and text-fill-color locks. */
+body.mf-cloud-study .mf-project-shell.is-sidequests-project .mf-project-intro {
+  color:var(--mf-body) !important;
+  -webkit-text-fill-color:var(--mf-body) !important;
+  font-size:var(--mf-size-brief) !important;
+  font-weight:var(--mf-weight-body) !important;
+  line-height:1.46 !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequests-accordion {
+  background:var(--mf-line) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel.is-active {
+  background:rgba(249,249,249,.28) !important;
+  color:var(--mf-body) !important;
+  -webkit-text-fill-color:var(--mf-body) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel.is-active {
+  background:rgba(249,249,249,.64) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel::before {
+  background:linear-gradient(100deg,rgba(255,255,255,.36),transparent 48%) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-trigger {
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-number,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mark,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-subtitle,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel.is-active .mf-sidequest-subtitle,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mentions > small,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mention-dash {
+  color:var(--mf-meta) !important;
+  -webkit-text-fill-color:var(--mf-meta) !important;
+  text-shadow:none !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel.is-active .mf-sidequest-number,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-panel.is-active .mf-sidequest-mark {
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-copy,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-copy p {
+  color:var(--mf-body) !important;
+  -webkit-text-fill-color:var(--mf-body) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mention-row,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mention-link,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mention-link *,
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-mention-arrow {
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+  text-shadow:none !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-image {
+  background:var(--mf-surface-soft) !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-copy {
+  scrollbar-color:var(--mf-line-strong) transparent !important;
+}
+body.mf-cloud-study .mf-project-slide-sidequests .mf-sidequest-copy::-webkit-scrollbar-thumb {
+  background:var(--mf-line-strong) !important;
+}
+
+/* Mindset controls and the engagement label were still held by later white
+   declarations. */
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-part-button,
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-part-button * {
+  color:var(--mf-muted) !important;
+  -webkit-text-fill-color:var(--mf-muted) !important;
+  border-color:var(--mf-line) !important;
+  background:transparent !important;
+}
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-part-button:hover,
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-part-button.is-active,
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-part-button:hover *,
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-part-button.is-active * {
+  color:var(--mf-ink) !important;
+  -webkit-text-fill-color:var(--mf-ink) !important;
+}
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-engagement,
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-engagement-fixed {
+  color:var(--mf-meta) !important;
+  -webkit-text-fill-color:var(--mf-meta) !important;
+  text-shadow:none !important;
+}
+
+/* Leadership had white text-fill inherited by full-page wrappers even where
+   child colors were correct. Lock the containers to BODY and let explicit
+   title/meta roles override locally. */
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-guidance-reviews,
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-leadership-page,
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-leadership-section,
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-leadership-guidance-next {
+  color:var(--mf-body) !important;
+  -webkit-text-fill-color:var(--mf-body) !important;
+  background-color:var(--mf-bg) !important;
+}
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-leadership-hero-photo,
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-leadership-graduates-photo,
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-leadership-photo-card {
+  background:var(--mf-surface-soft) !important;
+}
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-guidance-next-link,
+body.mf-cloud-study .mf-guidance-overlay.is-leadership .mf-guidance-next-link * {
+  color:var(--mf-title) !important;
+  -webkit-text-fill-color:var(--mf-title) !important;
+}
+
+/* XP particle drawings are originally white. V146 accidentally removed the
+   palette mapping and made them disappear on Cloud Dancer. */
+body.mf-cloud-study .mf-xp-shape canvas,
+body.mf-cloud-study .mf-guidance-particle-canvas,
+body.mf-cloud-study .mf-guidance-particle-stage canvas {
+  filter:brightness(0) saturate(100%) invert(51%) sepia(9%) saturate(493%) hue-rotate(147deg) brightness(94%) contrast(87%) !important;
+  opacity:.82 !important;
+}
+
+/* BIO proximity remains interactive through weight, but not through
+   near-invisible opacity. */
+body.mf-cloud-study .mf-about-text .vp-char,
+body.mf-cloud-study .mf-bio-panel .vp-char {
+  color:var(--mf-body) !important;
+  -webkit-text-fill-color:var(--mf-body) !important;
+  opacity:1 !important;
+}
+
+/* The deconstruction language is now monochrome by construction. These are
+   safeguards for cached or older generated layers. */
+body.mf-cloud-study .mf-image-grid-layer.is-red,
+body.mf-cloud-study .mf-image-grid-layer.is-cyan {
+  display:none !important;
+}
+body.mf-cloud-study .mf-image-grid-layer.is-base,
+body.mf-cloud-study .mf-hero-grid-clone,
+body.mf-cloud-study .mf-hero-grid-clone .nc {
+  mix-blend-mode:normal !important;
+  text-shadow:none !important;
+}
+
+/* AFTER HOURS — preserve the existing information positions while reserving
+   a permanent squircle for the future app-icon files. */
+@media (min-width:1025px) {
+  body.mf-cloud-study .mf-after-hours-trigger {
+    grid-template-columns:clamp(34px,4vw,70px) clamp(46px,4.2vw,66px) minmax(126px,1.05fr) minmax(190px,1.1fr) minmax(250px,1.65fr) minmax(38px,.3fr) !important;
+    grid-template-rows:auto 1px !important;
+    column-gap:clamp(12px,1.45vw,28px) !important;
+    row-gap:clamp(15px,1.7vh,20px) !important;
+  }
+  body.mf-cloud-study .mf-after-hours-number { grid-column:1 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-icon { grid-column:2 !important;grid-row:1/3 !important; }
+  body.mf-cloud-study .mf-after-hours-name { grid-column:3 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-type { grid-column:4 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-description { grid-column:5 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-percent { grid-column:6 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-progress { grid-column:3/7 !important;grid-row:2 !important;margin-top:2px !important; }
+}
+body.mf-cloud-study .mf-after-hours-icon {
+  display:block;
+  width:100%;
+  max-width:64px;
+  aspect-ratio:1;
+  align-self:center;
+  border:1px solid var(--mf-line) !important;
+  border-radius:22%;
+  background-color:rgba(249,249,249,.5);
+  background-image:var(--mf-after-icon,none);
+  background-size:cover;
+  background-position:center;
+  box-shadow:none;
+  opacity:.78;
+  transition:opacity .4s var(--ease),border-color .4s var(--ease),transform .55s var(--ease);
+}
+body.mf-cloud-study .mf-after-hours-row:hover .mf-after-hours-icon,
+body.mf-cloud-study .mf-after-hours-row:focus-within .mf-after-hours-icon {
+  opacity:1;
+  border-color:var(--mf-line-strong) !important;
+  transform:scale(1.025);
+}
+
+@media (max-width:1024px) {
+  body.mf-cloud-study .mf-after-hours-trigger {
+    grid-template-columns:28px 48px minmax(0,1fr) auto !important;
+    grid-template-rows:auto auto auto 1px !important;
+    column-gap:11px !important;
+  }
+  body.mf-cloud-study .mf-after-hours-number { grid-column:1 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-icon { grid-column:2 !important;grid-row:1/5 !important;width:46px !important;align-self:start !important; }
+  body.mf-cloud-study .mf-after-hours-name { grid-column:3 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-percent { grid-column:4 !important;grid-row:1 !important; }
+  body.mf-cloud-study .mf-after-hours-type { grid-column:3/5 !important;grid-row:2 !important;white-space:normal !important; }
+  body.mf-cloud-study .mf-after-hours-description { grid-column:3/5 !important;grid-row:3 !important; }
+  body.mf-cloud-study .mf-after-hours-progress { grid-column:3/5 !important;grid-row:4 !important;margin-top:3px !important; }
+}
+
+/* Mindset PART controls — exact match for the late universal-review selector. */
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-review-universal .mf-guidance-copy-shell .mf-guidance-part-button {
+  color:var(--mf-muted) !important;
+  -webkit-text-fill-color:var(--mf-muted) !important;
+}
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-review-universal .mf-guidance-copy-shell .mf-guidance-part-button:hover,
+body.mf-cloud-study .mf-guidance-overlay.is-mindset .mf-guidance-review-universal .mf-guidance-copy-shell .mf-guidance-part-button.is-active {
+  color:var(--mf-ink) !important;
+  -webkit-text-fill-color:var(--mf-ink) !important;
+}

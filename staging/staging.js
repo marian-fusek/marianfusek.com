@@ -1673,21 +1673,13 @@ function queueHeroNameFit(){
   }
 
   const effects=[accentA,accentU,disappear,blurFx];
-  function shuffle(items){
-    const result=[...items];
-    for(let index=result.length-1;index>0;index--){
-      const swap=Math.floor(Math.random()*(index+1));
-      [result[index],result[swap]]=[result[swap],result[index]];
-    }
-    return result;
-  }
-  let queue=[];
+  let effectIndex=0;
   async function run(){
     while(!document.body.classList.contains('mf-page-revealed'))await wait(100);
     await wait(2500);
     while(true){
-      if(!queue.length)queue=shuffle(effects);
-      await queue.shift()();
+      await effects[effectIndex]();
+      effectIndex=(effectIndex+1)%effects.length;
       await wait(2500);
     }
   }
@@ -3877,9 +3869,9 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
 })();
 
 
-/* BIO PHOTO — intentionally static; the shared RGB grid effect is the only hover treatment. */
+/* BIO PHOTO — intentionally static; the shared monochrome grid effect is the only hover treatment. */
 
-/* HERO NAME — cursor-driven grid deformation with RGB displacement. */
+/* HERO NAME — cursor-driven monochrome grid deformation. */
 (function(){
   const hero=document.getElementById("heroName");
   const source=document.getElementById("nameWrap");
@@ -3947,7 +3939,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
       const push=20*influence;
       item.tx=(dx/distance)*push+velocityX*.12*influence+(item.row%2?1:-1)*2.5*influence;
       item.ty=(dy/distance)*push*.62+velocityY*.09*influence+(item.column%2?1:-1)*1.7*influence;
-      /* Keep the outer rows inside the original letter bounds so the RGB
+      /* Keep the outer rows inside the original letter bounds so the monochrome
          deformation never appears clipped at the top or bottom edge. */
       if(item.row===0)item.ty=Math.max(0,item.ty);
       if(item.row===rows-1)item.ty=Math.min(0,item.ty);
@@ -4185,7 +4177,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
 
 
 /* ============================================================
-   V#102 — stable RGB grid deformation for photographic assets
+   V147 — monochrome grid deformation for photographic assets
    ============================================================ */
 (function(){
   const finePointer=window.matchMedia('(hover:hover) and (pointer:fine)');
@@ -4259,7 +4251,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
         const cell=document.createElement('span');
         cell.className='mf-image-grid-cell';
         cell.style.clipPath=`inset(${row/rows*100}% ${(columns-column-1)/columns*100}% ${(rows-row-1)/rows*100}% ${column/columns*100}%)`;
-        cell.append(buildLayer('base'),buildLayer('red'),buildLayer('cyan'));
+        cell.append(buildLayer('base'));
         overlay.appendChild(cell);
         cells.push({cell,x:(column+.5)/columns,y:(row+.5)/rows,column,row,tx:0,ty:0,cx:0,cy:0});
       }

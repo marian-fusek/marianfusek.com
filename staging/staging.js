@@ -245,17 +245,17 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — CINEMATIC PINNED SCROLL STAGE */
+/* SELECTED WORKS — NATIVE FULL-SCREEN SNAP EXHIBITION */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
   const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')]:[];
   if(!section||!sourceStack||!sources.length)return;
 
-  document.body.classList.remove('mf-selected-works-elastic');
-  document.body.classList.add('mf-selected-works-cinematic');
-  section.classList.remove('mf-selected-works-v2');
-  section.classList.add('mf-selected-works-v3');
+  document.body.classList.remove('mf-selected-works-elastic','mf-selected-works-cinematic');
+  document.body.classList.add('mf-selected-works-snap');
+  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3');
+  section.classList.add('mf-selected-works-v4');
 
   const fallbackImages={
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
@@ -264,12 +264,12 @@ if(indexExtra){
     '04':'/media/projects/vault/01-nofakie-1.jpg',
     '05':'/media/projects/side-quests/undersurface.jpg'
   };
-  const projectSlugs={'01':'miunae','02':'goballer','03':'aims','04':'vault','05':'sidequests'};
+  const slugs={'01':'miunae','02':'goballer','03':'aims','04':'vault','05':'sidequests'};
   const data=sources.map((source,index)=>{
     const key=source.dataset.index||String(index+1).padStart(2,'0');
     return {
       key,
-      slug:projectSlugs[key]||`project-${key}`,
+      slug:slugs[key]||`project-${key}`,
       title:source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project',
       meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
       description:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
@@ -278,269 +278,261 @@ if(indexExtra){
     };
   });
 
+  const entrySnap=document.createElement('div');
+  entrySnap.className='mf-work-snap-boundary is-entry';
+  entrySnap.setAttribute('aria-hidden','true');
+  const exitSnap=document.createElement('div');
+  exitSnap.className='mf-work-snap-boundary is-exit';
+  exitSnap.setAttribute('aria-hidden','true');
+  section.before(entrySnap);
+  section.after(exitSnap);
+
+  const exhibition=document.createElement('div');
+  exhibition.className='mf-work-snap-exhibition';
+  exhibition.setAttribute('aria-label','Selected Works');
+
   const stage=document.createElement('div');
-  stage.className='mf-work-cinema';
-  stage.setAttribute('aria-label','Selected Works');
+  stage.className='mf-work-snap-stage';
   stage.innerHTML=`
-    <div class="mf-work-cinema-graphics" aria-hidden="true">
-      <i class="mf-work-cinema-graphic is-frame"></i>
-      <i class="mf-work-cinema-graphic is-vector"></i>
-      <i class="mf-work-cinema-graphic is-orbit"></i>
-      <span class="mf-work-cinema-coordinate is-a">MF / SELECTED</span>
-      <span class="mf-work-cinema-coordinate is-b">SCROLL / EXPLORE</span>
+    <div class="mf-work-snap-atmosphere" aria-hidden="true">
+      <i class="mf-work-snap-axis is-x"></i>
+      <i class="mf-work-snap-axis is-y"></i>
+      <i class="mf-work-snap-orbit"></i>
+      <span class="mf-work-snap-coordinate is-a">MF / 01—05</span>
+      <span class="mf-work-snap-coordinate is-b">SCROLL / SNAP / OPEN</span>
     </div>
-    <div class="mf-work-cinema-projects">
-      <article class="mf-work-cinema-slot is-primary" aria-hidden="true"></article>
-      <article class="mf-work-cinema-slot is-secondary" aria-hidden="true"></article>
-      <div class="mf-work-cinema-wipe" aria-hidden="true"><i></i></div>
-      <div class="mf-work-cinema-cache" aria-hidden="true"></div>
-      <div class="mf-work-cinema-anchors"></div>
-    </div>
-    <div class="mf-work-cinema-rail">
-      <div class="mf-work-cinema-rail-meta">
-        <span class="mf-work-cinema-label">SELECTED WORKS</span>
-        <span class="mf-work-cinema-current"><b>01</b><em>MIUNĀE</em></span>
-        <span class="mf-work-cinema-total">05</span>
+    <div class="mf-work-snap-scenes"></div>
+    <div class="mf-work-snap-rail">
+      <div class="mf-work-snap-rail-head">
+        <span class="mf-work-snap-label">SELECTED WORKS</span>
+        <span class="mf-work-snap-current"><b>01</b><em>MIUNĀE</em></span>
+        <span class="mf-work-snap-total">05</span>
       </div>
-      <div class="mf-work-cinema-track" aria-hidden="true">
-        <i class="mf-work-cinema-track-base"></i>
-        <i class="mf-work-cinema-track-fill"></i>
-        <div class="mf-work-cinema-markers"></div>
+      <div class="mf-work-snap-track">
+        <i class="mf-work-snap-track-base"></i>
+        <i class="mf-work-snap-track-fill"></i>
+        <div class="mf-work-snap-markers"></div>
       </div>
     </div>`;
 
-  const slots=[...stage.querySelectorAll('.mf-work-cinema-slot')];
-  const anchorsHost=stage.querySelector('.mf-work-cinema-anchors');
-  const cacheHost=stage.querySelector('.mf-work-cinema-cache');
-  const markersHost=stage.querySelector('.mf-work-cinema-markers');
-  const currentNumber=stage.querySelector('.mf-work-cinema-current b');
-  const currentName=stage.querySelector('.mf-work-cinema-current em');
-  const trackFill=stage.querySelector('.mf-work-cinema-track-fill');
+  const scenesHost=stage.querySelector('.mf-work-snap-scenes');
+  const markersHost=stage.querySelector('.mf-work-snap-markers');
+  const trackFill=stage.querySelector('.mf-work-snap-track-fill');
+  const currentNumber=stage.querySelector('.mf-work-snap-current b');
+  const currentName=stage.querySelector('.mf-work-snap-current em');
+  const steps=document.createElement('div');
+  steps.className='mf-work-snap-steps';
 
-  const slotMarkup=()=>`
-    <div class="mf-work-cinema-echo" aria-hidden="true"></div>
-    <div class="mf-work-cinema-plane is-a" aria-hidden="true"></div>
-    <div class="mf-work-cinema-plane is-b" aria-hidden="true"></div>
-    <div class="mf-work-cinema-image-wrap"></div>
-    <div class="mf-work-cinema-copy">
-      <span class="mf-work-cinema-number"></span>
-      <h2></h2>
-      <p class="mf-work-cinema-meta"></p>
-      <p class="mf-work-cinema-desc"></p>
-      <span class="mf-work-cinema-action">OPEN PROJECT</span>
-    </div>
-    <div class="mf-work-cinema-scan" aria-hidden="true"></div>`;
-  slots.forEach(slot=>slot.innerHTML=slotMarkup());
-  data.forEach((project,index)=>{
-    const img=new Image();
-    img.className='mf-work-cinema-image mf-work-image';
-    img.alt='';
-    img.decoding='async';
-    img.loading='eager';
-    img.fetchPriority=index<2?'high':'low';
-    img.src=project.image;
-    img.onerror=()=>{img.onerror=null;img.src=project.image.startsWith('/')?'.'+project.image:project.image;};
-    project.imageNode=img;
-    cacheHost.appendChild(img);
-  });
-
+  const scenes=[];
+  const stepNodes=[];
   const markerButtons=[];
-  const anchors=data.map((project,index)=>{
-    const anchor=document.createElement('article');
-    anchor.className=`mf-work-cinema-anchor mf-strip is-${project.slug}`;
-    anchor.dataset.index=project.key;
-    anchor.dataset.title=project.title;
-    anchor.dataset.img=project.image;
-    anchor.dataset.projectStage='true';
-    anchor.setAttribute('role','button');
-    anchor.setAttribute('tabindex',index===0?'0':'-1');
-    anchor.setAttribute('aria-label',`Open ${project.title}`);
-    anchor.innerHTML='<span class="mf-work-cinema-hit is-image" aria-hidden="true"></span><span class="mf-work-cinema-hit is-copy" aria-hidden="true"></span>';
-    anchor.addEventListener('keydown',event=>{
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();anchor.click();}
+  const loaded=new Set();
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer=window.matchMedia('(hover:hover) and (pointer:fine)');
+
+  data.forEach((project,index)=>{
+    const scene=document.createElement('article');
+    scene.className=`mf-work-snap-scene mf-strip is-${project.slug}`;
+    scene.dataset.index=project.key;
+    scene.dataset.title=project.title;
+    scene.dataset.img=project.image;
+    scene.dataset.projectStage='true';
+    scene.setAttribute('role','button');
+    scene.setAttribute('tabindex',index===0?'0':'-1');
+    scene.setAttribute('aria-label',`Open ${project.title}`);
+    scene.innerHTML=`
+      <div class="mf-work-snap-echo" aria-hidden="true"></div>
+      <div class="mf-work-snap-plane is-a" aria-hidden="true"></div>
+      <div class="mf-work-snap-plane is-b" aria-hidden="true"></div>
+      <div class="mf-work-snap-image-wrap">
+        <img class="mf-work-snap-image mf-work-image" alt="${project.title} selected work" decoding="async" draggable="false">
+      </div>
+      <div class="mf-work-snap-copy">
+        <span class="mf-work-snap-number">${project.key}</span>
+        <h2>${project.title}</h2>
+        <p class="mf-work-snap-meta">${project.meta}</p>
+        <p class="mf-work-snap-desc">${project.description}</p>
+        <span class="mf-work-snap-action">OPEN PROJECT</span>
+      </div>
+      <div class="mf-work-snap-index-trace" aria-hidden="true">${project.key}</div>`;
+    scene.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();scene.click();}
     });
-    anchorsHost.appendChild(anchor);
+    const echo=scene.querySelector('.mf-work-snap-echo');
+    echo.style.setProperty('--mf-work-image',`url("${project.image}")`);
+    scenesHost.appendChild(scene);
+    scenes.push(scene);
+
+    const step=document.createElement('div');
+    step.className='mf-work-snap-step';
+    step.dataset.index=String(index);
+    step.dataset.key=project.key;
+    step.setAttribute('aria-hidden','true');
+    steps.appendChild(step);
+    stepNodes.push(step);
 
     const marker=document.createElement('button');
     marker.type='button';
-    marker.className='mf-work-cinema-marker';
+    marker.className='mf-work-snap-marker';
     marker.dataset.index=String(index);
-    marker.setAttribute('aria-label',`Scroll to ${project.title}`);
+    marker.setAttribute('aria-label',`Go to ${project.title}`);
     marker.innerHTML=`<i></i><span>${project.key}</span>`;
     markersHost.appendChild(marker);
     markerButtons.push(marker);
-    return anchor;
   });
 
+  exhibition.append(stage,steps);
   sourceStack.hidden=true;
   sourceStack.setAttribute('aria-hidden','true');
   section.querySelector('.mf-index-title')?.setAttribute('aria-hidden','true');
   section.querySelector('.mf-stage-label')?.setAttribute('aria-hidden','true');
-  section.insertBefore(stage,sourceStack);
+  section.insertBefore(exhibition,sourceStack);
 
   const clamp=(value,min=0,max=1)=>Math.max(min,Math.min(max,value));
   const smooth=value=>value*value*(3-2*value);
   const range=(from,to,value)=>smooth(clamp((value-from)/(to-from)));
-  const mobile=window.matchMedia('(max-width:1024px), (pointer:coarse)');
-  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  const preloaded=new Map();
-  const preloadProject=(index)=>{
-    if(preloaded.has(index))return preloaded.get(index);
-    const image=data[index]?.imageNode;
-    if(!image)return Promise.resolve();
-    const ready=image.decode?image.decode().catch(()=>{}):new Promise(resolve=>{image.onload=image.onerror=resolve;});
-    preloaded.set(index,ready);
-    return ready;
-  };
-
-  const applyProjectToSlot=(slot,project,index)=>{
-    if(!slot||!project||slot.dataset.index===project.key)return;
-    slot.dataset.index=project.key;
-    slot.dataset.projectIndex=String(index);
-    slot.className=`mf-work-cinema-slot ${slot.classList.contains('is-secondary')?'is-secondary':'is-primary'} is-${project.slug}`;
-    const wrap=slot.querySelector('.mf-work-cinema-image-wrap');
-    const current=wrap.querySelector('.mf-work-cinema-image');
-    if(current&&current!==project.imageNode)cacheHost.appendChild(current);
-    if(project.imageNode.parentNode!==wrap)wrap.appendChild(project.imageNode);
-    const img=project.imageNode;
-    const setOrientation=()=>{
-      const w=Math.max(1,img.naturalWidth||1),h=Math.max(1,img.naturalHeight||1);
-      slot.dataset.orientation=w>h*1.18?'landscape':h>w*1.18?'portrait':'square';
-      slot.style.setProperty('--mf-work-natural-ar',`${w} / ${h}`);
-    };
-    if(img.complete&&img.naturalWidth)setOrientation();
-    else img.addEventListener('load',setOrientation,{once:true});
-    slot.querySelector('.mf-work-cinema-number').textContent=project.key;
-    slot.querySelector('h2').textContent=project.title;
-    slot.querySelector('.mf-work-cinema-meta').textContent=project.meta;
-    slot.querySelector('.mf-work-cinema-desc').textContent=project.description;
-  };
-
   let sectionTop=0;
-  let travel=1;
-  let targetProgress=0;
-  let renderedProgress=-1;
+  let viewportH=Math.max(1,window.innerHeight);
+  let targetChapter=0;
+  let renderedChapter=-999;
   let activeIndex=-1;
-  let baseIndex=-1;
   let frame=0;
-  let near=false;
+  let stageRect=null;
+  let pointerFrame=0;
   let pointerX=0;
   let pointerY=0;
-  let pointerFrame=0;
+  let snapEnabled=false;
+
+  const ensureLoaded=index=>{
+    if(index<0||index>=data.length||loaded.has(index))return;
+    const scene=scenes[index];
+    const img=scene.querySelector('.mf-work-snap-image');
+    loaded.add(index);
+    img.loading=index<2?'eager':'lazy';
+    img.fetchPriority=index===0?'high':'auto';
+    img.src=data[index].image;
+    img.onerror=()=>{img.onerror=null;img.src=data[index].image.startsWith('/')?'.'+data[index].image:data[index].image;};
+    const orient=()=>{
+      const w=Math.max(1,img.naturalWidth||1),h=Math.max(1,img.naturalHeight||1);
+      scene.dataset.orientation=w>h*1.18?'landscape':h>w*1.18?'portrait':'square';
+      scene.style.setProperty('--mf-work-natural-ar',`${w} / ${h}`);
+      scene.classList.add('is-image-ready');
+    };
+    if(img.complete&&img.naturalWidth)orient();
+    else img.addEventListener('load',orient,{once:true});
+    img.decode?.().catch(()=>{});
+  };
 
   const setGeometry=()=>{
     const rect=section.getBoundingClientRect();
     sectionTop=window.scrollY+rect.top;
-    travel=Math.max(1,section.offsetHeight-window.innerHeight);
+    viewportH=Math.max(1,window.innerHeight);
+    stageRect=stage.getBoundingClientRect();
     requestRender();
   };
 
-  const updateSlots=(base)=>{
-    const next=Math.min(data.length-1,base+1);
-    applyProjectToSlot(slots[0],data[base],base);
-    applyProjectToSlot(slots[1],data[next],next);
-    preloadProject(base);
-    preloadProject(next);
-    baseIndex=base;
-    stage.dataset.transition=String(base%4);
+  const setActive=index=>{
+    index=Math.max(0,Math.min(data.length-1,index));
+    if(index===activeIndex)return;
+    activeIndex=index;
+    ensureLoaded(index-1);ensureLoaded(index);ensureLoaded(index+1);
+    const project=data[index];
+    currentNumber.textContent=project.key;
+    currentName.textContent=project.title;
+    stage.dataset.active=project.key;
+    stage.dataset.activeIndex=String(index);
+    scenes.forEach((scene,i)=>{
+      const on=i===index;
+      scene.classList.toggle('is-active',on);
+      scene.tabIndex=on?0:-1;
+      scene.setAttribute('aria-hidden',on?'false':'true');
+    });
+    markerButtons.forEach((button,i)=>{
+      button.classList.toggle('is-active',i===index);
+      button.classList.toggle('is-complete',i<index);
+      button.setAttribute('aria-current',i===index?'true':'false');
+    });
+    currentNumber.animate([{opacity:.15,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'});
+    currentName.animate([{opacity:.15,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:480,easing:'cubic-bezier(.16,1,.3,1)'});
   };
 
   const render=()=>{
     frame=0;
-    const progress=targetProgress;
-    if(Math.abs(progress-renderedProgress)<.00003)return;
-    renderedProgress=progress;
-    const chapter=progress*(data.length-1);
-    const base=Math.min(data.length-1,Math.floor(chapter+1e-6));
+    const chapter=targetChapter;
+    if(Math.abs(chapter-renderedChapter)<.00005)return;
+    renderedChapter=chapter;
+    const base=Math.min(data.length-1,Math.floor(chapter+1e-7));
     const mix=base>=data.length-1?0:chapter-base;
-    if(base!==baseIndex)updateSlots(base);
+    const eased=smooth(mix);
+    const next=Math.min(data.length-1,base+1);
+    const nearest=Math.max(0,Math.min(data.length-1,Math.round(chapter)));
+    setActive(nearest);
+    trackFill.style.transform=`scaleX(${clamp(chapter/(data.length-1))})`;
 
-    const easedMix=smooth(mix);
-    const primaryVisual=1-range(.08,.92,mix);
-    const secondaryVisual=range(.08,.92,mix);
-    const primaryCopy=1-range(.18,.48,mix);
-    const secondaryCopy=range(.56,.86,mix);
-    const nextActive=Math.max(0,Math.min(data.length-1,Math.round(chapter)));
-
-    trackFill.style.transform=`scaleX(${progress})`;
-
-    const transition=base%4;
-    const primary=slots[0],secondary=slots[1];
-    const primaryCopyNode=primary.querySelector('.mf-work-cinema-copy');
-    const secondaryCopyNode=secondary.querySelector('.mf-work-cinema-copy');
-    const wipe=stage.querySelector('.mf-work-cinema-wipe');
-    const primaryImageWrap=primary.querySelector('.mf-work-cinema-image-wrap');
-    const secondaryImageWrap=secondary.querySelector('.mf-work-cinema-image-wrap');
-    primary.style.opacity=String(primaryVisual);
-    secondary.style.opacity=String(secondaryVisual);
-    primaryCopyNode.style.opacity=String(primaryCopy);
-    secondaryCopyNode.style.opacity=String(secondaryCopy);
-    primaryCopyNode.style.translate=`0 ${(1-primaryCopy)*24}px`;
-    secondaryCopyNode.style.translate=`0 ${(1-secondaryCopy)*24}px`;
-
-    const wipeOpacity=1-Math.abs(2*easedMix-1);
-    wipe.style.opacity=String(wipeOpacity*.68);
-    if(transition===0)wipe.style.transform=`translate3d(${(easedMix-.5)*122}vw,0,0) rotate(-4deg)`;
-    else if(transition===1)wipe.style.transform=`translate3d(0,${(easedMix-.5)*122}vh,0) rotate(1.5deg)`;
-    else if(transition===2)wipe.style.transform=`translate3d(0,0,0) rotate(${(easedMix-.5)*18}deg) scale(${.18+wipeOpacity*1.15})`;
-    else wipe.style.transform=`translate3d(${(.5-easedMix)*122}vw,0,0) rotate(4deg)`;
-    let aX=0,aY=0,bX=0,bY=0;
-    if(transition===0){aX=-mix*34;bX=(1-mix)*42;}
-    else if(transition===1){aY=-mix*30;bY=(1-mix)*38;}
-    else if(transition===2){aX=mix*18;aY=-mix*14;bX=-(1-mix)*18;bY=(1-mix)*14;}
-    else{aX=mix*30;bX=-(1-mix)*38;}
-    primaryImageWrap.style.translate=`${aX}px ${aY}px`;
-    secondaryImageWrap.style.translate=`${bX}px ${bY}px`;
-
-    primary.style.transform='translate3d(0,0,0)';
-    secondary.style.transform='translate3d(0,0,0)';
-
-    if(activeIndex!==nextActive){
-      activeIndex=nextActive;
-      const active=data[activeIndex];
-      [currentNumber,currentName].forEach(node=>node.animate([{opacity:.18,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:320,easing:'cubic-bezier(.16,1,.3,1)'}));
-      currentNumber.textContent=active.key;
-      currentName.textContent=active.title;
-      stage.dataset.active=active.key;
-      anchors.forEach((anchor,index)=>{
-        const on=index===activeIndex;
-        anchor.classList.toggle('is-active',on);
-        anchor.tabIndex=on?0:-1;
-        anchor.setAttribute('aria-hidden',on?'false':'true');
-      });
-      markerButtons.forEach((button,index)=>{
-        button.classList.toggle('is-active',index===activeIndex);
-        button.classList.toggle('is-complete',index<activeIndex);
-        button.setAttribute('aria-current',index===activeIndex?'true':'false');
-      });
-    }
+    scenes.forEach((scene,index)=>{
+      const isBase=index===base;
+      const isNext=index===next&&next!==base;
+      let opacity=0,copyOpacity=0,translateY=0,scale=.985,clip='inset(0 0 100% 0 round 30px)';
+      if(isBase){
+        opacity=1;
+        copyOpacity=1-range(.12,.40,mix);
+        translateY=-eased*3.6;
+        scale=1-eased*.012;
+        clip=next===base
+          ?'inset(0 0 0 0 round 30px)'
+          :base%2===0
+            ?`inset(0 0 ${eased*100}% 0 round 30px)`
+            :`inset(${eased*100}% 0 0 0 round 30px)`;
+      }else if(isNext){
+        opacity=1;
+        copyOpacity=range(.60,.90,mix);
+        translateY=(1-eased)*4.8;
+        scale=.988+eased*.012;
+        clip=base%2===0
+          ?`inset(${(1-eased)*100}% 0 0 0 round 30px)`
+          :`inset(0 0 ${(1-eased)*100}% 0 round 30px)`;
+      }
+      scene.style.opacity=String(opacity);
+      scene.style.transform=`translate3d(0,${translateY}vh,0) scale(${scale})`;
+      scene.style.clipPath=clip;
+      scene.style.pointerEvents=(index===nearest&&Math.abs(chapter-nearest)<.46)?'auto':'none';
+      scene.style.zIndex=isNext?'3':isBase?'2':'0';
+      const copy=scene.querySelector('.mf-work-snap-copy');
+      copy.style.opacity=String(copyOpacity);
+      copy.style.transform=`translate3d(0,${(1-copyOpacity)*22}px,0)`;
+      const image=scene.querySelector('.mf-work-snap-image-wrap');
+      const echo=scene.querySelector('.mf-work-snap-echo');
+      const local=isBase?eased:isNext?1-eased:0;
+      image.style.setProperty('--mf-scroll-shift',`${(isBase?-local:local)*12}px`);
+      echo.style.setProperty('--mf-scroll-shift',`${(isBase?-local:local)*20}px`);
+    });
   };
 
   const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render);};
   const updateFromScroll=()=>{
-    if(!near)return;
-    targetProgress=clamp((window.scrollY-sectionTop)/travel);
+    const raw=(window.scrollY-sectionTop)/viewportH;
+    targetChapter=clamp(raw,0,data.length-1);
     requestRender();
   };
 
-  const observer=new IntersectionObserver(entries=>{
-    near=entries.some(entry=>entry.isIntersecting);
-    stage.classList.toggle('is-near',near);
-    document.body.classList.toggle('mf-selected-works-active',near&&window.scrollY>=sectionTop-window.innerHeight*.05&&window.scrollY<=sectionTop+travel+window.innerHeight*.05);
-    if(near){setGeometry();updateFromScroll();}
-  },{rootMargin:'80% 0px 80% 0px',threshold:0});
-  observer.observe(section);
-
-  window.addEventListener('scroll',updateFromScroll,{passive:true});
+  const onScroll=()=>updateFromScroll();
+  window.addEventListener('scroll',onScroll,{passive:true});
   window.addEventListener('resize',()=>{setGeometry();updateFromScroll();},{passive:true});
   window.addEventListener('orientationchange',()=>setTimeout(()=>{setGeometry();updateFromScroll();},180),{passive:true});
+
+  const snapObserver=new IntersectionObserver(entries=>{
+    const entry=entries[0];
+    snapEnabled=entry.isIntersecting;
+    document.documentElement.classList.toggle('mf-work-snap-active',snapEnabled);
+    document.body.classList.toggle('mf-selected-works-active',snapEnabled);
+    if(snapEnabled){setGeometry();updateFromScroll();}
+  },{threshold:0,rootMargin:'-4% 0px -4% 0px'});
+  snapObserver.observe(section);
 
   const scrollToProject=(key,behavior='smooth')=>{
     const index=data.findIndex(item=>item.key===key);
     if(index<0)return;
-    const ratio=data.length===1?0:index/(data.length-1);
-    window.scrollTo({top:sectionTop+travel*ratio,behavior:reduced.matches?'auto':behavior});
+    window.scrollTo({top:sectionTop+viewportH*index,behavior:reduced.matches?'auto':behavior});
   };
   window.mfSelectedWorksScrollToKey=scrollToProject;
   markerButtons.forEach((button,index)=>button.addEventListener('click',event=>{
@@ -548,27 +540,76 @@ if(indexExtra){
     scrollToProject(data[index].key,'smooth');
   }));
 
-  stage.addEventListener('pointermove',event=>{
-    if(mobile.matches)return;
-    const rect=stage.getBoundingClientRect();
-    pointerX=clamp((event.clientX-rect.left)/Math.max(1,rect.width),0,1)-.5;
-    pointerY=clamp((event.clientY-rect.top)/Math.max(1,rect.height),0,1)-.5;
-    if(pointerFrame)return;
-    pointerFrame=requestAnimationFrame(()=>{
-      pointerFrame=0;
-      stage.style.setProperty('--mf-pointer-x',pointerX.toFixed(4));
-      stage.style.setProperty('--mf-pointer-y',pointerY.toFixed(4));
-    });
-  },{passive:true});
-  stage.addEventListener('pointerleave',()=>{
-    stage.style.setProperty('--mf-pointer-x','0');
-    stage.style.setProperty('--mf-pointer-y','0');
-  },{passive:true});
+  /* A single trackpad / wheel gesture advances exactly one project. The
+     browser still performs the actual smooth scroll and CSS owns the resting
+     snap positions; this guard only prevents momentum from skipping chapters. */
+  let wheelGestureLocked=false;
+  let wheelQuietTimer=0;
+  const releaseWheelAfterQuiet=()=>{
+    clearTimeout(wheelQuietTimer);
+    wheelQuietTimer=setTimeout(()=>{wheelGestureLocked=false;},180);
+  };
+  stage.addEventListener('wheel',event=>{
+    if(document.body.classList.contains('project-open')||Math.abs(event.deltaY)<2)return;
+    const direction=Math.sign(event.deltaY);
+    const nearest=Math.max(0,Math.min(data.length-1,Math.round(targetChapter)));
+    const next=nearest+direction;
+    if(next<0||next>=data.length){
+      wheelGestureLocked=false;
+      return;
+    }
+    event.preventDefault();
+    releaseWheelAfterQuiet();
+    if(wheelGestureLocked)return;
+    wheelGestureLocked=true;
+    scrollToProject(data[next].key,'smooth');
+  },{passive:false});
 
-  data.forEach((_,index)=>preloadProject(index));
-  updateSlots(0);
+  window.addEventListener('keydown',event=>{
+    if(!snapEnabled||document.body.classList.contains('project-open')||event.metaKey||event.ctrlKey||event.altKey)return;
+    const target=event.target;
+    if(target?.matches?.('input,textarea,select,[contenteditable="true"]'))return;
+    const forward=event.key==='ArrowDown'||event.key==='PageDown'||event.key===' ';
+    const backward=event.key==='ArrowUp'||event.key==='PageUp';
+    if(!forward&&!backward)return;
+    const direction=forward?1:-1;
+    const nearest=Math.max(0,Math.min(data.length-1,Math.round(targetChapter)));
+    const next=nearest+direction;
+    if(next<0||next>=data.length)return;
+    event.preventDefault();
+    scrollToProject(data[next].key,'smooth');
+  });
+
+  if(finePointer.matches){
+    stage.addEventListener('pointerenter',()=>{stageRect=stage.getBoundingClientRect();},{passive:true});
+    stage.addEventListener('pointermove',event=>{
+      if(!stageRect)return;
+      pointerX=clamp((event.clientX-stageRect.left)/Math.max(1,stageRect.width),0,1)-.5;
+      pointerY=clamp((event.clientY-stageRect.top)/Math.max(1,stageRect.height),0,1)-.5;
+      if(pointerFrame)return;
+      pointerFrame=requestAnimationFrame(()=>{
+        pointerFrame=0;
+        stage.style.setProperty('--mf-pointer-x-px',`${(pointerX*18).toFixed(2)}px`);
+        stage.style.setProperty('--mf-pointer-y-px',`${(pointerY*14).toFixed(2)}px`);
+        stage.style.setProperty('--mf-pointer-echo-x',`${(pointerX*-10).toFixed(2)}px`);
+        stage.style.setProperty('--mf-pointer-echo-y',`${(pointerY*-8).toFixed(2)}px`);
+        stage.style.setProperty('--mf-pointer-plane-x',`${(pointerX*-5).toFixed(2)}px`);
+        stage.style.setProperty('--mf-pointer-plane-y',`${(pointerY*-4).toFixed(2)}px`);
+      });
+    },{passive:true});
+    stage.addEventListener('pointerleave',()=>{
+      stage.style.setProperty('--mf-pointer-x-px','0px');
+      stage.style.setProperty('--mf-pointer-y-px','0px');
+      stage.style.setProperty('--mf-pointer-echo-x','0px');
+      stage.style.setProperty('--mf-pointer-echo-y','0px');
+      stage.style.setProperty('--mf-pointer-plane-x','0px');
+      stage.style.setProperty('--mf-pointer-plane-y','0px');
+    },{passive:true});
+  }
+
+  ensureLoaded(0);ensureLoaded(1);
   setGeometry();
-  targetProgress=clamp((window.scrollY-sectionTop)/travel);
+  targetChapter=clamp((window.scrollY-sectionTop)/viewportH,0,data.length-1);
   render();
 })();
 
@@ -1536,7 +1577,7 @@ if(indexExtra){
     }
   }
 
-  const getProjectStrip=key=>document.querySelector(`.mf-strip[data-index="${key}"]`);
+  const getProjectStrip=key=>document.querySelector(`.mf-work-snap-scene.mf-strip[data-index="${key}"]`)||document.querySelector(`.mf-strip[data-index="${key}"]`);
   const getProjectImage=(strip,key)=>strip?.querySelector('.mf-work-image')?.currentSrc||strip?.querySelector('.mf-work-image')?.src||strip?.dataset.img||{
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
     '02':'/media/projects/goballer/01-goballer-logo.jpg',
@@ -1548,31 +1589,100 @@ if(indexExtra){
     const inset=mobileProjectLayout.matches?8:16;
     return {left:inset,top:inset,width:window.innerWidth-inset*2,height:window.innerHeight-inset*2,radius:mobileProjectLayout.matches?22:30};
   };
-  const createProjectMorph=(strip,key,fromRect)=>{
-    const morph=document.createElement('div');
-    morph.className='mf-project-morph';
-    morph.style.left=`${fromRect.left}px`;
-    morph.style.top=`${fromRect.top}px`;
-    morph.style.width=`${fromRect.width}px`;
-    morph.style.height=`${fromRect.height}px`;
-    morph.style.borderRadius=getComputedStyle(strip||document.documentElement).borderRadius||'24px';
-    const src=getProjectImage(strip,key);
-    morph.innerHTML=`<div class="mf-project-morph-bleed"></div><img alt=""><div class="mf-project-morph-shade"></div><div class="mf-project-morph-copy"><span>${key}</span><strong>${projectData[key]?.title||''}</strong></div>`;
-    const img=morph.querySelector('img');
-    const bleed=morph.querySelector('.mf-project-morph-bleed');
-    img.src=src;
-    img.onerror=()=>{img.onerror=null;img.src=src.startsWith('/')?'.'+src:src;};
-    bleed.style.backgroundImage=`url("${src}")`;
-    document.body.appendChild(morph);
-    return morph;
+  const boxOf=(element,fallback)=>{
+    if(!element)return fallback;
+    const rect=element.getBoundingClientRect();
+    const radius=parseFloat(getComputedStyle(element).borderTopLeftRadius)||0;
+    return {left:rect.left,top:rect.top,width:rect.width,height:rect.height,radius};
   };
-  const settleProjectOpen=(morph)=>{
+  const sourceGeometry=(strip)=>{
+    const stageNode=strip?.closest('.mf-work-snap-stage')||strip;
+    const imageNode=strip?.querySelector('.mf-work-snap-image-wrap')||strip;
+    const titleNode=strip?.querySelector('.mf-work-snap-copy h2')||strip?.querySelector('.mf-strip-title');
+    const stageBox=boxOf(stageNode,{left:0,top:0,width:window.innerWidth,height:window.innerHeight,radius:0});
+    return {
+      frame:stageBox,
+      image:boxOf(imageNode,stageBox),
+      title:boxOf(titleNode,{left:stageBox.left+32,top:stageBox.top+32,width:stageBox.width*.4,height:120,radius:0}),
+      titleSize:parseFloat(titleNode?getComputedStyle(titleNode).fontSize:'80')||80
+    };
+  };
+  const overlayGeometry=()=>{
+    const frame=windowRect();
+    const media=slides.querySelector('.mf-project-slide:first-child .mf-project-image-viewport, .mf-project-slide:first-child .mf-carousel-zone, .mf-project-slide:first-child .mf-vertical-gallery, .mf-project-slide:first-child video, .mf-project-slide:first-child img')||gallery;
+    const titleNode=fields.title;
+    return {
+      frame,
+      image:boxOf(media,{left:Math.max(280,window.innerWidth*.24)+frame.left,top:frame.top,width:frame.width-Math.max(280,window.innerWidth*.24),height:frame.height,radius:0}),
+      title:boxOf(titleNode,{left:frame.left+24,top:frame.top+72,width:Math.max(240,window.innerWidth*.2),height:72,radius:0}),
+      titleSize:parseFloat(titleNode?getComputedStyle(titleNode).fontSize:'48')||48
+    };
+  };
+  const setBox=(element,box)=>{
+    element.style.left=`${box.left}px`;
+    element.style.top=`${box.top}px`;
+    element.style.width=`${box.width}px`;
+    element.style.height=`${box.height}px`;
+    element.style.borderRadius=`${box.radius||0}px`;
+  };
+  const createProjectMorph=(strip,key,geometry)=>{
+    const src=getProjectImage(strip,key);
+    const root=document.createElement('div');
+    root.className='mf-project-morph';
+    root.innerHTML='<div class="mf-project-morph-frame"></div>';
+    setBox(root,geometry.frame);
+
+    const image=document.createElement('div');
+    image.className='mf-project-morph-image';
+    setBox(image,geometry.image);
+    const img=document.createElement('img');
+    img.alt='';img.src=src;
+    img.onerror=()=>{img.onerror=null;img.src=src.startsWith('/')?'.'+src:src;};
+    image.appendChild(img);
+
+    const title=document.createElement('div');
+    title.className='mf-project-morph-title';
+    title.textContent=projectData[key]?.title||'';
+    title.style.left=`${geometry.title.left}px`;
+    title.style.top=`${geometry.title.top}px`;
+    title.style.fontSize=`${geometry.titleSize}px`;
+
+    document.body.append(root,image,title);
+    return {root,image,title};
+  };
+  const animateMorph=(bundle,from,to,duration=900,{closing=false}={})=>{
+    const easing='cubic-bezier(.16,1,.3,1)';
+    setBox(bundle.root,from.frame);setBox(bundle.image,from.image);
+    bundle.title.style.left=`${from.title.left}px`;
+    bundle.title.style.top=`${from.title.top}px`;
+    bundle.title.style.fontSize=`${from.titleSize}px`;
+    const rootAnimation=bundle.root.animate([
+      {left:`${from.frame.left}px`,top:`${from.frame.top}px`,width:`${from.frame.width}px`,height:`${from.frame.height}px`,borderRadius:`${from.frame.radius||0}px`,opacity:closing?1:.02},
+      {left:`${to.frame.left}px`,top:`${to.frame.top}px`,width:`${to.frame.width}px`,height:`${to.frame.height}px`,borderRadius:`${to.frame.radius||0}px`,opacity:1}
+    ],{duration,easing,fill:'forwards'});
+    const imageAnimation=bundle.image.animate([
+      {left:`${from.image.left}px`,top:`${from.image.top}px`,width:`${from.image.width}px`,height:`${from.image.height}px`,borderRadius:`${from.image.radius||0}px`},
+      {left:`${to.image.left}px`,top:`${to.image.top}px`,width:`${to.image.width}px`,height:`${to.image.height}px`,borderRadius:`${to.image.radius||0}px`}
+    ],{duration,easing,fill:'forwards'});
+    const titleAnimation=bundle.title.animate([
+      {left:`${from.title.left}px`,top:`${from.title.top}px`,fontSize:`${from.titleSize}px`,opacity:1},
+      {left:`${to.title.left}px`,top:`${to.title.top}px`,fontSize:`${to.titleSize}px`,opacity:1}
+    ],{duration,easing,fill:'forwards'});
+    return Promise.all([rootAnimation.finished,imageAnimation.finished,titleAnimation.finished].map(promise=>promise.catch(()=>{})));
+  };
+  const removeMorph=bundle=>{
+    if(!bundle)return;
+    bundle.root?.remove();bundle.image?.remove();bundle.title?.remove();
+  };
+  const settleProjectOpen=(bundle)=>{
+    lastOpenedStrip?.classList.remove('is-morph-source-hidden');
     overlay.classList.remove('is-morph-opening');
     overlay.classList.add('is-visible');
-    morph?.classList.add('is-handing-off');
-    setTimeout(()=>morph?.remove(),280);
+    [bundle?.root,bundle?.image,bundle?.title].forEach(node=>node?.classList.add('is-handing-off'));
+    setTimeout(()=>removeMorph(bundle),260);
     projectMorphing=false;
-    setTimeout(()=>gallery.focus({preventScroll:true}),160);
+    document.body.classList.remove('project-morphing');
+    setTimeout(()=>gallery.focus({preventScroll:true}),150);
   };
 
   function openProject(stripOrKey){
@@ -1580,12 +1690,12 @@ if(indexExtra){
     lastOpenedStrip=typeof stripOrKey==='string'?getProjectStrip(key):stripOrKey;
     Object.keys(liveStates).forEach(liveKey=>{liveStates[liveKey]=false;});
     renderProject(key);
-    overlay.classList.remove("is-closing","is-morph-opening","is-morph-closing");
-    overlay.classList.add("active");
-    overlay.setAttribute("aria-hidden","false");
-    document.body.classList.add("project-open");
+    overlay.classList.remove('is-closing','is-morph-opening','is-morph-closing');
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('project-open');
     overlay.scrollTop=0;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>overlay.classList.add("is-visible")));
+    requestAnimationFrame(()=>requestAnimationFrame(()=>overlay.classList.add('is-visible')));
     setTimeout(()=>gallery.focus({preventScroll:true}),520);
   }
 
@@ -1595,9 +1705,9 @@ if(indexExtra){
     lastOpenedStrip=strip;
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){openProject(strip);return;}
     projectMorphing=true;
-    const rect=strip.getBoundingClientRect();
-    const target=windowRect();
-    const morph=createProjectMorph(strip,key,rect);
+    const from=sourceGeometry(strip);
+    const bundle=createProjectMorph(strip,key,from);
+    strip.classList.add('is-morph-source-hidden');
     Object.keys(liveStates).forEach(liveKey=>{liveStates[liveKey]=false;});
     renderProject(key);
     overlay.classList.remove('is-closing','is-visible','is-morph-closing');
@@ -1605,21 +1715,12 @@ if(indexExtra){
     overlay.setAttribute('aria-hidden','false');
     document.body.classList.add('project-open','project-morphing');
     overlay.scrollTop=0;
-    const animation=morph.animate([
-      {left:`${rect.left}px`,top:`${rect.top}px`,width:`${rect.width}px`,height:`${rect.height}px`,borderRadius:getComputedStyle(strip).borderRadius||'22px'},
-      {left:`${target.left}px`,top:`${target.top}px`,width:`${target.width}px`,height:`${target.height}px`,borderRadius:`${target.radius}px`}
-    ],{duration:820,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
-    setTimeout(()=>{
-      overlay.classList.add('is-visible');
-      morph.classList.add('is-handing-off');
-    },610);
-    animation.finished.then(()=>{
-      document.body.classList.remove('project-morphing');
-      settleProjectOpen(morph);
-    }).catch(()=>{
-      document.body.classList.remove('project-morphing');
-      settleProjectOpen(morph);
-    });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const to=overlayGeometry();
+      const duration=920;
+      animateMorph(bundle,from,to,duration).then(()=>settleProjectOpen(bundle));
+      setTimeout(()=>overlay.classList.add('is-visible'),duration-150);
+    }));
   }
 
   function switchProject(nextKey){
@@ -1643,6 +1744,7 @@ if(indexExtra){
     overlay.classList.remove('active','is-closing','is-morph-opening','is-morph-closing','is-visible');
     overlay.setAttribute('aria-hidden','true');
     document.body.classList.remove('project-open','project-morphing');
+    lastOpenedStrip?.classList.remove('is-morph-source-hidden');
     slides.innerHTML='';
     currentCarousel=null;
     projectMorphing=false;
@@ -1660,23 +1762,19 @@ if(indexExtra){
       return;
     }
     projectMorphing=true;
-    const target=strip.getBoundingClientRect();
-    const start=windowRect();
-    const morph=createProjectMorph(strip,currentProjectKey,start);
-    morph.classList.add('is-closing-morph');
+    const from=overlayGeometry();
+    const to=sourceGeometry(strip);
+    const bundle=createProjectMorph(strip,currentProjectKey,from);
+    strip.classList.add('is-morph-source-hidden');
     overlay.classList.add('is-morph-closing');
-    overlay.classList.remove('is-visible');
     document.body.classList.add('project-morphing');
-    const animation=morph.animate([
-      {left:`${start.left}px`,top:`${start.top}px`,width:`${start.width}px`,height:`${start.height}px`,borderRadius:`${start.radius}px`,opacity:1},
-      {left:`${target.left}px`,top:`${target.top}px`,width:`${target.width}px`,height:`${target.height}px`,borderRadius:getComputedStyle(strip).borderRadius||'22px',opacity:1}
-    ],{duration:760,easing:'cubic-bezier(.16,1,.3,1)',fill:'forwards'});
-    animation.finished.then(()=>{
-      morph.remove();
-      finishProjectClose(afterClose);
-    }).catch(()=>{
-      morph.remove();
-      finishProjectClose(afterClose);
+    requestAnimationFrame(()=>{
+      overlay.classList.remove('is-visible');
+      setTimeout(()=>strip.classList.remove('is-morph-source-hidden'),680);
+      animateMorph(bundle,from,to,820,{closing:true}).then(()=>{
+        removeMorph(bundle);
+        finishProjectClose(afterClose);
+      });
     });
   }
 
@@ -4487,7 +4585,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     x=event.clientX;y=event.clientY;place();
     const sideQuestsOpen=document.body.classList.contains('project-open')&&!!document.querySelector('.mf-project-shell.is-sidequests-project');
     const shouldHide=hiddenZone(event.target)||(document.body.classList.contains('project-open')&&!sideQuestsOpen)||document.body.classList.contains('art-open');
-    const openTarget=event.target?.closest?.('.mf-work-cinema-hit,.mf-guidance-portal,#mfArtButton');
+    const openTarget=event.target?.closest?.('.mf-work-snap-scene,.mf-guidance-portal,#mfArtButton');
     const openMode=!!openTarget&&!shouldHide;
     const wasVisible=visible;
     visible=!shouldHide;

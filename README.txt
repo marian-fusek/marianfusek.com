@@ -1,26 +1,28 @@
-MARIAN FUSEK WEBSITE — V155
+MARIAN FUSEK WEBSITE — V156
 
 LIVE
-- Root /index.html, /style.css and /script.js remain byte-for-byte unchanged from V154 / the V139 live homepage.
+- Root /index.html, /style.css and /script.js remain unchanged from the V155 package / V139 live homepage.
 
-STAGING — SELECTED WORKS 100%
-- Rebuilt Selected Works as a native-scroll, pinned full-screen sequence.
-- Removed the global wheel interception and delayed synthetic scrolling from staging. The browser now owns the scroll position.
-- Each project receives the whole viewport and uses only its first image.
-- Five distinct art-directed compositions adapt the image, title, discipline and description to the project rather than forcing one card template.
-- Two recycled visual slots handle transitions, keeping only the current and next projects active at full visual weight.
-- Project transitions use continuous cross-resolution, directional image movement, a light graphic seam and a project-specific stage graphic system.
-- The bottom progress instrument spans the viewport, fills continuously with scroll, marks all five chapters and supports direct project navigation.
-- Hovering the active composition adds restrained multi-layer depth; clicking opens the existing project detail through a shared-element expansion into an inset rounded window.
-- Closing reverses to the exact project chapter and scroll position.
-- Desktop and touch/mobile have separately tuned compositions.
-- Remaining homepage sections were not redesigned in this pass.
+STAGING — SELECTED WORKS
+- Rebuilt Selected Works as a full-screen native-scroll snap exhibition.
+- Five physical 100svh chapter positions give MIUNĀE, GoBaller, AIMS, Vault 111 and Side Quests a complete stable resting frame.
+- The root uses CSS scroll snapping only while Selected Works intersects the viewport.
+- A local one-gesture wheel guard prevents trackpad momentum from skipping a project; the browser still performs the smooth movement to the next physical snap position.
+- GoBaller is straight, fully visible and receives a complete resting chapter before AIMS.
+- Each project uses only its first image, preserves its real aspect ratio with object-fit: contain, and has a project-specific art-directed composition.
+- Transitions use a structural split mask between adjacent physical scenes rather than a generic crossfade.
+- The full-width bottom rail tracks continuous progress, shows all five chapter positions and supports direct navigation.
+- Hovering the active composition adds restrained image, echo and plane depth.
+- Clicking performs a measured shared-geometry morph using the actual active image and title into the existing inset rounded project-detail window.
+- Closing reverses the same path and restores the exact project chapter and scroll position.
+- Desktop and mobile layouts are separately tuned.
+- No other homepage section was redesigned in this pass.
 
-PERFORMANCE / QA
-- Native entry from hero into Selected Works: ~16.67 ms average frame time, 16.8 ms p95 in the Chromium validation run; no entry long task.
-- Settled desktop sequence: ~17.66 ms average frame time, 16.8 ms p95.
-- Settled mobile sequence: ~16.67 ms average frame time, 16.7 ms p95.
-- Verified at 1280×800, 1440×1000, 1728×1117 and 390×844.
-- Verified continuous progress, marker navigation, real pointer click, project opening, project closing and exact scroll restoration.
-- /staging/staging.js and root /script.js pass node --check.
-- No runtime exceptions in desktop or mobile render validation.
+VALIDATION
+- Verified stable resting frames for all five projects at 1280×800, 1440×900, 1728×1117 and 390×844.
+- Verified a large desktop wheel gesture advances MIUNĀE → GoBaller rather than skipping to AIMS.
+- Verified exit from the final project releases snap and continues to the next homepage section.
+- Verified project opening, closing and exact GoBaller scroll restoration on desktop and mobile.
+- Verified no horizontal overflow in the tested viewports.
+- staging/staging.js and root script.js pass node --check.
+- No runtime exceptions in the Selected Works desktop or mobile validation harnesses.

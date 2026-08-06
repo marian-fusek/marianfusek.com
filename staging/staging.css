@@ -4083,3 +4083,36 @@ html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap {
   background-position:center;
   background-repeat:no-repeat;
 }
+
+/* ============================================================
+   V158 — SELECTED WORKS / TRUE NATIVE CONTINUOUS FLOW
+   No wheel, keyboard or scroll-end interception. The page owns
+   scrolling; only the progress fill carries restrained inertia.
+   ============================================================ */
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-media {
+  display:grid;
+  place-items:center;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap {
+  position:relative;
+  inset:auto;
+  max-width:100%;
+  max-height:100%;
+  background:rgba(249,249,249,.52);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image {
+  width:100%;
+  height:100%;
+  object-fit:fill;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-track-fill {
+  will-change:transform;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter {
+  scroll-snap-align:none !important;
+  scroll-snap-stop:normal !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-exhibition,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapters {
+  scroll-snap-type:none !important;
+}

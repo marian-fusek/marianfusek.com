@@ -1,29 +1,28 @@
-MARIAN FUSEK WEBSITE — V157
+MARIAN FUSEK WEBSITE — V158
 
 LIVE
-- Root /index.html, /style.css and /script.js remain unchanged from V156 / the V139 live homepage.
+- Root /index.html, /style.css and /script.js remain unchanged from the current live homepage.
 
 STAGING — SELECTED WORKS
-- Discarded the V156 global document-snap architecture.
-- Selected Works now enters through normal native page scrolling; it cannot trap or resist the user before the section is aligned.
-- Five real full-screen sticky chapters show MIUNĀE, GoBaller, AIMS, Vault 111 and Side Quests one at a time.
-- Each chapter uses only the first project image plus the existing project name, discipline and description.
-- Removed the unrequested background axes, orbit, coordinates, giant number traces, graphic boxes and structural lines.
-- The bottom progress rail remains full width and updates continuously.
-- Once a chapter is fully settled, one wheel/trackpad gesture advances exactly one project. Momentum events are absorbed until that movement settles.
-- At the first and last chapter, scrolling releases normally back to the surrounding homepage.
-- Touch and free page scrolling settle to the nearest chapter after the gesture ends.
-- GoBaller now receives a straight, complete, stable full-screen composition and cannot be immediately covered by AIMS.
-- Project imagery has deployed-path and original-inline fallbacks so the composition and copy do not disappear if one request fails.
-- Opening now clones the actual active chapter image and title, forms the inset rounded project window first, and reveals the existing project content only at the handoff.
-- Closing returns to the exact chapter position.
-- No other homepage section was redesigned in this pass.
+- Rebuilt V157's Selected Works behavior as a genuinely native continuous page sequence.
+- Removed all wheel interception, momentum absorption, keyboard interception, scroll-end settling and automatic nearest-project scrolling.
+- Trackpad, mouse wheel, keyboard and touch scrolling now remain fully owned by the browser with no resistance or forced chapter movement.
+- The five sticky project scenes still exchange at clear scroll milestones, but the exchange is driven only by the user's actual page position.
+- GoBaller remains a complete stable composition and is no longer advanced by an intercepted gesture.
+- Every project image is measured after loading and fitted inside its assigned art-directed area using its true natural aspect ratio.
+- Rounded corners and shadows now follow the actual visible image rectangle rather than a generic full-size media box.
+- Removed the image-as-background fallback that could visually create a second generic rectangle behind the real image.
+- The bottom progress line is the only inertial element. It follows page progress with a restrained short lag and no bounce, reverse pull or effect on scrolling.
+- Marker clicks remain explicit navigation actions and smoothly move to the chosen project.
+- After Side Quests, the sticky sequence releases naturally into the following homepage section.
+- Project opening/closing behavior and all non-Selected-Works homepage sections remain unchanged.
+
+FILES CHANGED
+- /staging/staging.js
+- /staging/staging.css
+- /README.txt
 
 VALIDATION
-- JavaScript syntax verified for staging/staging.js and root script.js.
-- Fresh-load layouts verified at 1280×800, 1440×900, 1728×1117 and 390×844.
-- Verified MIUNĀE and GoBaller stable resting states and matching progress-rail state at every tested viewport.
-- Verified no horizontal overflow in the tested viewports.
-- Verified a burst of twelve wheel momentum events advances only MIUNĀE → GoBaller.
-- Verified direct chapter navigation updates the visible chapter, title and progress rail together.
-- Verified the project opening handoff and final inset project window.
+- JavaScript syntax verified with Node.
+- Confirmed the V157 wheel listener, settle routine, smooth auto-advance logic and keyboard interception are absent from the new Selected Works controller.
+- Confirmed no scroll-snap behavior is enabled on the exhibition or chapters.

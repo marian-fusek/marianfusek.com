@@ -1,47 +1,179 @@
 {
-  "version": "170",
+  "version": "171",
   "hero": {
     "statement": "Brand, UI, AI & Visual Designer helping founders, leaders and digital creatives build distinctive brands, digital products and visual systems.",
     "typewriter": "Creative direction, identity, product, visual systems and AI production.",
     "name": "MARIAN FUSEK"
   },
   "works": [
-    {"id":"miunae","title":"MIUNĀE","meta":"CREATIVE DIRECTION · BRAND SYSTEM","description":"Eastern European beauty. Made in Romania.","image":"../media/projects/miunae/04-miunae-all.jpg","gallery":["../media/projects/miunae/01-miunae-logo.jpg","../media/projects/miunae/02-miunae-web.jpg","../media/projects/miunae/03-miunae-insta.jpg","../media/projects/miunae/05-miunae-brandkit.jpg"]},
-    {"id":"goballer","title":"GoBaller","meta":"BRAND · iOS APP","description":"Football coaching made direct, visual and useful.","image":"../media/projects/goballer/02-goballer-brand.jpg","gallery":["../media/projects/goballer/01-goballer-logo.jpg","../media/projects/goballer/02-goballer-brand.jpg","../media/projects/goballer/03-goballer-app.jpg"]},
-    {"id":"aims","title":"AIMS","meta":"BRAND REFRESH · DIGITAL","description":"AI music-catalog search, made legible and desirable.","image":"../media/projects/aims/02-aims-web.jpg","gallery":["../media/projects/aims/01-aims-logo.jpg","../media/projects/aims/02-aims-web.jpg"]}
+    {
+      "id": "miunae",
+      "title": "MIUNĀE",
+      "meta": "CREATIVE DIRECTION · BRAND SYSTEM",
+      "description": "Eastern European beauty. Made in Romania.",
+      "image": "../media/projects/miunae/04-miunae-all.jpg",
+      "gallery": [
+        "../media/projects/miunae/01-miunae-logo.jpg",
+        "../media/projects/miunae/02-miunae-web.jpg",
+        "../media/projects/miunae/03-miunae-insta.jpg",
+        "../media/projects/miunae/05-miunae-brandkit.jpg"
+      ]
+    },
+    {
+      "id": "goballer",
+      "title": "GoBaller",
+      "meta": "BRAND · iOS APP",
+      "description": "Football coaching made direct, visual and useful.",
+      "image": "../media/projects/goballer/02-goballer-brand.jpg",
+      "gallery": [
+        "../media/projects/goballer/01-goballer-logo.jpg",
+        "../media/projects/goballer/02-goballer-brand.jpg",
+        "../media/projects/goballer/03-goballer-app.jpg"
+      ]
+    },
+    {
+      "id": "aims",
+      "title": "AIMS",
+      "meta": "BRAND REFRESH · DIGITAL",
+      "description": "AI music-catalog search, made legible and desirable.",
+      "image": "../media/projects/aims/02-aims-web.jpg",
+      "gallery": [
+        "../media/projects/aims/01-aims-logo.jpg",
+        "../media/projects/aims/02-aims-web.jpg"
+      ]
+    }
   ],
   "guidance": {
-    "mindset":{"title":"Mindset Coaching","description":"One-on-ones with real and direct conversations for founders, leaders and digital creatives."},
-    "leadership":{"title":"Team Leadership","description":"Team leadership, people development and audits for people-first teams."}
+    "mindset": {
+      "title": "Mindset Coaching",
+      "description": "One-on-ones with real and direct conversations for founders, leaders and digital creatives."
+    },
+    "leadership": {
+      "title": "Team Leadership",
+      "description": "Team leadership, people development and audits for people-first teams."
+    }
   },
   "practice": [
-    ["BRAND","IDENTITY","I uncover a brand's one unmistakable thing, then build everything from it."],
-    ["VISUAL","DESIGN","Typography-driven, minimal, and deliberately off-meta."],
-    ["CREATIVE","DIRECTION","I set the vision, hold the standard, and keep the work true from first sketch to final output."],
-    ["AI","PRODUCTION","I treat AI like a studio: direction, generation, retouching and animation."],
-    ["MINDSET","COACHING","For designers, leaders and founders who want clarity over noise — real conversations, not frameworks."]
+    [
+      "BRAND",
+      "IDENTITY",
+      "I uncover a brand's one unmistakable thing, then build everything from it."
+    ],
+    [
+      "VISUAL",
+      "DESIGN",
+      "Typography-driven, minimal, and deliberately off-meta."
+    ],
+    [
+      "CREATIVE",
+      "DIRECTION",
+      "I set the vision, hold the standard, and keep the work true from first sketch to final output."
+    ],
+    [
+      "AI",
+      "PRODUCTION",
+      "I treat AI like a studio: direction, generation, retouching and animation."
+    ],
+    [
+      "MINDSET",
+      "COACHING",
+      "For designers, leaders and founders who want clarity over noise — real conversations, not frameworks."
+    ]
   ],
   "experience": [
-    ["2022 → NOW","Independent","Brand, UI, AI & Visual Designer · Creative Director","Currently: MIUNĀE.com — bottles, boxes, print, web, socials, video and AI production."],
-    ["2020 → NOW","Coach","Mindset coach for digital creatives","A certified coach handling the deep mental stuff, with a strong grip on digital."],
-    ["2015 → 2022","STRV","Chief Design & Engineering Officer · Design Team Lead · Product Designer","Also HR, resource management, public talks and insisting the standard could be higher."],
-    ["2011 → 2015","SYMBIO Digital","Graphic Designer","If there was a corporate in Czechia, I probably messed with it."],
-    ["2009 → 2010","FG Forrest","Graphic Designer","Got in with zero XP. Edited the president's office website graphics on day one."]
+    [
+      "2022 → NOW",
+      "Independent",
+      "Brand, UI, AI & Visual Designer · Creative Director",
+      "Currently: MIUNĀE.com — bottles, boxes, print, web, socials, video and AI production."
+    ],
+    [
+      "2020 → NOW",
+      "Coach",
+      "Mindset coach for digital creatives",
+      "A certified coach handling the deep mental stuff, with a strong grip on digital."
+    ],
+    [
+      "2015 → 2022",
+      "STRV",
+      "Chief Design & Engineering Officer · Design Team Lead · Product Designer",
+      "Also HR, resource management, public talks and insisting the standard could be higher."
+    ],
+    [
+      "2011 → 2015",
+      "SYMBIO Digital",
+      "Graphic Designer",
+      "If there was a corporate in Czechia, I probably messed with it."
+    ],
+    [
+      "2009 → 2010",
+      "FG Forrest",
+      "Graphic Designer",
+      "Got in with zero XP. Edited the president's office website graphics on day one."
+    ]
   ],
   "profile": {
-    "101":{"lead":"To be real with you — I don't do any of this out of pure passion. My process is a battle. With the brief, the obvious, and whatever comes too easy. That restlessness — that's where everything I do comes from. Design, leadership, coaching. All of it.","small":["Under the performance, the noise, and the safe choices — there's something worth finding. When those layers finally break, the real and beautiful comes alive.","The brief doesn't own the outcome. The work answers to your vision — and comes out MF-stamped.","Having fun drawing rectangles or giving ten tips for a better life might work for some. But if you just need something raw, let's talk."],"note":"MY WORDS, NOT AI. BEEN EM-DASHING SINCE BEFORE IT WAS A RED FLAG."},
-    "availability":{"lead":"I'm open to freelance projects and jobs in design, leadership and coaching. Would enjoy even a combo of all these together. Or even doing nothing and get paid — I got things to create for myself.","small":["Approach me if you appreciate the weird playful bitterness pushed between the lines all over this website.","In design I like brand systems, small projects, visual refreshes, consultations and reviews. In leadership I focus on people development, team processes and team culture."],"note":"REMOTE · OPEN TO RELOCATION · EXTRA INTEREST IN NEW ZEALAND, SOUTH KOREA, JAPAN, EU NORDICS & THE US."},
-    "now":{"lead":"CCO / Creative at MIUNĀE — Skincare.","small":["I designed the first brand idea that grew into a trademarked logo and symbol, manufactured bottles and boxes, Instagram, print, marketing videos and AI production — mostly in tandem with Linda Krestanova, CBO / Brand."],"note":"CURRENTLY EXPLORING AND WORKING FROM DA NANG — VIETNAM."}
+    "101": {
+      "lead": "To be real with you — I don't do any of this out of pure passion. My process is a battle. With the brief, the obvious, and whatever comes too easy. That restlessness — that's where everything I do comes from. Design, leadership, coaching. All of it.",
+      "small": [
+        "Under the performance, the noise, and the safe choices — there's something worth finding. When those layers finally break, the real and beautiful comes alive.",
+        "The brief doesn't own the outcome. The work answers to your vision — and comes out MF-stamped.",
+        "Having fun drawing rectangles or giving ten tips for a better life might work for some. But if you just need something raw, let's talk."
+      ],
+      "note": "MY WORDS, NOT AI. BEEN EM-DASHING SINCE BEFORE IT WAS A RED FLAG."
+    },
+    "availability": {
+      "lead": "I'm open to freelance projects and jobs in design, leadership and coaching. Would enjoy even a combo of all these together. Or even doing nothing and get paid — I got things to create for myself.",
+      "small": [
+        "Approach me if you appreciate the weird playful bitterness pushed between the lines all over this website.",
+        "In design I like brand systems, small projects, visual refreshes, consultations and reviews. In leadership I focus on people development, team processes and team culture."
+      ],
+      "note": "REMOTE · OPEN TO RELOCATION · EXTRA INTEREST IN NEW ZEALAND, SOUTH KOREA, JAPAN, EU NORDICS & THE US."
+    },
+    "now": {
+      "lead": "CCO / Creative at MIUNĀE — Skincare.",
+      "small": [
+        "I designed the first brand idea that grew into a trademarked logo and symbol, manufactured bottles and boxes, Instagram, print, marketing videos and AI production — mostly in tandem with Linda Krestanova, CBO / Brand."
+      ],
+      "note": "CURRENTLY EXPLORING AND WORKING FROM DA NANG — VIETNAM."
+    }
   },
   "heresy": [
-    ["Precision Isn’t Creativity","Some designers are obsessed with spacing tokens, naming conventions, the newest plugin and the correct Figma structure — but strip away the software and the math and there is nothing left. Precision isn’t creativity."],
-    ["Persona Decks Are Usually Theater","Most persona decks aren’t discovery. They’re theater used to justify a decision someone already made. Watch behavior over stated preference."],
-    ["Feedback Isn’t an Attack","If you can’t separate the work from your ego, every piece of feedback lands like an attack instead of information."],
-    ["Most Designers Choose the Direction They Can Already Execute","Almost nobody picks the direction that might fail. Nobody sits in ‘I don’t know what this looks like yet’ long enough to find something."],
-    ["Taste Is the Skill","Everyone hides behind the brief, the data or the client. Somewhere along the way, taste turned into a liability instead of the actual skill."],
-    ["Process Can Become a Cage","The process that was supposed to make designers better can become the thing keeping them stuck."],
-    ["Critique Isn’t Creation","Critique isn’t a creative skill. It’s a verbal one. Don’t confuse the two."],
-    ["Ten Years Doesn’t Make You Senior","A lot of seniors got there by sticking around, not by getting better."],
-    ["Immediate Answers Kill Optimization","Immediate answers optimize for looking good in the room. A real process optimizes for the work being right."]
+    [
+      "Precision Isn’t Creativity",
+      "Some designers are obsessed with spacing tokens, naming conventions, the newest plugin and the correct Figma structure — but strip away the software and the math and there is nothing left. Precision isn’t creativity."
+    ],
+    [
+      "Persona Decks Are Usually Theater",
+      "Most persona decks aren’t discovery. They’re theater used to justify a decision someone already made. Watch behavior over stated preference."
+    ],
+    [
+      "Feedback Isn’t an Attack",
+      "If you can’t separate the work from your ego, every piece of feedback lands like an attack instead of information."
+    ],
+    [
+      "Most Designers Choose the Direction They Can Already Execute",
+      "Almost nobody picks the direction that might fail. Nobody sits in ‘I don’t know what this looks like yet’ long enough to find something."
+    ],
+    [
+      "Taste Is the Skill",
+      "Everyone hides behind the brief, the data or the client. Somewhere along the way, taste turned into a liability instead of the actual skill."
+    ],
+    [
+      "Process Can Become a Cage",
+      "The process that was supposed to make designers better can become the thing keeping them stuck."
+    ],
+    [
+      "Critique Isn’t Creation",
+      "Critique isn’t a creative skill. It’s a verbal one. Don’t confuse the two."
+    ],
+    [
+      "Ten Years Doesn’t Make You Senior",
+      "A lot of seniors got there by sticking around, not by getting better."
+    ],
+    [
+      "Immediate Answers Kill Optimization",
+      "Immediate answers optimize for looking good in the room. A real process optimizes for the work being right."
+    ]
   ]
 }

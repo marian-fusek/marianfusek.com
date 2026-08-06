@@ -1,18 +1,18 @@
-.works{height:370vh;background:var(--bg)}
+
+.works{height:335vh;background:var(--bg)}
 .works-pin{position:sticky;top:0;height:100svh;overflow:hidden;background:var(--bg);isolation:isolate}
 .works-intro{position:absolute;inset:0;display:grid;place-content:center;text-align:center;z-index:0;will-change:opacity,transform}
-.works-intro h2{margin:0;font-size:clamp(56px,10vw,170px);line-height:.84;letter-spacing:-.065em;font-weight:520}
-.works-intro p{margin:20px 0 0;font:450 clamp(12px,1.1vw,17px) Geist Mono;letter-spacing:-.015em}
+.works-intro h2{margin:0;font-size:clamp(56px,10vw,170px);line-height:.84;letter-spacing:-.06em;font-weight:500;font-kerning:normal}
+.works-intro p{margin:23px 0 0;font:450 clamp(12px,1.1vw,17px) Geist Mono;letter-spacing:-.015em}
 .work-stack{position:absolute;inset:0;z-index:2}
-.work-card{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--menu) + 26px);height:calc(100svh - var(--menu) - 34px);border:0;border-radius:28px;overflow:hidden;background:#111;padding:0;cursor:pointer;box-shadow:0 18px 60px rgba(0,0,0,.14);transform-origin:50% 100%;will-change:transform,opacity;opacity:0;pointer-events:none}
+.work-card{position:absolute;left:var(--pad);right:var(--pad);top:calc(var(--menu) + 20px);height:calc(100svh - var(--menu) - 28px);border:0;border-radius:28px;overflow:hidden;background:#111;padding:0;cursor:pointer;box-shadow:0 20px 65px rgba(0,0,0,.16);transform-origin:50% 100%;will-change:transform,opacity;opacity:0;pointer-events:none}
 .work-card.is-present{pointer-events:auto}
 .work-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
-.work-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.44));pointer-events:none}
-.work-card-info{position:absolute;z-index:3;left:30px;right:30px;bottom:26px;color:#fff;display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:end;gap:34px;opacity:0;transform:translateY(18px);filter:blur(5px);transition:opacity .7s var(--ease),transform .85s var(--ease),filter .85s var(--ease)}
-.work-card.settled .work-card-info{opacity:1;transform:none;filter:none}
+.work-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 48%,rgba(0,0,0,.46));pointer-events:none}
+.work-card-info{position:absolute;z-index:3;left:30px;right:30px;bottom:26px;color:#fff;display:grid;grid-template-columns:minmax(0,1fr) minmax(max-content,42vw);align-items:end;gap:34px;opacity:0;transform:translateY(22px);clip-path:inset(100% 0 0 0);transition:opacity .65s var(--ease),transform .82s var(--ease),clip-path .82s var(--ease)}
+.work-card.settled .work-card-info{opacity:1;transform:none;clip-path:inset(0 0 0 0)}
 .work-card-title{font-size:clamp(36px,6vw,98px);font-weight:400;letter-spacing:-.055em;line-height:.8;text-align:left}
-.work-card-side{text-align:right;max-width:none;font:500 11px/1.35 Geist Mono;text-transform:uppercase;white-space:nowrap}
-.work-card-side span{display:block}
-.work-card-side .work-description{margin-top:5px;text-transform:none;font-weight:430;letter-spacing:0}
-.stack-shade{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(228,230,231,.30),rgba(228,230,231,.52));pointer-events:none;opacity:0;transition:opacity .28s linear}
-@media(max-width:760px){.works{height:400vh}.work-card{top:calc(var(--menu) + 18px);height:calc(100svh - var(--menu) - 28px)}.work-card-info{left:20px;right:20px;bottom:20px;grid-template-columns:1fr;gap:12px}.work-card-side{text-align:left;white-space:normal}}
+.work-card-side{text-align:right;max-width:42vw;font:500 11px/1.35 Geist Mono;text-transform:uppercase;white-space:nowrap;justify-self:end}
+.work-card-side span{display:block}.work-card-side .work-description{margin-top:5px;text-transform:none;font-weight:430;letter-spacing:0}
+.stack-shade{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(228,230,231,.23),rgba(228,230,231,.58));pointer-events:none;opacity:0;transition:opacity .38s linear}
+@media(max-width:760px){.works{height:365vh}.work-card{top:calc(var(--menu) + 16px);height:calc(100svh - var(--menu) - 23px)}.work-card-info{left:20px;right:20px;bottom:20px;grid-template-columns:1fr;gap:12px}.work-card-side{text-align:left;white-space:normal;max-width:100%;justify-self:start}}

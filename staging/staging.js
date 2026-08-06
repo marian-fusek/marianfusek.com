@@ -245,17 +245,18 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — NATIVE FULL-SCREEN SNAP EXHIBITION */
+/* SELECTED WORKS — FULL-SCREEN STICKY CHAPTERS WITH SETTLED SNAP */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
   const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')]:[];
   if(!section||!sourceStack||!sources.length)return;
 
-  document.body.classList.remove('mf-selected-works-elastic','mf-selected-works-cinematic');
-  document.body.classList.add('mf-selected-works-snap');
-  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3');
-  section.classList.add('mf-selected-works-v4');
+  document.documentElement.classList.remove('mf-work-snap-active');
+  document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic');
+  document.body.classList.add('mf-selected-works-flow');
+  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4');
+  section.classList.add('mf-selected-works-v5');
 
   const fallbackImages={
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
@@ -265,6 +266,11 @@ if(indexExtra){
     '05':'/media/projects/side-quests/undersurface.jpg'
   };
   const slugs={'01':'miunae','02':'goballer','03':'aims','04':'vault','05':'sidequests'};
+  const inlineBackground=source=>{
+    const value=source.querySelector('.mf-strip-img')?.style.backgroundImage||'';
+    const match=value.match(/url\(["']?(.*?)["']?\)/i);
+    return match?.[1]||'';
+  };
   const data=sources.map((source,index)=>{
     const key=source.dataset.index||String(index+1).padStart(2,'0');
     return {
@@ -273,115 +279,105 @@ if(indexExtra){
       title:source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project',
       meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
       description:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
-      image:source.dataset.img||fallbackImages[key]||'',
+      candidates:[source.dataset.img,fallbackImages[key],inlineBackground(source)].filter(Boolean),
       source
     };
   });
 
-  const entrySnap=document.createElement('div');
-  entrySnap.className='mf-work-snap-boundary is-entry';
-  entrySnap.setAttribute('aria-hidden','true');
-  const exitSnap=document.createElement('div');
-  exitSnap.className='mf-work-snap-boundary is-exit';
-  exitSnap.setAttribute('aria-hidden','true');
-  section.before(entrySnap);
-  section.after(exitSnap);
-
   const exhibition=document.createElement('div');
-  exhibition.className='mf-work-snap-exhibition';
+  exhibition.className='mf-work-flow-exhibition';
   exhibition.setAttribute('aria-label','Selected Works');
-
-  const stage=document.createElement('div');
-  stage.className='mf-work-snap-stage';
-  stage.innerHTML=`
-    <div class="mf-work-snap-atmosphere" aria-hidden="true">
-      <i class="mf-work-snap-axis is-x"></i>
-      <i class="mf-work-snap-axis is-y"></i>
-      <i class="mf-work-snap-orbit"></i>
-      <span class="mf-work-snap-coordinate is-a">MF / 01—05</span>
-      <span class="mf-work-snap-coordinate is-b">SCROLL / SNAP / OPEN</span>
+  exhibition.innerHTML=`
+    <div class="mf-work-flow-rail-wrap">
+      <div class="mf-work-flow-rail">
+        <div class="mf-work-flow-rail-head">
+          <span class="mf-work-flow-label">SELECTED WORKS</span>
+          <span class="mf-work-flow-current"><b>01</b><em>MIUNĀE</em></span>
+          <span class="mf-work-flow-total">05</span>
+        </div>
+        <div class="mf-work-flow-track">
+          <i class="mf-work-flow-track-base"></i>
+          <i class="mf-work-flow-track-fill"></i>
+          <div class="mf-work-flow-markers"></div>
+        </div>
+      </div>
     </div>
-    <div class="mf-work-snap-scenes"></div>
-    <div class="mf-work-snap-rail">
-      <div class="mf-work-snap-rail-head">
-        <span class="mf-work-snap-label">SELECTED WORKS</span>
-        <span class="mf-work-snap-current"><b>01</b><em>MIUNĀE</em></span>
-        <span class="mf-work-snap-total">05</span>
-      </div>
-      <div class="mf-work-snap-track">
-        <i class="mf-work-snap-track-base"></i>
-        <i class="mf-work-snap-track-fill"></i>
-        <div class="mf-work-snap-markers"></div>
-      </div>
-    </div>`;
+    <div class="mf-work-flow-chapters"></div>`;
 
-  const scenesHost=stage.querySelector('.mf-work-snap-scenes');
-  const markersHost=stage.querySelector('.mf-work-snap-markers');
-  const trackFill=stage.querySelector('.mf-work-snap-track-fill');
-  const currentNumber=stage.querySelector('.mf-work-snap-current b');
-  const currentName=stage.querySelector('.mf-work-snap-current em');
-  const steps=document.createElement('div');
-  steps.className='mf-work-snap-steps';
-
-  const scenes=[];
-  const stepNodes=[];
-  const markerButtons=[];
-  const loaded=new Set();
+  const chaptersHost=exhibition.querySelector('.mf-work-flow-chapters');
+  const markersHost=exhibition.querySelector('.mf-work-flow-markers');
+  const trackFill=exhibition.querySelector('.mf-work-flow-track-fill');
+  const currentNumber=exhibition.querySelector('.mf-work-flow-current b');
+  const currentName=exhibition.querySelector('.mf-work-flow-current em');
+  const chapters=[];
+  const markers=[];
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer=window.matchMedia('(hover:hover) and (pointer:fine)');
 
   data.forEach((project,index)=>{
-    const scene=document.createElement('article');
-    scene.className=`mf-work-snap-scene mf-strip is-${project.slug}`;
-    scene.dataset.index=project.key;
-    scene.dataset.title=project.title;
-    scene.dataset.img=project.image;
-    scene.dataset.projectStage='true';
-    scene.setAttribute('role','button');
-    scene.setAttribute('tabindex',index===0?'0':'-1');
-    scene.setAttribute('aria-label',`Open ${project.title}`);
-    scene.innerHTML=`
-      <div class="mf-work-snap-echo" aria-hidden="true"></div>
-      <div class="mf-work-snap-plane is-a" aria-hidden="true"></div>
-      <div class="mf-work-snap-plane is-b" aria-hidden="true"></div>
-      <div class="mf-work-snap-image-wrap">
-        <img class="mf-work-snap-image mf-work-image" alt="${project.title} selected work" decoding="async" draggable="false">
-      </div>
-      <div class="mf-work-snap-copy">
-        <span class="mf-work-snap-number">${project.key}</span>
-        <h2>${project.title}</h2>
-        <p class="mf-work-snap-meta">${project.meta}</p>
-        <p class="mf-work-snap-desc">${project.description}</p>
-        <span class="mf-work-snap-action">OPEN PROJECT</span>
-      </div>
-      <div class="mf-work-snap-index-trace" aria-hidden="true">${project.key}</div>`;
-    scene.addEventListener('keydown',event=>{
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();scene.click();}
+    const chapter=document.createElement('article');
+    chapter.className=`mf-work-flow-chapter mf-strip is-${project.slug}`;
+    chapter.dataset.index=project.key;
+    chapter.dataset.title=project.title;
+    chapter.dataset.img=project.candidates[0]||'';
+    chapter.setAttribute('role','button');
+    chapter.setAttribute('tabindex',index===0?'0':'-1');
+    chapter.setAttribute('aria-label',`Open ${project.title}`);
+    chapter.style.setProperty('--mf-work-z',String(index+1));
+    chapter.innerHTML=`
+      <div class="mf-work-flow-surface">
+        <div class="mf-work-flow-media">
+          <div class="mf-work-flow-image-wrap">
+            <img class="mf-work-flow-image mf-work-image" alt="${project.title} selected work" decoding="async" draggable="false">
+          </div>
+        </div>
+        <div class="mf-work-flow-copy">
+          <span class="mf-work-flow-number">${project.key}</span>
+          <h2>${project.title}</h2>
+          <p class="mf-work-flow-meta">${project.meta}</p>
+          <p class="mf-work-flow-desc">${project.description}</p>
+          <span class="mf-work-flow-action">OPEN PROJECT</span>
+        </div>
+      </div>`;
+    const img=chapter.querySelector('.mf-work-flow-image');
+    let candidateIndex=0;
+    const loadCandidate=()=>{
+      const src=project.candidates[candidateIndex];
+      if(!src)return;
+      img.src=src;
+      chapter.dataset.img=src;
+      chapter.style.setProperty('--mf-work-image',`url("${src}")`);
+    };
+    img.loading=index<2?'eager':'lazy';
+    img.fetchPriority=index===0?'high':'auto';
+    img.addEventListener('load',()=>{
+      const w=Math.max(1,img.naturalWidth||1),h=Math.max(1,img.naturalHeight||1);
+      chapter.dataset.orientation=w>h*1.18?'landscape':h>w*1.18?'portrait':'square';
+      chapter.style.setProperty('--mf-work-natural-ar',`${w} / ${h}`);
+      chapter.classList.add('is-image-ready');
     });
-    const echo=scene.querySelector('.mf-work-snap-echo');
-    echo.style.setProperty('--mf-work-image',`url("${project.image}")`);
-    scenesHost.appendChild(scene);
-    scenes.push(scene);
-
-    const step=document.createElement('div');
-    step.className='mf-work-snap-step';
-    step.dataset.index=String(index);
-    step.dataset.key=project.key;
-    step.setAttribute('aria-hidden','true');
-    steps.appendChild(step);
-    stepNodes.push(step);
+    img.addEventListener('error',()=>{
+      candidateIndex+=1;
+      if(candidateIndex<project.candidates.length)loadCandidate();
+      else chapter.classList.add('is-image-missing');
+    });
+    loadCandidate();
+    chapter.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();chapter.click();}
+    });
+    chaptersHost.appendChild(chapter);
+    chapters.push(chapter);
 
     const marker=document.createElement('button');
     marker.type='button';
-    marker.className='mf-work-snap-marker';
+    marker.className='mf-work-flow-marker';
     marker.dataset.index=String(index);
     marker.setAttribute('aria-label',`Go to ${project.title}`);
     marker.innerHTML=`<i></i><span>${project.key}</span>`;
     markersHost.appendChild(marker);
-    markerButtons.push(marker);
+    markers.push(marker);
   });
 
-  exhibition.append(stage,steps);
   sourceStack.hidden=true;
   sourceStack.setAttribute('aria-hidden','true');
   section.querySelector('.mf-index-title')?.setAttribute('aria-hidden','true');
@@ -389,229 +385,240 @@ if(indexExtra){
   section.insertBefore(exhibition,sourceStack);
 
   const clamp=(value,min=0,max=1)=>Math.max(min,Math.min(max,value));
-  const smooth=value=>value*value*(3-2*value);
-  const range=(from,to,value)=>smooth(clamp((value-from)/(to-from)));
-  let sectionTop=0;
+  const ease=value=>1-Math.pow(1-clamp(value),3);
   let viewportH=Math.max(1,window.innerHeight);
-  let targetChapter=0;
-  let renderedChapter=-999;
-  let activeIndex=-1;
+  let sectionTop=0;
+  let positions=[];
+  let activeIndex=0;
   let frame=0;
-  let stageRect=null;
   let pointerFrame=0;
-  let pointerX=0;
-  let pointerY=0;
-  let snapEnabled=false;
-
-  const ensureLoaded=index=>{
-    if(index<0||index>=data.length||loaded.has(index))return;
-    const scene=scenes[index];
-    const img=scene.querySelector('.mf-work-snap-image');
-    loaded.add(index);
-    img.loading=index<2?'eager':'lazy';
-    img.fetchPriority=index===0?'high':'auto';
-    img.src=data[index].image;
-    img.onerror=()=>{img.onerror=null;img.src=data[index].image.startsWith('/')?'.'+data[index].image:data[index].image;};
-    const orient=()=>{
-      const w=Math.max(1,img.naturalWidth||1),h=Math.max(1,img.naturalHeight||1);
-      scene.dataset.orientation=w>h*1.18?'landscape':h>w*1.18?'portrait':'square';
-      scene.style.setProperty('--mf-work-natural-ar',`${w} / ${h}`);
-      scene.classList.add('is-image-ready');
-    };
-    if(img.complete&&img.naturalWidth)orient();
-    else img.addEventListener('load',orient,{once:true});
-    img.decode?.().catch(()=>{});
-  };
-
-  const setGeometry=()=>{
-    const rect=section.getBoundingClientRect();
-    sectionTop=window.scrollY+rect.top;
-    viewportH=Math.max(1,window.innerHeight);
-    stageRect=stage.getBoundingClientRect();
-    requestRender();
-  };
+  let sectionVisible=false;
+  let lastScrollY=window.scrollY;
+  let scrollDirection=1;
+  let settleTimer=0;
+  let settleGuard=false;
+  let gestureStartY=window.scrollY;
+  let gestureStartIndex=0;
+  let gestureStartedEngaged=false;
+  let gestureOpen=false;
 
   const setActive=index=>{
     index=Math.max(0,Math.min(data.length-1,index));
-    if(index===activeIndex)return;
+    if(index===activeIndex&&chapters[index]?.classList.contains('is-active'))return;
     activeIndex=index;
-    ensureLoaded(index-1);ensureLoaded(index);ensureLoaded(index+1);
     const project=data[index];
     currentNumber.textContent=project.key;
     currentName.textContent=project.title;
-    stage.dataset.active=project.key;
-    stage.dataset.activeIndex=String(index);
-    scenes.forEach((scene,i)=>{
-      const on=i===index;
-      scene.classList.toggle('is-active',on);
-      scene.tabIndex=on?0:-1;
-      scene.setAttribute('aria-hidden',on?'false':'true');
+    chapters.forEach((chapter,i)=>{
+      const active=i===index;
+      chapter.classList.toggle('is-active',active);
+      chapter.tabIndex=active?0:-1;
+      chapter.setAttribute('aria-hidden',active?'false':'true');
     });
-    markerButtons.forEach((button,i)=>{
-      button.classList.toggle('is-active',i===index);
-      button.classList.toggle('is-complete',i<index);
-      button.setAttribute('aria-current',i===index?'true':'false');
+    markers.forEach((marker,i)=>{
+      marker.classList.toggle('is-active',i===index);
+      marker.classList.toggle('is-complete',i<index);
+      marker.setAttribute('aria-current',i===index?'true':'false');
     });
-    currentNumber.animate([{opacity:.15,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:380,easing:'cubic-bezier(.16,1,.3,1)'});
-    currentName.animate([{opacity:.15,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:480,easing:'cubic-bezier(.16,1,.3,1)'});
+    if(!reduced.matches){
+      currentNumber.animate([{opacity:.18,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:360,easing:'cubic-bezier(.16,1,.3,1)'});
+      currentName.animate([{opacity:.18,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:460,easing:'cubic-bezier(.16,1,.3,1)'});
+    }
+  };
+
+  const measure=()=>{
+    viewportH=Math.max(1,window.innerHeight);
+    const sectionRect=section.getBoundingClientRect();
+    sectionTop=window.scrollY+sectionRect.top;
+    positions=chapters.map(chapter=>sectionTop+chaptersHost.offsetTop+chapter.offsetTop);
+    requestRender();
   };
 
   const render=()=>{
     frame=0;
-    const chapter=targetChapter;
-    if(Math.abs(chapter-renderedChapter)<.00005)return;
-    renderedChapter=chapter;
-    const base=Math.min(data.length-1,Math.floor(chapter+1e-7));
-    const mix=base>=data.length-1?0:chapter-base;
-    const eased=smooth(mix);
-    const next=Math.min(data.length-1,base+1);
-    const nearest=Math.max(0,Math.min(data.length-1,Math.round(chapter)));
-    setActive(nearest);
-    trackFill.style.transform=`scaleX(${clamp(chapter/(data.length-1))})`;
+    if(!positions.length)return;
+    const y=window.scrollY;
+    const lastPosition=positions[positions.length-1]||sectionTop;
+    const progress=clamp((y-sectionTop)/Math.max(1,lastPosition-sectionTop));
+    trackFill.style.transform=`scaleX(${progress})`;
 
-    scenes.forEach((scene,index)=>{
-      const isBase=index===base;
-      const isNext=index===next&&next!==base;
-      let opacity=0,copyOpacity=0,translateY=0,scale=.985,clip='inset(0 0 100% 0 round 30px)';
-      if(isBase){
-        opacity=1;
-        copyOpacity=1-range(.12,.40,mix);
-        translateY=-eased*3.6;
-        scale=1-eased*.012;
-        clip=next===base
-          ?'inset(0 0 0 0 round 30px)'
-          :base%2===0
-            ?`inset(0 0 ${eased*100}% 0 round 30px)`
-            :`inset(${eased*100}% 0 0 0 round 30px)`;
-      }else if(isNext){
-        opacity=1;
-        copyOpacity=range(.60,.90,mix);
-        translateY=(1-eased)*4.8;
-        scale=.988+eased*.012;
-        clip=base%2===0
-          ?`inset(${(1-eased)*100}% 0 0 0 round 30px)`
-          :`inset(0 0 ${(1-eased)*100}% 0 round 30px)`;
-      }
-      scene.style.opacity=String(opacity);
-      scene.style.transform=`translate3d(0,${translateY}vh,0) scale(${scale})`;
-      scene.style.clipPath=clip;
-      scene.style.pointerEvents=(index===nearest&&Math.abs(chapter-nearest)<.46)?'auto':'none';
-      scene.style.zIndex=isNext?'3':isBase?'2':'0';
-      const copy=scene.querySelector('.mf-work-snap-copy');
-      copy.style.opacity=String(copyOpacity);
-      copy.style.transform=`translate3d(0,${(1-copyOpacity)*22}px,0)`;
-      const image=scene.querySelector('.mf-work-snap-image-wrap');
-      const echo=scene.querySelector('.mf-work-snap-echo');
-      const local=isBase?eased:isNext?1-eased:0;
-      image.style.setProperty('--mf-scroll-shift',`${(isBase?-local:local)*12}px`);
-      echo.style.setProperty('--mf-scroll-shift',`${(isBase?-local:local)*20}px`);
+    let nearest=0;
+    let nearestDistance=Infinity;
+    positions.forEach((position,index)=>{
+      const distance=Math.abs(y-position);
+      if(distance<nearestDistance){nearestDistance=distance;nearest=index;}
+    });
+    setActive(nearest);
+
+    chapters.forEach((chapter,index)=>{
+      const rect=chapter.getBoundingClientRect();
+      const enter=ease(clamp(1-rect.top/viewportH));
+      const nextTop=index<chapters.length-1?chapters[index+1].getBoundingClientRect().top:viewportH;
+      const cover=ease(clamp(1-nextTop/viewportH));
+      chapter.style.setProperty('--mf-enter',enter.toFixed(4));
+      chapter.style.setProperty('--mf-cover',cover.toFixed(4));
+      chapter.style.setProperty('--mf-enter-y',`${((1-enter)*52).toFixed(2)}px`);
+      chapter.style.setProperty('--mf-enter-scale',(0.985+enter*.015).toFixed(4));
+      chapter.style.setProperty('--mf-copy-y',`${((1-enter)*32).toFixed(2)}px`);
+      chapter.style.setProperty('--mf-image-y',`${((1-enter)*20-cover*8).toFixed(2)}px`);
     });
   };
-
   const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render);};
-  const updateFromScroll=()=>{
-    const raw=(window.scrollY-sectionTop)/viewportH;
-    targetChapter=clamp(raw,0,data.length-1);
-    requestRender();
+
+  const isEngaged=()=>{
+    const rect=section.getBoundingClientRect();
+    return rect.top<=viewportH*.12&&rect.bottom>=viewportH*.88;
+  };
+  const nearestPositionIndex=()=>{
+    let nearest=0,distance=Infinity;
+    positions.forEach((position,index)=>{
+      const next=Math.abs(window.scrollY-position);
+      if(next<distance){distance=next;nearest=index;}
+    });
+    return nearest;
+  };
+  const smoothScrollTo=target=>{
+    settleGuard=true;
+    window.scrollTo({top:target,behavior:reduced.matches?'auto':'smooth'});
+    const started=performance.now();
+    const check=()=>{
+      if(Math.abs(window.scrollY-target)<2||performance.now()-started>1250){
+        settleGuard=false;
+        gestureOpen=false;
+        requestRender();
+        return;
+      }
+      requestAnimationFrame(check);
+    };
+    requestAnimationFrame(check);
+  };
+  const settle=()=>{
+    clearTimeout(settleTimer);
+    if(settleGuard||!positions.length)return;
+    const rect=section.getBoundingClientRect();
+    const lastPosition=positions[positions.length-1];
+    const y=window.scrollY;
+    if(y<sectionTop-viewportH*.08||y>lastPosition+viewportH*.30){gestureOpen=false;return;}
+    const entering=rect.top>0&&rect.top<viewportH*.46&&scrollDirection>0;
+    if(entering){smoothScrollTo(sectionTop);return;}
+    if(!isEngaged()){gestureOpen=false;return;}
+
+    let targetIndex=nearestPositionIndex();
+    const delta=y-gestureStartY;
+    if(gestureStartedEngaged&&Math.abs(delta)>viewportH*.17){
+      const direction=Math.sign(delta)||scrollDirection;
+      targetIndex=Math.max(0,Math.min(data.length-1,gestureStartIndex+direction));
+    }
+    if(activeIndex===data.length-1&&scrollDirection>0&&y>lastPosition+viewportH*.12){gestureOpen=false;return;}
+    if(activeIndex===0&&scrollDirection<0&&y<sectionTop-viewportH*.05){gestureOpen=false;return;}
+    smoothScrollTo(positions[targetIndex]);
   };
 
-  const onScroll=()=>updateFromScroll();
-  window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',()=>{setGeometry();updateFromScroll();},{passive:true});
-  window.addEventListener('orientationchange',()=>setTimeout(()=>{setGeometry();updateFromScroll();},180),{passive:true});
+  let wheelLocked=false;
+  let wheelQuietTimer=0;
+  const releaseWheelWhenQuiet=()=>{
+    clearTimeout(wheelQuietTimer);
+    wheelQuietTimer=setTimeout(()=>{
+      if(settleGuard){releaseWheelWhenQuiet();return;}
+      wheelLocked=false;
+    },240);
+  };
+  exhibition.addEventListener('wheel',event=>{
+    if(document.body.classList.contains('project-open')||Math.abs(event.deltaY)<1||!positions.length)return;
+    const y=window.scrollY;
+    const nearest=nearestPositionIndex();
+    const atRest=Math.abs(y-positions[nearest])<10;
+    if(!atRest)return;
+    const direction=Math.sign(event.deltaY);
+    if((nearest===0&&direction<0)||(nearest===data.length-1&&direction>0)){
+      wheelLocked=false;
+      return;
+    }
+    event.preventDefault();
+    releaseWheelWhenQuiet();
+    if(wheelLocked)return;
+    wheelLocked=true;
+    smoothScrollTo(positions[Math.max(0,Math.min(data.length-1,nearest+direction))]);
+  },{passive:false});
 
-  const snapObserver=new IntersectionObserver(entries=>{
-    const entry=entries[0];
-    snapEnabled=entry.isIntersecting;
-    document.documentElement.classList.toggle('mf-work-snap-active',snapEnabled);
-    document.body.classList.toggle('mf-selected-works-active',snapEnabled);
-    if(snapEnabled){setGeometry();updateFromScroll();}
-  },{threshold:0,rootMargin:'-4% 0px -4% 0px'});
-  snapObserver.observe(section);
+  window.addEventListener('keydown',event=>{
+    if(document.body.classList.contains('project-open')||event.metaKey||event.ctrlKey||event.altKey||!positions.length)return;
+    if(event.target?.matches?.('input,textarea,select,[contenteditable="true"]'))return;
+    const forward=event.key==='ArrowDown'||event.key==='PageDown'||event.key===' ';
+    const backward=event.key==='ArrowUp'||event.key==='PageUp';
+    if(!forward&&!backward)return;
+    const nearest=nearestPositionIndex();
+    if(Math.abs(window.scrollY-positions[nearest])>=10)return;
+    const direction=forward?1:-1;
+    if((nearest===0&&direction<0)||(nearest===data.length-1&&direction>0))return;
+    event.preventDefault();
+    smoothScrollTo(positions[Math.max(0,Math.min(data.length-1,nearest+direction))]);
+  });
+
+  const onScroll=()=>{
+    const y=window.scrollY;
+    scrollDirection=y>=lastScrollY?1:-1;
+    lastScrollY=y;
+    if(!gestureOpen&&!settleGuard){
+      gestureOpen=true;
+      gestureStartY=y;
+      gestureStartIndex=activeIndex;
+      gestureStartedEngaged=isEngaged();
+    }
+    requestRender();
+    clearTimeout(settleTimer);
+    settleTimer=setTimeout(settle,145);
+  };
+  window.addEventListener('scroll',onScroll,{passive:true});
+  if('onscrollend' in window)window.addEventListener('scrollend',settle,{passive:true});
+  window.addEventListener('resize',()=>{settleGuard=true;measure();requestRender();setTimeout(()=>{settleGuard=false;gestureOpen=false;requestRender();},260);},{passive:true});
+  window.addEventListener('orientationchange',()=>{settleGuard=true;setTimeout(()=>{measure();requestRender();setTimeout(()=>{settleGuard=false;gestureOpen=false;requestRender();},260);},160);},{passive:true});
+
+  const visibilityObserver=new IntersectionObserver(entries=>{
+    sectionVisible=entries[0]?.isIntersecting||false;
+    document.body.classList.toggle('mf-selected-works-active',sectionVisible);
+    if(sectionVisible){measure();requestRender();}
+  },{threshold:0,rootMargin:'-2% 0px -2% 0px'});
+  visibilityObserver.observe(section);
 
   const scrollToProject=(key,behavior='smooth')=>{
-    const index=data.findIndex(item=>item.key===key);
+    const index=data.findIndex(project=>project.key===key);
     if(index<0)return;
-    window.scrollTo({top:sectionTop+viewportH*index,behavior:reduced.matches?'auto':behavior});
+    if(!positions.length)measure();
+    settleGuard=true;
+    window.scrollTo({top:positions[index],behavior:reduced.matches?'auto':behavior});
+    setTimeout(()=>{settleGuard=false;gestureOpen=false;setActive(index);},behavior==='auto'?50:900);
   };
   window.mfSelectedWorksScrollToKey=scrollToProject;
-  markerButtons.forEach((button,index)=>button.addEventListener('click',event=>{
+  markers.forEach((marker,index)=>marker.addEventListener('click',event=>{
     event.stopPropagation();
     scrollToProject(data[index].key,'smooth');
   }));
 
-  /* A single trackpad / wheel gesture advances exactly one project. The
-     browser still performs the actual smooth scroll and CSS owns the resting
-     snap positions; this guard only prevents momentum from skipping chapters. */
-  let wheelGestureLocked=false;
-  let wheelQuietTimer=0;
-  const releaseWheelAfterQuiet=()=>{
-    clearTimeout(wheelQuietTimer);
-    wheelQuietTimer=setTimeout(()=>{wheelGestureLocked=false;},180);
-  };
-  stage.addEventListener('wheel',event=>{
-    if(document.body.classList.contains('project-open')||Math.abs(event.deltaY)<2)return;
-    const direction=Math.sign(event.deltaY);
-    const nearest=Math.max(0,Math.min(data.length-1,Math.round(targetChapter)));
-    const next=nearest+direction;
-    if(next<0||next>=data.length){
-      wheelGestureLocked=false;
-      return;
-    }
-    event.preventDefault();
-    releaseWheelAfterQuiet();
-    if(wheelGestureLocked)return;
-    wheelGestureLocked=true;
-    scrollToProject(data[next].key,'smooth');
-  },{passive:false});
-
-  window.addEventListener('keydown',event=>{
-    if(!snapEnabled||document.body.classList.contains('project-open')||event.metaKey||event.ctrlKey||event.altKey)return;
-    const target=event.target;
-    if(target?.matches?.('input,textarea,select,[contenteditable="true"]'))return;
-    const forward=event.key==='ArrowDown'||event.key==='PageDown'||event.key===' ';
-    const backward=event.key==='ArrowUp'||event.key==='PageUp';
-    if(!forward&&!backward)return;
-    const direction=forward?1:-1;
-    const nearest=Math.max(0,Math.min(data.length-1,Math.round(targetChapter)));
-    const next=nearest+direction;
-    if(next<0||next>=data.length)return;
-    event.preventDefault();
-    scrollToProject(data[next].key,'smooth');
-  });
-
   if(finePointer.matches){
-    stage.addEventListener('pointerenter',()=>{stageRect=stage.getBoundingClientRect();},{passive:true});
-    stage.addEventListener('pointermove',event=>{
-      if(!stageRect)return;
-      pointerX=clamp((event.clientX-stageRect.left)/Math.max(1,stageRect.width),0,1)-.5;
-      pointerY=clamp((event.clientY-stageRect.top)/Math.max(1,stageRect.height),0,1)-.5;
-      if(pointerFrame)return;
-      pointerFrame=requestAnimationFrame(()=>{
-        pointerFrame=0;
-        stage.style.setProperty('--mf-pointer-x-px',`${(pointerX*18).toFixed(2)}px`);
-        stage.style.setProperty('--mf-pointer-y-px',`${(pointerY*14).toFixed(2)}px`);
-        stage.style.setProperty('--mf-pointer-echo-x',`${(pointerX*-10).toFixed(2)}px`);
-        stage.style.setProperty('--mf-pointer-echo-y',`${(pointerY*-8).toFixed(2)}px`);
-        stage.style.setProperty('--mf-pointer-plane-x',`${(pointerX*-5).toFixed(2)}px`);
-        stage.style.setProperty('--mf-pointer-plane-y',`${(pointerY*-4).toFixed(2)}px`);
-      });
-    },{passive:true});
-    stage.addEventListener('pointerleave',()=>{
-      stage.style.setProperty('--mf-pointer-x-px','0px');
-      stage.style.setProperty('--mf-pointer-y-px','0px');
-      stage.style.setProperty('--mf-pointer-echo-x','0px');
-      stage.style.setProperty('--mf-pointer-echo-y','0px');
-      stage.style.setProperty('--mf-pointer-plane-x','0px');
-      stage.style.setProperty('--mf-pointer-plane-y','0px');
-    },{passive:true});
+    chapters.forEach(chapter=>{
+      chapter.addEventListener('pointermove',event=>{
+        const rect=chapter.getBoundingClientRect();
+        const x=clamp((event.clientX-rect.left)/Math.max(1,rect.width))-.5;
+        const y=clamp((event.clientY-rect.top)/Math.max(1,rect.height))-.5;
+        if(pointerFrame)return;
+        pointerFrame=requestAnimationFrame(()=>{
+          pointerFrame=0;
+          chapter.style.setProperty('--mf-pointer-x',`${(x*12).toFixed(2)}px`);
+          chapter.style.setProperty('--mf-pointer-y',`${(y*10).toFixed(2)}px`);
+        });
+      },{passive:true});
+      chapter.addEventListener('pointerleave',()=>{
+        chapter.style.setProperty('--mf-pointer-x','0px');
+        chapter.style.setProperty('--mf-pointer-y','0px');
+      },{passive:true});
+    });
   }
 
-  ensureLoaded(0);ensureLoaded(1);
-  setGeometry();
-  targetChapter=clamp((window.scrollY-sectionTop)/viewportH,0,data.length-1);
+  measure();
   render();
 })();
+
 
 /* PROJECT OVERLAYS */
 (function(){
@@ -1577,8 +1584,8 @@ if(indexExtra){
     }
   }
 
-  const getProjectStrip=key=>document.querySelector(`.mf-work-snap-scene.mf-strip[data-index="${key}"]`)||document.querySelector(`.mf-strip[data-index="${key}"]`);
-  const getProjectImage=(strip,key)=>strip?.querySelector('.mf-work-image')?.currentSrc||strip?.querySelector('.mf-work-image')?.src||strip?.dataset.img||{
+  const getProjectStrip=key=>document.querySelector(`.mf-work-flow-chapter.mf-strip[data-index="${key}"]`)||document.querySelector(`.mf-strip[data-index="${key}"]`);
+  const getProjectImage=(strip,key)=>strip?.querySelector('.mf-work-flow-image')?.currentSrc||strip?.querySelector('.mf-work-flow-image')?.src||strip?.querySelector('.mf-work-image')?.currentSrc||strip?.querySelector('.mf-work-image')?.src||strip?.dataset.img||{
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
     '02':'/media/projects/goballer/01-goballer-logo.jpg',
     '03':'/media/projects/aims/01-aims-logo.jpg',
@@ -1596,9 +1603,9 @@ if(indexExtra){
     return {left:rect.left,top:rect.top,width:rect.width,height:rect.height,radius};
   };
   const sourceGeometry=(strip)=>{
-    const stageNode=strip?.closest('.mf-work-snap-stage')||strip;
-    const imageNode=strip?.querySelector('.mf-work-snap-image-wrap')||strip;
-    const titleNode=strip?.querySelector('.mf-work-snap-copy h2')||strip?.querySelector('.mf-strip-title');
+    const stageNode=strip?.closest('.mf-work-flow-chapter')||strip;
+    const imageNode=strip?.querySelector('.mf-work-flow-image-wrap')||strip;
+    const titleNode=strip?.querySelector('.mf-work-flow-copy h2')||strip?.querySelector('.mf-strip-title');
     const stageBox=boxOf(stageNode,{left:0,top:0,width:window.innerWidth,height:window.innerHeight,radius:0});
     return {
       frame:stageBox,
@@ -1657,7 +1664,7 @@ if(indexExtra){
     bundle.title.style.top=`${from.title.top}px`;
     bundle.title.style.fontSize=`${from.titleSize}px`;
     const rootAnimation=bundle.root.animate([
-      {left:`${from.frame.left}px`,top:`${from.frame.top}px`,width:`${from.frame.width}px`,height:`${from.frame.height}px`,borderRadius:`${from.frame.radius||0}px`,opacity:closing?1:.02},
+      {left:`${from.frame.left}px`,top:`${from.frame.top}px`,width:`${from.frame.width}px`,height:`${from.frame.height}px`,borderRadius:`${from.frame.radius||0}px`,opacity:1},
       {left:`${to.frame.left}px`,top:`${to.frame.top}px`,width:`${to.frame.width}px`,height:`${to.frame.height}px`,borderRadius:`${to.frame.radius||0}px`,opacity:1}
     ],{duration,easing,fill:'forwards'});
     const imageAnimation=bundle.image.animate([
@@ -1707,7 +1714,6 @@ if(indexExtra){
     projectMorphing=true;
     const from=sourceGeometry(strip);
     const bundle=createProjectMorph(strip,key,from);
-    strip.classList.add('is-morph-source-hidden');
     Object.keys(liveStates).forEach(liveKey=>{liveStates[liveKey]=false;});
     renderProject(key);
     overlay.classList.remove('is-closing','is-visible','is-morph-closing');
@@ -1719,7 +1725,6 @@ if(indexExtra){
       const to=overlayGeometry();
       const duration=920;
       animateMorph(bundle,from,to,duration).then(()=>settleProjectOpen(bundle));
-      setTimeout(()=>overlay.classList.add('is-visible'),duration-150);
     }));
   }
 
@@ -4585,7 +4590,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     x=event.clientX;y=event.clientY;place();
     const sideQuestsOpen=document.body.classList.contains('project-open')&&!!document.querySelector('.mf-project-shell.is-sidequests-project');
     const shouldHide=hiddenZone(event.target)||(document.body.classList.contains('project-open')&&!sideQuestsOpen)||document.body.classList.contains('art-open');
-    const openTarget=event.target?.closest?.('.mf-work-snap-scene,.mf-guidance-portal,#mfArtButton');
+    const openTarget=event.target?.closest?.('.mf-work-flow-chapter,.mf-guidance-portal,#mfArtButton');
     const openMode=!!openTarget&&!shouldHide;
     const wasVisible=visible;
     visible=!shouldHide;

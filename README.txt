@@ -1,28 +1,29 @@
-MARIAN FUSEK WEBSITE — V156
+MARIAN FUSEK WEBSITE — V157
 
 LIVE
-- Root /index.html, /style.css and /script.js remain unchanged from the V155 package / V139 live homepage.
+- Root /index.html, /style.css and /script.js remain unchanged from V156 / the V139 live homepage.
 
 STAGING — SELECTED WORKS
-- Rebuilt Selected Works as a full-screen native-scroll snap exhibition.
-- Five physical 100svh chapter positions give MIUNĀE, GoBaller, AIMS, Vault 111 and Side Quests a complete stable resting frame.
-- The root uses CSS scroll snapping only while Selected Works intersects the viewport.
-- A local one-gesture wheel guard prevents trackpad momentum from skipping a project; the browser still performs the smooth movement to the next physical snap position.
-- GoBaller is straight, fully visible and receives a complete resting chapter before AIMS.
-- Each project uses only its first image, preserves its real aspect ratio with object-fit: contain, and has a project-specific art-directed composition.
-- Transitions use a structural split mask between adjacent physical scenes rather than a generic crossfade.
-- The full-width bottom rail tracks continuous progress, shows all five chapter positions and supports direct navigation.
-- Hovering the active composition adds restrained image, echo and plane depth.
-- Clicking performs a measured shared-geometry morph using the actual active image and title into the existing inset rounded project-detail window.
-- Closing reverses the same path and restores the exact project chapter and scroll position.
-- Desktop and mobile layouts are separately tuned.
+- Discarded the V156 global document-snap architecture.
+- Selected Works now enters through normal native page scrolling; it cannot trap or resist the user before the section is aligned.
+- Five real full-screen sticky chapters show MIUNĀE, GoBaller, AIMS, Vault 111 and Side Quests one at a time.
+- Each chapter uses only the first project image plus the existing project name, discipline and description.
+- Removed the unrequested background axes, orbit, coordinates, giant number traces, graphic boxes and structural lines.
+- The bottom progress rail remains full width and updates continuously.
+- Once a chapter is fully settled, one wheel/trackpad gesture advances exactly one project. Momentum events are absorbed until that movement settles.
+- At the first and last chapter, scrolling releases normally back to the surrounding homepage.
+- Touch and free page scrolling settle to the nearest chapter after the gesture ends.
+- GoBaller now receives a straight, complete, stable full-screen composition and cannot be immediately covered by AIMS.
+- Project imagery has deployed-path and original-inline fallbacks so the composition and copy do not disappear if one request fails.
+- Opening now clones the actual active chapter image and title, forms the inset rounded project window first, and reveals the existing project content only at the handoff.
+- Closing returns to the exact chapter position.
 - No other homepage section was redesigned in this pass.
 
 VALIDATION
-- Verified stable resting frames for all five projects at 1280×800, 1440×900, 1728×1117 and 390×844.
-- Verified a large desktop wheel gesture advances MIUNĀE → GoBaller rather than skipping to AIMS.
-- Verified exit from the final project releases snap and continues to the next homepage section.
-- Verified project opening, closing and exact GoBaller scroll restoration on desktop and mobile.
+- JavaScript syntax verified for staging/staging.js and root script.js.
+- Fresh-load layouts verified at 1280×800, 1440×900, 1728×1117 and 390×844.
+- Verified MIUNĀE and GoBaller stable resting states and matching progress-rail state at every tested viewport.
 - Verified no horizontal overflow in the tested viewports.
-- staging/staging.js and root script.js pass node --check.
-- No runtime exceptions in the Selected Works desktop or mobile validation harnesses.
+- Verified a burst of twelve wheel momentum events advances only MIUNĀE → GoBaller.
+- Verified direct chapter navigation updates the visible chapter, title and progress rail together.
+- Verified the project opening handoff and final inset project window.

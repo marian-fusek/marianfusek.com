@@ -3650,3 +3650,436 @@ body.project-morphing .mf-global-cursor { opacity:0 !important; }
 }
 
 html body.mf-cloud-study.mf-selected-works-snap .mf-work-snap-scene.is-morph-source-hidden { opacity:0 !important; }
+
+/* ============================================================
+   V157 — SELECTED WORKS / FULL-SCREEN STICKY CHAPTER FLOW
+   Native page entry. No global snap. No decorative background
+   lines, coordinates, traces or fake interface copy.
+   ============================================================ */
+
+html body.mf-cloud-study.mf-selected-works-flow #mf {
+  overflow-x:clip !important;
+  overflow-y:visible !important;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work.mf-selected-works-v5 {
+  position:relative !important;
+  z-index:8 !important;
+  width:100% !important;
+  min-height:0 !important;
+  height:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:visible !important;
+  background:var(--mf-bg) !important;
+  contain:layout style;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work > .mf-stage-label,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work > .mf-index-title,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work > .mf-strips {
+  display:none !important;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-exhibition,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapters {
+  position:relative;
+  width:100%;
+  background:var(--mf-bg);
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-rail-wrap {
+  position:sticky;
+  top:calc(100svh - 72px);
+  z-index:80;
+  width:100%;
+  height:0;
+  pointer-events:none;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-rail {
+  position:relative;
+  height:72px;
+  margin:0 18px;
+  color:var(--mf-meta);
+  pointer-events:none;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-rail-head {
+  height:25px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:start;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-label,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-current,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-total,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-number,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-meta,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-action,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker {
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:10px;
+  line-height:1;
+  font-weight:480;
+  letter-spacing:.072em;
+  text-transform:uppercase;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-current {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-self:center;
+  color:var(--mf-ink);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-current b,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-current em {
+  font:inherit;
+  font-style:normal;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-total { justify-self:end; }
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-track {
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:40px;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-track-base,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-track-fill {
+  position:absolute;
+  left:0;
+  right:0;
+  top:20px;
+  height:1px;
+  display:block;
+  transform-origin:left center;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-track-base { background:rgba(117,132,138,.28); }
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-track-fill {
+  background:var(--mf-ink);
+  transform:scaleX(0);
+  will-change:transform;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-markers {
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  align-items:start;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker {
+  position:relative;
+  width:100%;
+  height:40px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:var(--mf-meta);
+  pointer-events:auto;
+  cursor:pointer;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker i {
+  position:absolute;
+  left:50%;
+  top:16px;
+  width:8px;
+  height:8px;
+  border:1px solid rgba(117,132,138,.48);
+  border-radius:50%;
+  background:var(--mf-bg);
+  transform:translateX(-50%);
+  transition:transform .48s cubic-bezier(.16,1,.3,1),background .3s ease,border-color .3s ease;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker span {
+  position:absolute;
+  left:50%;
+  bottom:28px;
+  opacity:0;
+  transform:translate(-50%,6px);
+  transition:opacity .3s ease,transform .46s cubic-bezier(.16,1,.3,1);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker.is-active i {
+  background:var(--mf-ink);
+  border-color:var(--mf-ink);
+  transform:translateX(-50%) scale(1.55);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker.is-complete i {
+  background:var(--mf-ink);
+  border-color:var(--mf-ink);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker.is-active span,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker:hover span,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker:focus-visible span {
+  opacity:1;
+  transform:translate(-50%,0);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker:focus-visible {
+  outline:1px solid var(--mf-ink);
+  outline-offset:2px;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter {
+  --mf-enter:0;
+  --mf-cover:0;
+  --mf-pointer-x:0px;
+  --mf-pointer-y:0px;
+  position:sticky;
+  top:0;
+  z-index:var(--mf-work-z);
+  width:100%;
+  height:100svh;
+  min-height:620px;
+  overflow:hidden;
+  border:0 !important;
+  background:var(--mf-bg) !important;
+  isolation:isolate;
+  cursor:pointer;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter::before,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter::after { display:none !important; }
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-surface {
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  background:
+    radial-gradient(52% 74% at 78% 24%,rgba(255,255,255,.50),transparent 72%),
+    linear-gradient(180deg,var(--mf-bg-top),var(--mf-bg) 50%,var(--mf-bg-bottom));
+  opacity:calc(.12 + var(--mf-enter) * .88);
+  transform:translate3d(0,var(--mf-enter-y),0) scale(var(--mf-enter-scale));
+  transform-origin:center;
+  will-change:transform,opacity;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-media,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy {
+  position:absolute;
+  z-index:4;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap {
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  border-radius:30px;
+  background:rgba(249,249,249,.52);
+  box-shadow:0 28px 78px rgba(55,70,76,.11),inset 0 1px 0 rgba(255,255,255,.70);
+  transform:translate3d(var(--mf-pointer-x),calc(var(--mf-pointer-y) + var(--mf-image-y)),0);
+  transition:border-radius .58s cubic-bezier(.16,1,.3,1),box-shadow .58s cubic-bezier(.16,1,.3,1);
+  will-change:transform;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-active:hover .mf-work-flow-image-wrap {
+  box-shadow:0 38px 105px rgba(55,70,76,.15),inset 0 1px 0 rgba(255,255,255,.82);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  object-position:center;
+  opacity:0;
+  filter:grayscale(1) contrast(.99) brightness(.99);
+  transform:scale(1.003);
+  transition:opacity .58s ease,filter .72s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1);
+  user-select:none;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-image-ready .mf-work-flow-image { opacity:1; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-active:hover .mf-work-flow-image {
+  filter:grayscale(.10) contrast(1) brightness(1);
+  transform:scale(1.008);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-image-missing .mf-work-flow-image-wrap::after {
+  content:"IMAGE UNAVAILABLE";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:var(--mf-meta);
+  font:480 10px/1 "Geist",Arial,sans-serif;
+  letter-spacing:.08em;
+}
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy {
+  color:var(--mf-body);
+  opacity:var(--mf-enter);
+  transform:translate3d(0,var(--mf-copy-y),0);
+  will-change:opacity,transform;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-number {
+  display:block;
+  margin-bottom:clamp(20px,3vh,36px);
+  color:var(--mf-meta);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy h2 {
+  margin:0;
+  color:var(--mf-title) !important;
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:clamp(72px,10.4vw,188px);
+  line-height:.77;
+  font-weight:520;
+  letter-spacing:-.09em;
+  text-wrap:balance;
+  transition:color .48s ease;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-active:hover .mf-work-flow-copy h2 { color:var(--mf-ink) !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-meta {
+  margin:clamp(22px,3.4vh,42px) 0 0;
+  color:var(--mf-meta) !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-desc {
+  max-width:34em;
+  margin:11px 0 0;
+  color:var(--mf-body) !important;
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:clamp(13px,.94vw,16px);
+  line-height:1.38;
+  letter-spacing:-.015em;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-action {
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  margin-top:clamp(18px,3vh,34px);
+  color:var(--mf-title);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-action::before {
+  content:"";
+  width:24px;
+  height:1px;
+  background:currentColor;
+  transition:width .5s cubic-bezier(.16,1,.3,1);
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-active:hover .mf-work-flow-action::before { width:44px; }
+
+/* Five straight art-directed compositions. Only image + project information. */
+html body.mf-cloud-study.mf-selected-works-flow .is-miunae .mf-work-flow-media { left:41vw;right:4vw;top:10vh;bottom:12vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-miunae .mf-work-flow-copy { left:4vw;top:18vh;width:34vw; }
+
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-media { left:6vw;right:6vw;top:8vh;bottom:28vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-copy { left:4vw;right:4vw;bottom:10vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-copy h2 { font-size:clamp(68px,9.1vw,162px); }
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-meta,
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-desc,
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-action { margin-left:57vw; }
+
+html body.mf-cloud-study.mf-selected-works-flow .is-aims .mf-work-flow-media { left:5vw;right:45vw;top:10vh;bottom:12vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-aims .mf-work-flow-copy { left:60vw;right:4vw;top:17vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-aims .mf-work-flow-copy h2 { letter-spacing:-.075em; }
+
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-media { left:18vw;right:18vw;top:8vh;bottom:23vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-copy { left:4vw;right:4vw;bottom:9.5vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-copy h2 { font-size:clamp(66px,8.8vw,156px); }
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-meta,
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-desc,
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-action { margin-left:58vw; }
+
+html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-media { left:4vw;right:45vw;top:9vh;bottom:12vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-copy { left:60vw;right:4vw;top:16vh; }
+html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-copy h2 { font-size:clamp(62px,7.8vw,140px); }
+
+/* Selected Works must not inherit the lower-page blur. */
+body.mf-selected-works-active .mf-blur { opacity:0 !important; }
+
+/* Project window keeps the exact active chapter handoff. */
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay {
+  inset:16px !important;
+  border-radius:30px !important;
+  overflow:hidden !important;
+  background:var(--mf-surface) !important;
+  box-shadow:0 34px 110px rgba(37,49,54,.20),0 0 0 1px rgba(117,132,138,.12) !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay.active { transition-delay:0s !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay.is-morph-opening,
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay.is-morph-closing { opacity:0 !important;transform:none !important;clip-path:none !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay.is-visible { opacity:1 !important;transform:none !important;clip-path:none !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-shell { inset:0 !important;border-radius:inherit !important;overflow:hidden !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-info,
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-gallery { height:calc(100vh - 32px) !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-slide { height:calc(100vh - 32px) !important;min-height:calc(100vh - 32px) !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-info-inner { padding-top:58px !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-controls-hint { top:36px !important;left:calc(max(270px,24vw) + 18px) !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-counter { right:36px !important;bottom:36px !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay .mf-close { top:30px !important;right:30px !important; }
+
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-morph-source-hidden { opacity:0 !important; }
+
+@media (max-width:1024px), (pointer:coarse) {
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter { min-height:560px; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-media,
+  html body.mf-cloud-study.mf-selected-works-flow .is-miunae .mf-work-flow-media,
+  html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-media,
+  html body.mf-cloud-study.mf-selected-works-flow .is-aims .mf-work-flow-media,
+  html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-media,
+  html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-media {
+    left:12px !important;
+    right:12px !important;
+    top:9svh !important;
+    bottom:37svh !important;
+  }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap { border-radius:22px; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy,
+  html body.mf-cloud-study.mf-selected-works-flow .is-miunae .mf-work-flow-copy,
+  html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-copy,
+  html body.mf-cloud-study.mf-selected-works-flow .is-aims .mf-work-flow-copy,
+  html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-copy,
+  html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-copy {
+    left:18px !important;
+    right:18px !important;
+    top:auto !important;
+    bottom:9.2svh !important;
+    width:auto !important;
+  }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy h2,
+  html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-copy h2,
+  html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-copy h2,
+  html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-copy h2 {
+    font-size:clamp(50px,16vw,88px) !important;
+    line-height:.79 !important;
+  }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-number { margin-bottom:12px; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-meta,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-desc,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-action,
+  html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-meta,
+  html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-desc,
+  html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-action,
+  html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-meta,
+  html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-desc,
+  html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-action {
+    margin-left:0 !important;
+  }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-meta { margin-top:13px !important;font-size:8px !important; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-desc { margin-top:7px !important;font-size:12px !important;max-width:30em !important; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-action { display:none; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-rail-wrap { top:calc(100svh - 60px); }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-rail { height:60px;margin:0 12px; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-label,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-current,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-total { font-size:8px; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-current { gap:7px; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-marker span { display:none; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-overlay { inset:8px !important;border-radius:22px !important; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-project-info,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-project-gallery { height:auto !important; }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-project-slide { height:calc(100svh - 16px) !important;min-height:calc(100svh - 16px) !important; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-surface,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy { transition:none !important; }
+}
+
+/* V157 final cleanup: never introduce extra copy when a media request fails. */
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-image-missing .mf-work-flow-image-wrap::after { content:none !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap {
+  background-image:var(--mf-work-image),linear-gradient(180deg,rgba(249,249,249,.68),rgba(240,242,242,.76));
+  background-size:contain,cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}

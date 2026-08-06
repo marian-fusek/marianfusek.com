@@ -36,3 +36,13 @@ V159 — Selected Works polish
 - Restored full-screen square project overlays.
 - Unified source image/title morph into final overlay positions with monochrome-to-color handoff.
 - Optically aligned oversized project headlines with supporting copy.
+
+V160 — RECENT WORKS STACK
+- Replaced the previous five-project timeline with a three-project stacked-card story.
+- Sequence: empty background arrival, centered Recent Works intro, MIUNĀE, GoBaller, AIMS, then natural release into Guidance.
+- Cards occupy nearly the full viewport with a small outer margin and rounded image bounds.
+- Each incoming card rises from below and stacks over the previous card.
+- Covered cards scale down by a maximum of 5% and soften slightly without disappearing abruptly.
+- Removed Vault 111 and Side Quests from the Recent Works sequence.
+- Project cards retain keyboard and pointer opening behavior.
+- Project details open full-screen with a clean fade and subtle scale-up; outer rounded overlay removed.

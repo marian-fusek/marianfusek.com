@@ -245,153 +245,85 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — NATIVE CONTINUOUS STICKY CHAPTER FLOW */
+/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
-  const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')]:[];
-  if(!section||!sourceStack||!sources.length)return;
+  const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')].slice(0,3):[];
+  if(!section||!sourceStack||sources.length<3)return;
 
   document.documentElement.classList.remove('mf-work-snap-active');
   document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic');
-  document.body.classList.add('mf-selected-works-flow');
-  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4');
-  section.classList.add('mf-selected-works-v5');
+  document.body.classList.add('mf-selected-works-flow','mf-recent-works-stack');
+  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5');
+  section.classList.add('mf-selected-works-v6');
 
   const fallbackImages={
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
     '02':'/media/projects/goballer/01-goballer-logo.jpg',
-    '03':'/media/projects/aims/01-aims-logo.jpg',
-    '04':'/media/projects/vault/01-nofakie-1.jpg',
-    '05':'/media/projects/side-quests/undersurface.jpg'
+    '03':'/media/projects/aims/01-aims-logo.jpg'
   };
-  const slugs={'01':'miunae','02':'goballer','03':'aims','04':'vault','05':'sidequests'};
+  const slugs={'01':'miunae','02':'goballer','03':'aims'};
   const inlineBackground=source=>{
     const value=source.querySelector('.mf-strip-img')?.style.backgroundImage||'';
     const match=value.match(/url\(["']?(.*?)["']?\)/i);
     return match?.[1]||'';
   };
-  const data=sources.map((source,index)=>{
+  const projects=sources.map((source,index)=>{
     const key=source.dataset.index||String(index+1).padStart(2,'0');
     return {
       key,
-      slug:slugs[key]||`project-${key}`,
+      slug:slugs[key],
       title:source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project',
       meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
-      description:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
-      candidates:[source.dataset.img,fallbackImages[key],inlineBackground(source)].filter(Boolean),
-      source
+      candidates:[source.dataset.img,fallbackImages[key],inlineBackground(source)].filter(Boolean)
     };
   });
 
   const exhibition=document.createElement('div');
-  exhibition.className='mf-work-flow-exhibition';
-  exhibition.setAttribute('aria-label','Selected Works');
+  exhibition.className='mf-work-stack-exhibition';
+  exhibition.setAttribute('aria-label','Recent Works');
   exhibition.innerHTML=`
-    <div class="mf-work-flow-rail-wrap">
-      <div class="mf-work-flow-rail">
-        <div class="mf-work-flow-rail-head">
-          <span class="mf-work-flow-label">SELECTED WORKS</span>
-          <span class="mf-work-flow-current"><b>01</b><em>MIUNĀE</em></span>
-          <span class="mf-work-flow-total">05</span>
-        </div>
-        <div class="mf-work-flow-track">
-          <i class="mf-work-flow-track-base"></i>
-          <i class="mf-work-flow-track-fill"></i>
-          <div class="mf-work-flow-markers"></div>
-        </div>
+    <div class="mf-work-stack-stage">
+      <div class="mf-work-stack-intro" aria-hidden="true">
+        <h2>Recent Works</h2>
+        <p>Creative Direction, Brand &amp; Product Design</p>
       </div>
-    </div>
-    <div class="mf-work-flow-chapters"></div>`;
-
-  const chaptersHost=exhibition.querySelector('.mf-work-flow-chapters');
-  const markersHost=exhibition.querySelector('.mf-work-flow-markers');
-  const trackFill=exhibition.querySelector('.mf-work-flow-track-fill');
-  const currentNumber=exhibition.querySelector('.mf-work-flow-current b');
-  const currentName=exhibition.querySelector('.mf-work-flow-current em');
-  const chapters=[];
-  const markers=[];
+      <div class="mf-work-stack-cards"></div>
+    </div>`;
+  const cardsHost=exhibition.querySelector('.mf-work-stack-cards');
+  const intro=exhibition.querySelector('.mf-work-stack-intro');
+  const cards=[];
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const finePointer=window.matchMedia('(hover:hover) and (pointer:fine)');
 
-  const fitImage=chapter=>{
-    const media=chapter.querySelector('.mf-work-flow-media');
-    const wrap=chapter.querySelector('.mf-work-flow-image-wrap');
-    const img=chapter.querySelector('.mf-work-flow-image');
-    if(!media||!wrap||!img?.naturalWidth||!img?.naturalHeight)return;
-    const bounds=media.getBoundingClientRect();
-    if(bounds.width<1||bounds.height<1)return;
-    const ratio=img.naturalWidth/img.naturalHeight;
-    let width=bounds.width;
-    let height=width/ratio;
-    if(height>bounds.height){height=bounds.height;width=height*ratio;}
-    wrap.style.width=`${Math.max(1,width).toFixed(2)}px`;
-    wrap.style.height=`${Math.max(1,height).toFixed(2)}px`;
-  };
-  const fitAll=()=>chapters.forEach(fitImage);
-
-  data.forEach((project,index)=>{
-    const chapter=document.createElement('article');
-    chapter.className=`mf-work-flow-chapter mf-strip is-${project.slug}`;
-    chapter.dataset.index=project.key;
-    chapter.dataset.title=project.title;
-    chapter.dataset.img=project.candidates[0]||'';
-    chapter.setAttribute('role','button');
-    chapter.setAttribute('tabindex',index===0?'0':'-1');
-    chapter.setAttribute('aria-label',`Open ${project.title}`);
-    chapter.style.setProperty('--mf-work-z',String(index+1));
-    chapter.innerHTML=`
-      <div class="mf-work-flow-surface">
-        <div class="mf-work-flow-media">
-          <div class="mf-work-flow-image-wrap">
-            <img class="mf-work-flow-image mf-work-image" alt="${project.title} selected work" decoding="async" draggable="false">
-          </div>
-        </div>
-        <div class="mf-work-flow-copy">
-          <span class="mf-work-flow-number">${project.key}</span>
-          <h2>${project.title}</h2>
-          <p class="mf-work-flow-meta">${project.meta}</p>
-          <p class="mf-work-flow-desc">${project.description}</p>
-          <span class="mf-work-flow-action">OPEN PROJECT</span>
+  projects.forEach((project,index)=>{
+    const card=document.createElement('article');
+    card.className=`mf-work-stack-card mf-work-flow-chapter mf-strip is-${project.slug}`;
+    card.dataset.index=project.key;
+    card.dataset.title=project.title;
+    card.dataset.img=project.candidates[0]||'';
+    card.setAttribute('role','button');
+    card.setAttribute('tabindex','0');
+    card.setAttribute('aria-label',`Open ${project.title}`);
+    card.style.setProperty('--stack-index',String(index));
+    card.innerHTML=`
+      <div class="mf-work-stack-image-wrap mf-work-flow-image-wrap">
+        <img class="mf-work-stack-image mf-work-flow-image mf-work-image" alt="${project.title} selected work" draggable="false" decoding="async">
+        <div class="mf-work-stack-caption">
+          <span>${project.title}</span><small>${project.meta}</small>
         </div>
       </div>`;
-    const img=chapter.querySelector('.mf-work-flow-image');
+    const img=card.querySelector('img');
     let candidateIndex=0;
-    const loadCandidate=()=>{
-      const src=project.candidates[candidateIndex];
-      if(!src)return;
-      img.src=src;
-      chapter.dataset.img=src;
-    };
-    img.loading=index<2?'eager':'lazy';
+    const load=()=>{ const src=project.candidates[candidateIndex]; if(src){img.src=src;card.dataset.img=src;} };
+    img.loading=index===0?'eager':'lazy';
     img.fetchPriority=index===0?'high':'auto';
-    img.addEventListener('load',()=>{
-      const w=Math.max(1,img.naturalWidth||1),h=Math.max(1,img.naturalHeight||1);
-      chapter.dataset.orientation=w>h*1.18?'landscape':h>w*1.18?'portrait':'square';
-      chapter.style.setProperty('--mf-work-natural-ar',`${w} / ${h}`);
-      chapter.classList.add('is-image-ready');
-      requestAnimationFrame(()=>fitImage(chapter));
-    });
-    img.addEventListener('error',()=>{
-      candidateIndex+=1;
-      if(candidateIndex<project.candidates.length)loadCandidate();
-      else chapter.classList.add('is-image-missing');
-    });
-    loadCandidate();
-    chapter.addEventListener('keydown',event=>{
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();chapter.click();}
-    });
-    chaptersHost.appendChild(chapter);
-    chapters.push(chapter);
-
-    const marker=document.createElement('button');
-    marker.type='button';
-    marker.className='mf-work-flow-marker';
-    marker.dataset.index=String(index);
-    marker.setAttribute('aria-label',`Go to ${project.title}`);
-    marker.innerHTML=`<i></i><span>${project.key}</span>`;
-    markersHost.appendChild(marker);
-    markers.push(marker);
+    img.addEventListener('load',()=>card.classList.add('is-image-ready'));
+    img.addEventListener('error',()=>{candidateIndex+=1;if(candidateIndex<project.candidates.length)load();});
+    load();
+    card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();card.click();}});
+    cardsHost.appendChild(card);
+    cards.push(card);
   });
 
   sourceStack.hidden=true;
@@ -400,141 +332,48 @@ if(indexExtra){
   section.querySelector('.mf-stage-label')?.setAttribute('aria-hidden','true');
   section.insertBefore(exhibition,sourceStack);
 
-  const clamp=(value,min=0,max=1)=>Math.max(min,Math.min(max,value));
-  const ease=value=>1-Math.pow(1-clamp(value),3);
-  let viewportH=Math.max(1,window.innerHeight);
-  let sectionTop=0;
-  let sectionEnd=0;
-  let positions=[];
-  let activeIndex=-1;
+  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+  const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
   let frame=0;
-  let pointerFrame=0;
-  let displayedProgress=0;
-  let progressVelocity=0;
-  let lastProgressTime=performance.now();
-
-  const setActive=index=>{
-    index=Math.max(0,Math.min(data.length-1,index));
-    if(index===activeIndex)return;
-    activeIndex=index;
-    const project=data[index];
-    currentNumber.textContent=project.key;
-    currentName.textContent=project.title;
-    chapters.forEach((chapter,i)=>{
-      const active=i===index;
-      chapter.classList.toggle('is-active',active);
-      chapter.tabIndex=active?0:-1;
-      chapter.setAttribute('aria-hidden',active?'false':'true');
-    });
-    markers.forEach((marker,i)=>{
-      marker.classList.toggle('is-active',i===index);
-      marker.classList.toggle('is-complete',i<index);
-      marker.setAttribute('aria-current',i===index?'true':'false');
-    });
-    if(!reduced.matches){
-      currentNumber.animate([{opacity:.18,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:300,easing:'cubic-bezier(.16,1,.3,1)'});
-      currentName.animate([{opacity:.18,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:390,easing:'cubic-bezier(.16,1,.3,1)'});
-    }
-  };
-
-  const measure=()=>{
-    viewportH=Math.max(1,window.innerHeight);
-    const rect=section.getBoundingClientRect();
-    sectionTop=window.scrollY+rect.top;
-    sectionEnd=sectionTop+Math.max(1,section.offsetHeight-viewportH);
-    positions=chapters.map(chapter=>sectionTop+chaptersHost.offsetTop+chapter.offsetTop);
-    fitAll();
-    requestRender();
-  };
-
-  const render=now=>{
+  const phase=(p,a,b)=>smooth((p-a)/(b-a));
+  const render=()=>{
     frame=0;
-    if(!positions.length)return;
-    const y=window.scrollY;
-    const targetProgress=clamp((y-sectionTop)/Math.max(1,sectionEnd-sectionTop));
-    lastProgressTime=now;
-    const chapterFloat=targetProgress*(data.length-1);
-    const milestoneIndex=Math.round(chapterFloat);
-    setActive(milestoneIndex);
+    const rect=exhibition.getBoundingClientRect();
+    const travel=Math.max(1,exhibition.offsetHeight-window.innerHeight);
+    const p=clamp(-rect.top/travel);
 
-    /* The timeline represents the project state, not the empty travel between
-       states. It advances to a milestone, holds there for that chapter, then
-       moves only when the next project becomes active. */
-    const milestoneProgress=data.length>1?milestoneIndex/(data.length-1):0;
-    const progressTarget=milestoneProgress;
-    if(reduced.matches){displayedProgress=progressTarget;progressVelocity=0;}
-    else{
-      const delta=progressTarget-displayedProgress;
-      progressVelocity+=delta*.11;
-      progressVelocity*=.68;
-      displayedProgress+=progressVelocity;
-      if(Math.abs(delta)<.00018&&Math.abs(progressVelocity)<.00005){displayedProgress=progressTarget;progressVelocity=0;}
-    }
-    trackFill.style.transform=`scaleX(${clamp(displayedProgress).toFixed(5)})`;
+    const introIn=phase(p,.08,.19);
+    const introOut=phase(p,.23,.33);
+    intro.style.setProperty('--intro-opacity',(introIn*(1-introOut)).toFixed(4));
+    intro.style.setProperty('--intro-y',`${((1-introIn)*30-introOut*24).toFixed(2)}px`);
 
-    chapters.forEach((chapter,index)=>{
-      const rect=chapter.getBoundingClientRect();
-      const enter=ease(clamp(1-rect.top/viewportH));
-      const nextTop=index<chapters.length-1?chapters[index+1].getBoundingClientRect().top:viewportH;
-      const cover=ease(clamp(1-nextTop/viewportH));
-      chapter.style.setProperty('--mf-enter',enter.toFixed(4));
-      chapter.style.setProperty('--mf-cover',cover.toFixed(4));
-      chapter.style.setProperty('--mf-enter-y',`${((1-enter)*42).toFixed(2)}px`);
-      chapter.style.setProperty('--mf-enter-scale',(0.989+enter*.011).toFixed(4));
-      chapter.style.setProperty('--mf-copy-y',`${((1-enter)*26).toFixed(2)}px`);
-      chapter.style.setProperty('--mf-image-y',`${((1-enter)*14-cover*6).toFixed(2)}px`);
+    const enters=[[.24,.39],[.49,.64],[.72,.87]];
+    const nextStarts=[.49,.72,1.08];
+    cards.forEach((card,index)=>{
+      const enter=phase(p,...enters[index]);
+      const cover=index<2?phase(p,nextStarts[index],nextStarts[index]+.15):0;
+      const y=(1-enter)*108;
+      const scale=1-cover*.05;
+      const opacity=index<2?1-cover*.34:1;
+      card.style.setProperty('--card-y',`${y.toFixed(3)}vh`);
+      card.style.setProperty('--card-scale',scale.toFixed(4));
+      card.style.setProperty('--card-opacity',opacity.toFixed(4));
+      card.style.setProperty('--card-shadow',cover.toFixed(4));
+      card.classList.toggle('is-present',enter>.985&&cover<.99);
+      card.classList.toggle('is-entering',enter>0&&enter<.985);
+      card.style.pointerEvents=enter>.94?'auto':'none';
     });
-
-    if(Math.abs(progressTarget-displayedProgress)>.0002||Math.abs(progressVelocity)>.00005)requestRender();
   };
-  const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render);};
-
-  const scrollToProject=(key,behavior='smooth')=>{
-    const index=data.findIndex(project=>project.key===key);
-    if(index<0)return;
-    if(!positions.length)measure();
-    window.scrollTo({top:positions[index],behavior:reduced.matches?'auto':behavior});
-  };
-  window.mfSelectedWorksScrollToKey=scrollToProject;
-  markers.forEach((marker,index)=>marker.addEventListener('click',event=>{
-    event.stopPropagation();
-    scrollToProject(data[index].key,'smooth');
-  }));
-
-  if(finePointer.matches){
-    chapters.forEach(chapter=>{
-      chapter.addEventListener('pointermove',event=>{
-        const rect=chapter.getBoundingClientRect();
-        const x=clamp((event.clientX-rect.left)/Math.max(1,rect.width))-.5;
-        const y=clamp((event.clientY-rect.top)/Math.max(1,rect.height))-.5;
-        if(pointerFrame)return;
-        pointerFrame=requestAnimationFrame(()=>{
-          pointerFrame=0;
-          chapter.style.setProperty('--mf-pointer-x',`${(x*9).toFixed(2)}px`);
-          chapter.style.setProperty('--mf-pointer-y',`${(y*8).toFixed(2)}px`);
-        });
-      },{passive:true});
-      chapter.addEventListener('pointerleave',()=>{
-        chapter.style.setProperty('--mf-pointer-x','0px');
-        chapter.style.setProperty('--mf-pointer-y','0px');
-      },{passive:true});
-    });
-  }
-
+  const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render)};
   window.addEventListener('scroll',requestRender,{passive:true});
-  window.addEventListener('resize',()=>requestAnimationFrame(measure),{passive:true});
-  window.addEventListener('orientationchange',()=>setTimeout(measure,180),{passive:true});
-
-  const visibilityObserver=new IntersectionObserver(entries=>{
-    const visible=entries[0]?.isIntersecting||false;
-    document.body.classList.toggle('mf-selected-works-active',visible);
-    if(visible){measure();requestRender();}
-  },{threshold:0,rootMargin:'-2% 0px -2% 0px'});
-  visibilityObserver.observe(section);
-
-  measure();
-  setActive(0);
-  requestRender();
+  window.addEventListener('resize',requestRender,{passive:true});
+  const observer=new IntersectionObserver(entries=>{
+    const active=!!entries[0]?.isIntersecting;
+    document.body.classList.toggle('mf-selected-works-active',active);
+    if(active)requestRender();
+  },{threshold:0});
+  observer.observe(exhibition);
+  render();
 })();
 
 /* PROJECT OVERLAYS */
@@ -1622,24 +1461,8 @@ if(indexExtra){
 
   function openProjectFromStrip(strip){
     if(projectMorphing||!strip)return;
-    const key=strip.dataset.index||'01';
     lastOpenedStrip=strip;
-    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){openProject(strip);return;}
-    projectMorphing=true;
-    const from=sourceGeometry(strip);
-    const bundle=createProjectMorph(strip,key,from);
-    Object.keys(liveStates).forEach(liveKey=>{liveStates[liveKey]=false;});
-    renderProject(key);
-    overlay.classList.remove('is-closing','is-visible','is-morph-closing');
-    overlay.classList.add('active','is-morph-opening');
-    overlay.setAttribute('aria-hidden','false');
-    document.body.classList.add('project-open','project-morphing');
-    overlay.scrollTop=0;
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      const to=overlayGeometry();
-      const duration=920;
-      animateMorph(bundle,from,to,duration).then(()=>settleProjectOpen(bundle));
-    }));
+    openProject(strip);
   }
 
   function switchProject(nextKey){
@@ -1673,7 +1496,7 @@ if(indexExtra){
   function closeProject(afterClose){
     if(!overlay.classList.contains('active')||projectMorphing)return;
     const strip=lastOpenedStrip||getProjectStrip(currentProjectKey);
-    const canMorph=strip&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const canMorph=false;
     if(!canMorph){
       overlay.classList.add('is-closing');
       overlay.classList.remove('is-visible');

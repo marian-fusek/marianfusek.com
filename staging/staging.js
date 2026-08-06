@@ -245,7 +245,7 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY */
+/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY / V161 */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
@@ -280,14 +280,20 @@ if(indexExtra){
     };
   });
 
+  const foldMarkup=(text,kind)=>Array.from(text).map((char,index)=>
+    char===' '
+      ? '<span class="mf-fold-space" aria-hidden="true">&nbsp;</span>'
+      : `<span class="mf-fold-segment" aria-hidden="true" style="--fold-i:${index}"><span class="mf-fold-piece">${char}</span></span>`
+  ).join('');
+
   const exhibition=document.createElement('div');
   exhibition.className='mf-work-stack-exhibition';
   exhibition.setAttribute('aria-label','Recent Works');
   exhibition.innerHTML=`
     <div class="mf-work-stack-stage">
       <div class="mf-work-stack-intro" aria-hidden="true">
-        <h2>Recent Works</h2>
-        <p>Creative Direction, Brand &amp; Product Design</p>
+        <h2 aria-label="Recent Works"><span class="mf-fold-sr">Recent Works</span><span class="mf-fold-visual">${foldMarkup('Recent Works','title')}</span></h2>
+        <p aria-label="Creative Direction, Brand &amp; Product Design"><span class="mf-fold-sr">Creative Direction, Brand &amp; Product Design</span><span class="mf-fold-visual">${foldMarkup('Creative Direction, Brand & Product Design','sub')}</span></p>
       </div>
       <div class="mf-work-stack-cards"></div>
     </div>`;
@@ -333,47 +339,78 @@ if(indexExtra){
   section.insertBefore(exhibition,sourceStack);
 
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-  const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
-  let frame=0;
+  const smooth=t=>{t=clamp(t);return 1-Math.pow(1-t,3)};
   const phase=(p,a,b)=>smooth((p-a)/(b-a));
-  const render=()=>{
-    frame=0;
+  let targetP=0;
+  let displayP=0;
+  let raf=0;
+  let active=false;
+  let introPlayed=false;
+
+  const playIntro=()=>{
+    if(introPlayed)return;
+    introPlayed=true;
+    intro.classList.add('is-played');
+    const titlePieces=[...intro.querySelectorAll('h2 .mf-fold-piece')];
+    const subPieces=[...intro.querySelectorAll('p .mf-fold-piece')];
+    if(reduced.matches||!window.gsap){
+      [...titlePieces,...subPieces].forEach(piece=>{piece.style.opacity='1';piece.style.transform='none';piece.style.setProperty('--fold-crease','0');});
+      return;
+    }
+    gsap.timeline()
+      .to(titlePieces,{opacity:1,rotateX:0,y:0,'--fold-crease':0,duration:.72,stagger:.046,ease:'power3.out',force3D:true})
+      .to(subPieces,{opacity:1,rotateX:0,y:0,'--fold-crease':0,duration:.54,stagger:.018,ease:'power3.out',force3D:true},'-=.26');
+  };
+
+  const measure=()=>{
     const rect=exhibition.getBoundingClientRect();
     const travel=Math.max(1,exhibition.offsetHeight-window.innerHeight);
-    const p=clamp(-rect.top/travel);
+    targetP=clamp(-rect.top/travel);
+    if(targetP>=.055)playIntro();
+    if(!raf)raf=requestAnimationFrame(tick);
+  };
 
-    const introIn=phase(p,.08,.19);
-    const introOut=phase(p,.23,.33);
-    intro.style.setProperty('--intro-opacity',(introIn*(1-introOut)).toFixed(4));
-    intro.style.setProperty('--intro-y',`${((1-introIn)*30-introOut*24).toFixed(2)}px`);
-
-    const enters=[[.24,.39],[.49,.64],[.72,.87]];
-    const nextStarts=[.49,.72,1.08];
+  const paint=p=>{
+    /* Faster overlapping chapters: the incoming card begins before the previous
+       one has visually settled, creating the restored drifting stack. */
+    const enters=[[.145,.285],[.335,.475],[.525,.665]];
+    const nextStarts=[.335,.525,1.05];
     cards.forEach((card,index)=>{
       const enter=phase(p,...enters[index]);
-      const cover=index<2?phase(p,nextStarts[index],nextStarts[index]+.15):0;
-      const y=(1-enter)*108;
+      const cover=index<2?phase(p,nextStarts[index],nextStarts[index]+.12):0;
+      const y=(1-enter)*112;
       const scale=1-cover*.05;
-      const opacity=index<2?1-cover*.34:1;
+      const opacity=index<2?1-cover*.28:1;
       card.style.setProperty('--card-y',`${y.toFixed(3)}vh`);
       card.style.setProperty('--card-scale',scale.toFixed(4));
       card.style.setProperty('--card-opacity',opacity.toFixed(4));
       card.style.setProperty('--card-shadow',cover.toFixed(4));
       card.classList.toggle('is-present',enter>.985&&cover<.99);
       card.classList.toggle('is-entering',enter>0&&enter<.985);
-      card.style.pointerEvents=enter>.94?'auto':'none';
+      card.style.pointerEvents=enter>.91?'auto':'none';
     });
   };
-  const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render)};
-  window.addEventListener('scroll',requestRender,{passive:true});
-  window.addEventListener('resize',requestRender,{passive:true});
+
+  const tick=()=>{
+    raf=0;
+    /* Deliberate visual drift only; native document scrolling remains untouched. */
+    const delta=targetP-displayP;
+    displayP+=delta*(reduced.matches?1:.115);
+    if(Math.abs(delta)<.00008)displayP=targetP;
+    paint(displayP);
+    if(active&&Math.abs(targetP-displayP)>.00008)raf=requestAnimationFrame(tick);
+  };
+
+  const onScroll=()=>measure();
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('resize',onScroll,{passive:true});
   const observer=new IntersectionObserver(entries=>{
-    const active=!!entries[0]?.isIntersecting;
+    active=!!entries[0]?.isIntersecting;
     document.body.classList.toggle('mf-selected-works-active',active);
-    if(active)requestRender();
+    if(active)measure();
   },{threshold:0});
   observer.observe(exhibition);
-  render();
+  measure();
 })();
 
 /* PROJECT OVERLAYS */

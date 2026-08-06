@@ -4393,3 +4393,79 @@ html body.mf-cloud-study.mf-recent-works-stack .mf-project-morph-title { display
   html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-intro,
   html body.mf-cloud-study.mf-recent-works-stack .mf-overlay { transition:none !important; }
 }
+
+
+/* V161 — loader-labelled, folded intro, tighter eased stack */
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-exhibition {
+  height:470svh !important;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-intro {
+  opacity:1 !important;
+  transform:none !important;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-intro h2,
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-intro p {
+  perspective:700px;
+  transform-style:preserve-3d;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-fold-sr {
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-fold-visual { display:inline; }
+html body.mf-cloud-study.mf-recent-works-stack .mf-fold-space { display:inline; }
+html body.mf-cloud-study.mf-recent-works-stack .mf-fold-segment {
+  display:inline-block;
+  line-height:inherit;
+  perspective:700px;
+  transform-style:preserve-3d;
+  vertical-align:baseline;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-fold-piece {
+  --fold-crease:.52;
+  position:relative;
+  display:inline-block;
+  opacity:0;
+  transform:rotateX(-92deg) translate3d(0,14px,0);
+  transform-origin:50% 0%;
+  transform-style:preserve-3d;
+  backface-visibility:hidden;
+  will-change:transform,opacity;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-fold-piece::after {
+  content:"";
+  position:absolute;
+  inset:-.08em -.02em;
+  pointer-events:none;
+  opacity:var(--fold-crease);
+  mix-blend-mode:multiply;
+  border-radius:.08em;
+  background:linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.18) 42%,rgba(255,255,255,.22) 100%);
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-card {
+  inset:clamp(76px,9vh,108px) clamp(14px,1.65vw,26px) clamp(14px,1.65vw,26px) !important;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-image-wrap {
+  background:transparent !important;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-image {
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  object-position:center center !important;
+}
+html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-caption span {
+  font-weight:400 !important;
+}
+@media (max-width:720px) {
+  html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-exhibition { height:440svh !important; }
+  html body.mf-cloud-study.mf-recent-works-stack .mf-work-stack-card {
+    inset:max(62px,calc(env(safe-area-inset-top) + 48px)) 8px 8px !important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  html body.mf-cloud-study.mf-recent-works-stack .mf-fold-piece {
+    opacity:1 !important;transform:none !important;
+  }
+  html body.mf-cloud-study.mf-recent-works-stack .mf-fold-piece::after { opacity:0 !important; }
+}

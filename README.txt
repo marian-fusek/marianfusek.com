@@ -1,3 +1,14 @@
+MARIANFUSEK.COM — V161
+
+Recent Works updates:
+- Loader identifies this build as V#161.
+- More top clearance for the persistent menu.
+- Project names use regular Geist weight.
+- Card imagery uses cover cropping without stretching.
+- Scroll remains native while the visual stack follows with eased drift.
+- Project transitions are closer together with less dead scrolling.
+- Recent Works title and subtitle play once as a GSAP 3D fold cascade when the clean section viewport reaches its trigger.
+
 MARIAN FUSEK WEBSITE — V158
 
 LIVE

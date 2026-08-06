@@ -4116,3 +4116,100 @@ html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-exhibition,
 html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapters {
   scroll-snap-type:none !important;
 }
+
+
+/* ============================================================
+   V159 — SELECTED WORKS / MILESTONE + SEAM + UNIFIED HANDOFF
+   ============================================================ */
+/* One continuous field from the hero into Selected Works. */
+html body.mf-cloud-study.mf-selected-works-flow .mf-work,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-exhibition,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapters,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-surface {
+  background:var(--mf-bg) !important;
+  background-image:none !important;
+  box-shadow:none !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work::before,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work::after,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-exhibition::before,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-exhibition::after,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-surface::before,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-surface::after {
+  content:none !important;
+  display:none !important;
+}
+
+/* The artwork is only the artwork: no backing panel, inset, halo or crop. */
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image-wrap,
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-active:hover .mf-work-flow-image-wrap {
+  padding:0 !important;
+  border:0 !important;
+  background:none !important;
+  background-image:none !important;
+  box-shadow:none !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-image {
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  object-fit:fill !important;
+  transform:none !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-chapter.is-active:hover .mf-work-flow-image {
+  transform:none !important;
+}
+
+/* Optical alignment: compensate for the large Geist title's left sidebearing. */
+html body.mf-cloud-study.mf-selected-works-flow .mf-work-flow-copy h2 {
+  position:relative;
+  left:-.055em;
+}
+html body.mf-cloud-study.mf-selected-works-flow .is-goballer .mf-work-flow-copy h2 { left:-.065em; }
+html body.mf-cloud-study.mf-selected-works-flow .is-aims .mf-work-flow-copy h2 { left:-.045em; }
+html body.mf-cloud-study.mf-selected-works-flow .is-vault .mf-work-flow-copy h2 { left:-.052em; }
+html body.mf-cloud-study.mf-selected-works-flow .is-sidequests .mf-work-flow-copy h2 { left:-.048em; }
+
+/* Case studies remain a true viewport, never a rounded floating card. */
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay {
+  inset:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  overflow:hidden !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-shell {
+  border-radius:0 !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-info,
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-gallery,
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-slide {
+  height:100vh !important;
+  min-height:100vh !important;
+}
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-controls-hint { top:20px !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-project-counter { right:20px !important;bottom:20px !important; }
+html body.mf-cloud-study.mf-selected-works-flow .mf-overlay .mf-close { top:18px !important;right:18px !important; }
+
+/* The traveling image itself carries the monochrome-to-color handoff. */
+.mf-project-morph-frame { border-radius:0 !important;box-shadow:none !important; }
+.mf-project-morph-image { background:none !important;box-shadow:none !important;will-change:left,top,width,height,border-radius,filter; }
+.mf-project-morph-image img { object-fit:fill !important;filter:none !important; }
+.mf-project-morph-title { left:auto; }
+
+@media (max-width:1024px), (pointer:coarse) {
+  html body.mf-cloud-study.mf-selected-works-flow .mf-overlay {
+    inset:0 !important;
+    width:100vw !important;
+    height:100svh !important;
+    border-radius:0 !important;
+  }
+  html body.mf-cloud-study.mf-selected-works-flow .mf-project-info,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-project-gallery,
+  html body.mf-cloud-study.mf-selected-works-flow .mf-project-slide {
+    min-height:100svh !important;
+    height:100svh !important;
+  }
+}

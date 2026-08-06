@@ -452,22 +452,25 @@ if(indexExtra){
     if(!positions.length)return;
     const y=window.scrollY;
     const targetProgress=clamp((y-sectionTop)/Math.max(1,sectionEnd-sectionTop));
-    if(reduced.matches){displayedProgress=targetProgress;progressVelocity=0;}
-    else{
-      const dt=Math.min(40,Math.max(1,now-lastProgressTime));
-      const stiffness=.018;
-      const damping=.78;
-      progressVelocity+=(targetProgress-displayedProgress)*stiffness*dt;
-      progressVelocity*=Math.pow(damping,dt/16.67);
-      displayedProgress+=progressVelocity;
-      if(Math.abs(targetProgress-displayedProgress)<.00015&&Math.abs(progressVelocity)<.00004){displayedProgress=targetProgress;progressVelocity=0;}
-    }
     lastProgressTime=now;
-    trackFill.style.transform=`scaleX(${clamp(displayedProgress).toFixed(5)})`;
-
     const chapterFloat=targetProgress*(data.length-1);
     const milestoneIndex=Math.round(chapterFloat);
     setActive(milestoneIndex);
+
+    /* The timeline represents the project state, not the empty travel between
+       states. It advances to a milestone, holds there for that chapter, then
+       moves only when the next project becomes active. */
+    const milestoneProgress=data.length>1?milestoneIndex/(data.length-1):0;
+    const progressTarget=milestoneProgress;
+    if(reduced.matches){displayedProgress=progressTarget;progressVelocity=0;}
+    else{
+      const delta=progressTarget-displayedProgress;
+      progressVelocity+=delta*.11;
+      progressVelocity*=.68;
+      displayedProgress+=progressVelocity;
+      if(Math.abs(delta)<.00018&&Math.abs(progressVelocity)<.00005){displayedProgress=progressTarget;progressVelocity=0;}
+    }
+    trackFill.style.transform=`scaleX(${clamp(displayedProgress).toFixed(5)})`;
 
     chapters.forEach((chapter,index)=>{
       const rect=chapter.getBoundingClientRect();
@@ -482,7 +485,7 @@ if(indexExtra){
       chapter.style.setProperty('--mf-image-y',`${((1-enter)*14-cover*6).toFixed(2)}px`);
     });
 
-    if(Math.abs(targetProgress-displayedProgress)>.0002||Math.abs(progressVelocity)>.00005)requestRender();
+    if(Math.abs(progressTarget-displayedProgress)>.0002||Math.abs(progressVelocity)>.00005)requestRender();
   };
   const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render);};
 
@@ -1506,10 +1509,7 @@ if(indexExtra){
     '04':'/media/projects/vault/01-nofakie-1.jpg',
     '05':'/media/projects/side-quests/undersurface.jpg'
   }[key]||'';
-  const windowRect=()=>{
-    const inset=mobileProjectLayout.matches?8:16;
-    return {left:inset,top:inset,width:window.innerWidth-inset*2,height:window.innerHeight-inset*2,radius:mobileProjectLayout.matches?22:30};
-  };
+  const windowRect=()=>({left:0,top:0,width:window.innerWidth,height:window.innerHeight,radius:0});
   const boxOf=(element,fallback)=>{
     if(!element)return fallback;
     const rect=element.getBoundingClientRect();
@@ -1582,8 +1582,8 @@ if(indexExtra){
       {left:`${to.frame.left}px`,top:`${to.frame.top}px`,width:`${to.frame.width}px`,height:`${to.frame.height}px`,borderRadius:`${to.frame.radius||0}px`,opacity:1}
     ],{duration,easing,fill:'forwards'});
     const imageAnimation=bundle.image.animate([
-      {left:`${from.image.left}px`,top:`${from.image.top}px`,width:`${from.image.width}px`,height:`${from.image.height}px`,borderRadius:`${from.image.radius||0}px`},
-      {left:`${to.image.left}px`,top:`${to.image.top}px`,width:`${to.image.width}px`,height:`${to.image.height}px`,borderRadius:`${to.image.radius||0}px`}
+      {left:`${from.image.left}px`,top:`${from.image.top}px`,width:`${from.image.width}px`,height:`${from.image.height}px`,borderRadius:`${from.image.radius||0}px`,filter:closing?'none':'grayscale(1)'},
+      {left:`${to.image.left}px`,top:`${to.image.top}px`,width:`${to.image.width}px`,height:`${to.image.height}px`,borderRadius:`${to.image.radius||0}px`,filter:closing?'grayscale(1)':'none'}
     ],{duration,easing,fill:'forwards'});
     const titleAnimation=bundle.title.animate([
       {left:`${from.title.left}px`,top:`${from.title.top}px`,fontSize:`${from.titleSize}px`,opacity:1},

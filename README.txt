@@ -26,3 +26,13 @@ VALIDATION
 - JavaScript syntax verified with Node.
 - Confirmed the V157 wheel listener, settle routine, smooth auto-advance logic and keyboard interception are absent from the new Selected Works controller.
 - Confirmed no scroll-snap behavior is enabled on the exhibition or chapters.
+
+
+V159 — Selected Works polish
+- Timeline fill now holds at project milestones.
+- Removed image backing/padding; only true image bounds and corners remain.
+- Corrected Vault copy to: Whatever I could find in old Figma files.
+- Removed the hero-to-work background seam and transition line artifacts.
+- Restored full-screen square project overlays.
+- Unified source image/title morph into final overlay positions with monochrome-to-color handoff.
+- Optically aligned oversized project headlines with supporting copy.

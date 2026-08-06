@@ -146,44 +146,11 @@ function runMfSiteLoader(){
 startMfSite();
 
 (function(){
-  const mobileLayout=window.matchMedia("(max-width: 1024px), (pointer: coarse)");
-
-  function nativeScroll(y){
-    window.scrollTo({top:y,behavior:"smooth"});
-  }
-
-  if(mobileLayout.matches){
-    /* Mobile uses the browser's native touch physics. The old custom touch
-       momentum ran alongside native scrolling and made the page accelerate. */
-    window._mfScroll=nativeScroll;
-    return;
-  }
-
-  let targetY=window.scrollY,currentY=window.scrollY,ticking=false;
-  const ease=.065;
-  function tick(){
-    const d=targetY-currentY;
-    if(Math.abs(d)<.35){
-      currentY=targetY;
-      window.scrollTo(0,currentY);
-      ticking=false;
-      return;
-    }
-    currentY+=d*ease;
-    window.scrollTo(0,currentY);
-    requestAnimationFrame(tick);
-  }
-  window.addEventListener("wheel",e=>{
-    if(document.body.classList.contains("project-open")||document.body.classList.contains("mf-guidance-open"))return;
-    e.preventDefault();
-    targetY+=e.deltaY*1.4;
-    targetY=Math.max(0,Math.min(targetY,document.body.scrollHeight-window.innerHeight));
-    if(!ticking){ticking=true;requestAnimationFrame(tick);}
-  },{passive:false});
+  /* Native scrolling is deliberate. Scroll-linked sections animate their own
+     visual layers, but never intercept the wheel or ease the page behind the
+     user's hand. */
   window._mfScroll=function(y){
-    targetY=y;
-    currentY=window.scrollY;
-    if(!ticking){ticking=true;requestAnimationFrame(tick);}
+    window.scrollTo({top:y,left:0,behavior:'smooth'});
   };
 })();
 
@@ -278,15 +245,17 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — ELASTIC FIRST-IMAGE STACK */
+/* SELECTED WORKS — CINEMATIC PINNED SCROLL STAGE */
 (function(){
   const section=document.getElementById('work');
-  const stack=section?.querySelector('.mf-strips');
-  const strips=stack?[...stack.querySelectorAll('.mf-strip')]:[];
-  if(!section||!stack||!strips.length)return;
+  const sourceStack=section?.querySelector('.mf-strips');
+  const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')]:[];
+  if(!section||!sourceStack||!sources.length)return;
 
-  document.body.classList.add('mf-selected-works-elastic');
-  section.classList.add('mf-selected-works-v2');
+  document.body.classList.remove('mf-selected-works-elastic');
+  document.body.classList.add('mf-selected-works-cinematic');
+  section.classList.remove('mf-selected-works-v2');
+  section.classList.add('mf-selected-works-v3');
 
   const fallbackImages={
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
@@ -295,82 +264,312 @@ if(indexExtra){
     '04':'/media/projects/vault/01-nofakie-1.jpg',
     '05':'/media/projects/side-quests/undersurface.jpg'
   };
-
-  let clearFocusTimer=0;
-  const setFocused=strip=>{
-    window.clearTimeout(clearFocusTimer);
-    strips.forEach(item=>item.classList.toggle('is-focused',item===strip));
-    stack.classList.toggle('has-focus',!!strip);
-  };
-  const scheduleClear=()=>{
-    window.clearTimeout(clearFocusTimer);
-    clearFocusTimer=window.setTimeout(()=>setFocused(null),90);
-  };
-
-  strips.forEach(strip=>{
-    const index=strip.dataset.index||'01';
-    const src=strip.dataset.img||fallbackImages[index];
-    strip.dataset.img=src;
-    strip.setAttribute('role','button');
-    strip.setAttribute('tabindex','0');
-    strip.setAttribute('aria-label',`Open ${strip.dataset.title||'project'}`);
-
-    const media=document.createElement('div');
-    media.className='mf-work-media';
-    media.innerHTML=`
-      <div class="mf-work-media-bleed" aria-hidden="true"></div>
-      <div class="mf-work-media-frame">
-        <img class="mf-work-image" alt="" decoding="async" loading="eager">
-      </div>
-      <div class="mf-work-media-shade" aria-hidden="true"></div>`;
-    const image=media.querySelector('.mf-work-image');
-    const bleed=media.querySelector('.mf-work-media-bleed');
-    image.src=src;
-    bleed.style.backgroundImage=`url("${src}")`;
-    image.onerror=()=>{image.onerror=null;image.src=src.startsWith('/')?'.'+src:src;};
-    image.onload=()=>{
-      const w=Math.max(1,image.naturalWidth||1),h=Math.max(1,image.naturalHeight||1);
-      strip.dataset.orientation=w>h*1.15?'landscape':h>w*1.15?'portrait':'square';
-      strip.style.setProperty('--mf-work-ar',`${w} / ${h}`);
+  const projectSlugs={'01':'miunae','02':'goballer','03':'aims','04':'vault','05':'sidequests'};
+  const data=sources.map((source,index)=>{
+    const key=source.dataset.index||String(index+1).padStart(2,'0');
+    return {
+      key,
+      slug:projectSlugs[key]||`project-${key}`,
+      title:source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project',
+      meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
+      description:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
+      image:source.dataset.img||fallbackImages[key]||'',
+      source
     };
-    strip.insertBefore(media,strip.firstChild);
-
-    const text=document.createElement('div');
-    text.className='mf-work-copy';
-    const num=strip.querySelector('.mf-strip-num');
-    const title=strip.querySelector('.mf-strip-title');
-    const meta=strip.querySelector('.mf-strip-meta');
-    const desc=strip.querySelector('.mf-strip-desc');
-    const plus=strip.querySelector('.mf-strip-plus');
-    [num,title,meta,desc,plus].forEach(node=>node&&text.appendChild(node));
-    strip.appendChild(text);
-
-    strip.addEventListener('pointerenter',()=>setFocused(strip));
-    strip.addEventListener('pointerleave',scheduleClear);
-    strip.addEventListener('focus',()=>setFocused(strip));
-    strip.addEventListener('blur',scheduleClear);
-    strip.addEventListener('pointermove',event=>{
-      if(!strip.classList.contains('is-focused'))return;
-      const rect=strip.getBoundingClientRect();
-      const nx=(event.clientX-rect.left)/Math.max(1,rect.width)-.5;
-      const ny=(event.clientY-rect.top)/Math.max(1,rect.height)-.5;
-      strip.style.setProperty('--mf-work-x',`${(nx*18).toFixed(2)}px`);
-      strip.style.setProperty('--mf-work-y',`${(ny*12).toFixed(2)}px`);
-      strip.style.setProperty('--mf-work-rx',`${(-ny*1.1).toFixed(2)}deg`);
-      strip.style.setProperty('--mf-work-ry',`${(nx*1.25).toFixed(2)}deg`);
-    });
-    strip.addEventListener('pointerleave',()=>{
-      strip.style.setProperty('--mf-work-x','0px');
-      strip.style.setProperty('--mf-work-y','0px');
-      strip.style.setProperty('--mf-work-rx','0deg');
-      strip.style.setProperty('--mf-work-ry','0deg');
-    });
-    strip.addEventListener('keydown',event=>{
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();strip.click();}
-    });
   });
 
-  stack.addEventListener('pointerleave',scheduleClear);
+  const stage=document.createElement('div');
+  stage.className='mf-work-cinema';
+  stage.setAttribute('aria-label','Selected Works');
+  stage.innerHTML=`
+    <div class="mf-work-cinema-graphics" aria-hidden="true">
+      <i class="mf-work-cinema-graphic is-frame"></i>
+      <i class="mf-work-cinema-graphic is-vector"></i>
+      <i class="mf-work-cinema-graphic is-orbit"></i>
+      <span class="mf-work-cinema-coordinate is-a">MF / SELECTED</span>
+      <span class="mf-work-cinema-coordinate is-b">SCROLL / EXPLORE</span>
+    </div>
+    <div class="mf-work-cinema-projects">
+      <article class="mf-work-cinema-slot is-primary" aria-hidden="true"></article>
+      <article class="mf-work-cinema-slot is-secondary" aria-hidden="true"></article>
+      <div class="mf-work-cinema-wipe" aria-hidden="true"><i></i></div>
+      <div class="mf-work-cinema-cache" aria-hidden="true"></div>
+      <div class="mf-work-cinema-anchors"></div>
+    </div>
+    <div class="mf-work-cinema-rail">
+      <div class="mf-work-cinema-rail-meta">
+        <span class="mf-work-cinema-label">SELECTED WORKS</span>
+        <span class="mf-work-cinema-current"><b>01</b><em>MIUNĀE</em></span>
+        <span class="mf-work-cinema-total">05</span>
+      </div>
+      <div class="mf-work-cinema-track" aria-hidden="true">
+        <i class="mf-work-cinema-track-base"></i>
+        <i class="mf-work-cinema-track-fill"></i>
+        <div class="mf-work-cinema-markers"></div>
+      </div>
+    </div>`;
+
+  const slots=[...stage.querySelectorAll('.mf-work-cinema-slot')];
+  const anchorsHost=stage.querySelector('.mf-work-cinema-anchors');
+  const cacheHost=stage.querySelector('.mf-work-cinema-cache');
+  const markersHost=stage.querySelector('.mf-work-cinema-markers');
+  const currentNumber=stage.querySelector('.mf-work-cinema-current b');
+  const currentName=stage.querySelector('.mf-work-cinema-current em');
+  const trackFill=stage.querySelector('.mf-work-cinema-track-fill');
+
+  const slotMarkup=()=>`
+    <div class="mf-work-cinema-echo" aria-hidden="true"></div>
+    <div class="mf-work-cinema-plane is-a" aria-hidden="true"></div>
+    <div class="mf-work-cinema-plane is-b" aria-hidden="true"></div>
+    <div class="mf-work-cinema-image-wrap"></div>
+    <div class="mf-work-cinema-copy">
+      <span class="mf-work-cinema-number"></span>
+      <h2></h2>
+      <p class="mf-work-cinema-meta"></p>
+      <p class="mf-work-cinema-desc"></p>
+      <span class="mf-work-cinema-action">OPEN PROJECT</span>
+    </div>
+    <div class="mf-work-cinema-scan" aria-hidden="true"></div>`;
+  slots.forEach(slot=>slot.innerHTML=slotMarkup());
+  data.forEach((project,index)=>{
+    const img=new Image();
+    img.className='mf-work-cinema-image mf-work-image';
+    img.alt='';
+    img.decoding='async';
+    img.loading='eager';
+    img.fetchPriority=index<2?'high':'low';
+    img.src=project.image;
+    img.onerror=()=>{img.onerror=null;img.src=project.image.startsWith('/')?'.'+project.image:project.image;};
+    project.imageNode=img;
+    cacheHost.appendChild(img);
+  });
+
+  const markerButtons=[];
+  const anchors=data.map((project,index)=>{
+    const anchor=document.createElement('article');
+    anchor.className=`mf-work-cinema-anchor mf-strip is-${project.slug}`;
+    anchor.dataset.index=project.key;
+    anchor.dataset.title=project.title;
+    anchor.dataset.img=project.image;
+    anchor.dataset.projectStage='true';
+    anchor.setAttribute('role','button');
+    anchor.setAttribute('tabindex',index===0?'0':'-1');
+    anchor.setAttribute('aria-label',`Open ${project.title}`);
+    anchor.innerHTML='<span class="mf-work-cinema-hit is-image" aria-hidden="true"></span><span class="mf-work-cinema-hit is-copy" aria-hidden="true"></span>';
+    anchor.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();anchor.click();}
+    });
+    anchorsHost.appendChild(anchor);
+
+    const marker=document.createElement('button');
+    marker.type='button';
+    marker.className='mf-work-cinema-marker';
+    marker.dataset.index=String(index);
+    marker.setAttribute('aria-label',`Scroll to ${project.title}`);
+    marker.innerHTML=`<i></i><span>${project.key}</span>`;
+    markersHost.appendChild(marker);
+    markerButtons.push(marker);
+    return anchor;
+  });
+
+  sourceStack.hidden=true;
+  sourceStack.setAttribute('aria-hidden','true');
+  section.querySelector('.mf-index-title')?.setAttribute('aria-hidden','true');
+  section.querySelector('.mf-stage-label')?.setAttribute('aria-hidden','true');
+  section.insertBefore(stage,sourceStack);
+
+  const clamp=(value,min=0,max=1)=>Math.max(min,Math.min(max,value));
+  const smooth=value=>value*value*(3-2*value);
+  const range=(from,to,value)=>smooth(clamp((value-from)/(to-from)));
+  const mobile=window.matchMedia('(max-width:1024px), (pointer:coarse)');
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const preloaded=new Map();
+  const preloadProject=(index)=>{
+    if(preloaded.has(index))return preloaded.get(index);
+    const image=data[index]?.imageNode;
+    if(!image)return Promise.resolve();
+    const ready=image.decode?image.decode().catch(()=>{}):new Promise(resolve=>{image.onload=image.onerror=resolve;});
+    preloaded.set(index,ready);
+    return ready;
+  };
+
+  const applyProjectToSlot=(slot,project,index)=>{
+    if(!slot||!project||slot.dataset.index===project.key)return;
+    slot.dataset.index=project.key;
+    slot.dataset.projectIndex=String(index);
+    slot.className=`mf-work-cinema-slot ${slot.classList.contains('is-secondary')?'is-secondary':'is-primary'} is-${project.slug}`;
+    const wrap=slot.querySelector('.mf-work-cinema-image-wrap');
+    const current=wrap.querySelector('.mf-work-cinema-image');
+    if(current&&current!==project.imageNode)cacheHost.appendChild(current);
+    if(project.imageNode.parentNode!==wrap)wrap.appendChild(project.imageNode);
+    const img=project.imageNode;
+    const setOrientation=()=>{
+      const w=Math.max(1,img.naturalWidth||1),h=Math.max(1,img.naturalHeight||1);
+      slot.dataset.orientation=w>h*1.18?'landscape':h>w*1.18?'portrait':'square';
+      slot.style.setProperty('--mf-work-natural-ar',`${w} / ${h}`);
+    };
+    if(img.complete&&img.naturalWidth)setOrientation();
+    else img.addEventListener('load',setOrientation,{once:true});
+    slot.querySelector('.mf-work-cinema-number').textContent=project.key;
+    slot.querySelector('h2').textContent=project.title;
+    slot.querySelector('.mf-work-cinema-meta').textContent=project.meta;
+    slot.querySelector('.mf-work-cinema-desc').textContent=project.description;
+  };
+
+  let sectionTop=0;
+  let travel=1;
+  let targetProgress=0;
+  let renderedProgress=-1;
+  let activeIndex=-1;
+  let baseIndex=-1;
+  let frame=0;
+  let near=false;
+  let pointerX=0;
+  let pointerY=0;
+  let pointerFrame=0;
+
+  const setGeometry=()=>{
+    const rect=section.getBoundingClientRect();
+    sectionTop=window.scrollY+rect.top;
+    travel=Math.max(1,section.offsetHeight-window.innerHeight);
+    requestRender();
+  };
+
+  const updateSlots=(base)=>{
+    const next=Math.min(data.length-1,base+1);
+    applyProjectToSlot(slots[0],data[base],base);
+    applyProjectToSlot(slots[1],data[next],next);
+    preloadProject(base);
+    preloadProject(next);
+    baseIndex=base;
+    stage.dataset.transition=String(base%4);
+  };
+
+  const render=()=>{
+    frame=0;
+    const progress=targetProgress;
+    if(Math.abs(progress-renderedProgress)<.00003)return;
+    renderedProgress=progress;
+    const chapter=progress*(data.length-1);
+    const base=Math.min(data.length-1,Math.floor(chapter+1e-6));
+    const mix=base>=data.length-1?0:chapter-base;
+    if(base!==baseIndex)updateSlots(base);
+
+    const easedMix=smooth(mix);
+    const primaryVisual=1-range(.08,.92,mix);
+    const secondaryVisual=range(.08,.92,mix);
+    const primaryCopy=1-range(.18,.48,mix);
+    const secondaryCopy=range(.56,.86,mix);
+    const nextActive=Math.max(0,Math.min(data.length-1,Math.round(chapter)));
+
+    trackFill.style.transform=`scaleX(${progress})`;
+
+    const transition=base%4;
+    const primary=slots[0],secondary=slots[1];
+    const primaryCopyNode=primary.querySelector('.mf-work-cinema-copy');
+    const secondaryCopyNode=secondary.querySelector('.mf-work-cinema-copy');
+    const wipe=stage.querySelector('.mf-work-cinema-wipe');
+    const primaryImageWrap=primary.querySelector('.mf-work-cinema-image-wrap');
+    const secondaryImageWrap=secondary.querySelector('.mf-work-cinema-image-wrap');
+    primary.style.opacity=String(primaryVisual);
+    secondary.style.opacity=String(secondaryVisual);
+    primaryCopyNode.style.opacity=String(primaryCopy);
+    secondaryCopyNode.style.opacity=String(secondaryCopy);
+    primaryCopyNode.style.translate=`0 ${(1-primaryCopy)*24}px`;
+    secondaryCopyNode.style.translate=`0 ${(1-secondaryCopy)*24}px`;
+
+    const wipeOpacity=1-Math.abs(2*easedMix-1);
+    wipe.style.opacity=String(wipeOpacity*.68);
+    if(transition===0)wipe.style.transform=`translate3d(${(easedMix-.5)*122}vw,0,0) rotate(-4deg)`;
+    else if(transition===1)wipe.style.transform=`translate3d(0,${(easedMix-.5)*122}vh,0) rotate(1.5deg)`;
+    else if(transition===2)wipe.style.transform=`translate3d(0,0,0) rotate(${(easedMix-.5)*18}deg) scale(${.18+wipeOpacity*1.15})`;
+    else wipe.style.transform=`translate3d(${(.5-easedMix)*122}vw,0,0) rotate(4deg)`;
+    let aX=0,aY=0,bX=0,bY=0;
+    if(transition===0){aX=-mix*34;bX=(1-mix)*42;}
+    else if(transition===1){aY=-mix*30;bY=(1-mix)*38;}
+    else if(transition===2){aX=mix*18;aY=-mix*14;bX=-(1-mix)*18;bY=(1-mix)*14;}
+    else{aX=mix*30;bX=-(1-mix)*38;}
+    primaryImageWrap.style.translate=`${aX}px ${aY}px`;
+    secondaryImageWrap.style.translate=`${bX}px ${bY}px`;
+
+    primary.style.transform='translate3d(0,0,0)';
+    secondary.style.transform='translate3d(0,0,0)';
+
+    if(activeIndex!==nextActive){
+      activeIndex=nextActive;
+      const active=data[activeIndex];
+      [currentNumber,currentName].forEach(node=>node.animate([{opacity:.18,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:320,easing:'cubic-bezier(.16,1,.3,1)'}));
+      currentNumber.textContent=active.key;
+      currentName.textContent=active.title;
+      stage.dataset.active=active.key;
+      anchors.forEach((anchor,index)=>{
+        const on=index===activeIndex;
+        anchor.classList.toggle('is-active',on);
+        anchor.tabIndex=on?0:-1;
+        anchor.setAttribute('aria-hidden',on?'false':'true');
+      });
+      markerButtons.forEach((button,index)=>{
+        button.classList.toggle('is-active',index===activeIndex);
+        button.classList.toggle('is-complete',index<activeIndex);
+        button.setAttribute('aria-current',index===activeIndex?'true':'false');
+      });
+    }
+  };
+
+  const requestRender=()=>{if(!frame)frame=requestAnimationFrame(render);};
+  const updateFromScroll=()=>{
+    if(!near)return;
+    targetProgress=clamp((window.scrollY-sectionTop)/travel);
+    requestRender();
+  };
+
+  const observer=new IntersectionObserver(entries=>{
+    near=entries.some(entry=>entry.isIntersecting);
+    stage.classList.toggle('is-near',near);
+    document.body.classList.toggle('mf-selected-works-active',near&&window.scrollY>=sectionTop-window.innerHeight*.05&&window.scrollY<=sectionTop+travel+window.innerHeight*.05);
+    if(near){setGeometry();updateFromScroll();}
+  },{rootMargin:'80% 0px 80% 0px',threshold:0});
+  observer.observe(section);
+
+  window.addEventListener('scroll',updateFromScroll,{passive:true});
+  window.addEventListener('resize',()=>{setGeometry();updateFromScroll();},{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(()=>{setGeometry();updateFromScroll();},180),{passive:true});
+
+  const scrollToProject=(key,behavior='smooth')=>{
+    const index=data.findIndex(item=>item.key===key);
+    if(index<0)return;
+    const ratio=data.length===1?0:index/(data.length-1);
+    window.scrollTo({top:sectionTop+travel*ratio,behavior:reduced.matches?'auto':behavior});
+  };
+  window.mfSelectedWorksScrollToKey=scrollToProject;
+  markerButtons.forEach((button,index)=>button.addEventListener('click',event=>{
+    event.stopPropagation();
+    scrollToProject(data[index].key,'smooth');
+  }));
+
+  stage.addEventListener('pointermove',event=>{
+    if(mobile.matches)return;
+    const rect=stage.getBoundingClientRect();
+    pointerX=clamp((event.clientX-rect.left)/Math.max(1,rect.width),0,1)-.5;
+    pointerY=clamp((event.clientY-rect.top)/Math.max(1,rect.height),0,1)-.5;
+    if(pointerFrame)return;
+    pointerFrame=requestAnimationFrame(()=>{
+      pointerFrame=0;
+      stage.style.setProperty('--mf-pointer-x',pointerX.toFixed(4));
+      stage.style.setProperty('--mf-pointer-y',pointerY.toFixed(4));
+    });
+  },{passive:true});
+  stage.addEventListener('pointerleave',()=>{
+    stage.style.setProperty('--mf-pointer-x','0');
+    stage.style.setProperty('--mf-pointer-y','0');
+  },{passive:true});
+
+  data.forEach((_,index)=>preloadProject(index));
+  updateSlots(0);
+  setGeometry();
+  targetProgress=clamp((window.scrollY-sectionTop)/travel);
+  render();
 })();
 
 /* PROJECT OVERLAYS */
@@ -1320,10 +1519,7 @@ if(indexExtra){
         hovering=false;targetX=0;targetY=0;queueArrows();
       });
     });
-    endCard.querySelector('.mf-project-exit-button')?.addEventListener('click',()=>closeProject(()=>{
-      const work=document.getElementById('work');
-      if(work){const y=work.getBoundingClientRect().top+window.scrollY;window._mfScroll?window._mfScroll(y):window.scrollTo({top:y,behavior:'smooth'});}
-    }));
+    endCard.querySelector('.mf-project-exit-button')?.addEventListener('click',()=>closeProject());
   }
 
   function updateCounter(){
@@ -1429,6 +1625,7 @@ if(indexExtra){
   function switchProject(nextKey){
     if(projectSwitching||nextKey===currentProjectKey||!projectData[nextKey])return;
     lastOpenedStrip=getProjectStrip(nextKey)||lastOpenedStrip;
+    window.mfSelectedWorksScrollToKey?.(nextKey,'auto');
     projectSwitching=true;
     shell.classList.add('is-switching-out');
     setTimeout(()=>{
@@ -4290,7 +4487,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     x=event.clientX;y=event.clientY;place();
     const sideQuestsOpen=document.body.classList.contains('project-open')&&!!document.querySelector('.mf-project-shell.is-sidequests-project');
     const shouldHide=hiddenZone(event.target)||(document.body.classList.contains('project-open')&&!sideQuestsOpen)||document.body.classList.contains('art-open');
-    const openTarget=event.target?.closest?.('.mf-strip,.mf-guidance-portal,#mfArtButton');
+    const openTarget=event.target?.closest?.('.mf-work-cinema-hit,.mf-guidance-portal,#mfArtButton');
     const openMode=!!openTarget&&!shouldHide;
     const wasVisible=visible;
     visible=!shouldHide;

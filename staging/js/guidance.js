@@ -1,1 +1,47 @@
-import{prepareFold,playFold}from'./fold-text.js';export function initGuidance(data){const left=document.querySelector('.guidance-left'),right=document.querySelector('.guidance-right');left.querySelector('p').textContent=data.mindset.description;right.querySelector('p').textContent=data.leadership.description;const heads=[...document.querySelectorAll('.guidance-copy h2')];heads.forEach(h=>prepareWords(h));let played=false;const sec=document.getElementById('guidance');const cursor=document.getElementById('guideCursor');function frame(){const r=sec.getBoundingClientRect();if(!played&&r.top<-innerHeight*.72){played=true;heads.forEach((h,i)=>playFold(h,{words:true,delay:i*.08,stagger:.08,duration:.75}));document.querySelectorAll('.guidance-copy p').forEach((p,i)=>p.animate([{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'none'}],{duration:700,delay:420+i*100,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'}))}requestAnimationFrame(frame)}requestAnimationFrame(frame);[left,right].forEach((zone,i)=>{zone.addEventListener('mouseenter',()=>{cursor.textContent=i?'OPEN TL':'OPEN MC';cursor.classList.add('show')});zone.addEventListener('mouseleave',()=>cursor.classList.remove('show'));zone.addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px'})})}function prepareWords(h){const words=h.textContent.trim().split(/\s+/);h.textContent='';words.forEach(w=>{const s=document.createElement('span');s.className='word fold-piece';s.textContent=w;h.appendChild(s)});h.classList.add('is-ready');h.dataset.foldReady='1'}
+import{playFold}from'./fold-text.js';
+
+export function initGuidance(data){
+  const section=document.getElementById('guidance');
+  const left=document.querySelector('.guidance-left');
+  const right=document.querySelector('.guidance-right');
+  const cursor=document.getElementById('guideCursor');
+  left.querySelector('p').textContent=data.mindset.description;
+  right.querySelector('p').textContent=data.leadership.description;
+  const heads=[left.querySelector('h2'),right.querySelector('h2')];
+  heads.forEach(prepareLines);
+  let played=false;
+
+  function frame(){
+    const rect=section.getBoundingClientRect();
+    const progress=Math.max(0,Math.min(1,-rect.top/(section.offsetHeight-innerHeight)));
+    if(!played&&progress>.39){
+      played=true;
+      heads.forEach((head,i)=>playFold(head,{words:true,delay:i*.05,stagger:.10,duration:.76}));
+      [left,right].forEach((zone,i)=>zone.querySelector('p').animate(
+        [{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'translateY(0)'}],
+        {duration:760,delay:520+i*80,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'}
+      ));
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  [left,right].forEach((zone,i)=>{
+    zone.addEventListener('mouseenter',()=>{cursor.textContent=i?'OPEN TL':'OPEN MC';cursor.classList.add('show')});
+    zone.addEventListener('mouseleave',()=>cursor.classList.remove('show'));
+    zone.addEventListener('mousemove',event=>{cursor.style.left=`${event.clientX}px`;cursor.style.top=`${event.clientY}px`});
+  });
+}
+
+function prepareLines(head){
+  const words=head.textContent.trim().split(/\s+/);
+  head.textContent='';
+  words.forEach(word=>{
+    const line=document.createElement('span');
+    line.className='word fold-piece';
+    line.textContent=word;
+    head.appendChild(line);
+  });
+  head.classList.add('is-ready');
+  head.dataset.foldReady='1';
+}

@@ -1,1 +1,23 @@
-import{playFold,prepareFold}from'./fold-text.js';export function initHero(copy){const statement=document.getElementById('heroStatement');const name=document.getElementById('heroName');statement.textContent=copy.statement;name.textContent=copy.name;prepareFold(statement,{words:true});prepareFold(name);playFold(statement,{words:true,stagger:.065,duration:.8});setTimeout(()=>type(copy.typewriter),850);setTimeout(()=>playFold(name,{stagger:.04,duration:.75}),1700)}function type(text){const el=document.getElementById('typewriter');let i=0;const t=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length)clearInterval(t)},22)}
+import{playFold,prepareFold}from'./fold-text.js';
+
+export function initHero(copy){
+  const statement=document.getElementById('heroStatement');
+  const name=document.getElementById('heroName');
+  statement.textContent=copy.statement;
+  name.textContent=copy.name;
+  prepareFold(statement,{words:true});
+  prepareFold(name,{words:true});
+  playFold(statement,{words:true,stagger:.052,duration:.78});
+  window.setTimeout(()=>type(copy.typewriter),1050);
+  window.setTimeout(()=>playFold(name,{words:true,stagger:.10,duration:.78}),2050);
+}
+
+function type(text){
+  const el=document.getElementById('typewriter');
+  let index=0;
+  function step(){
+    el.textContent=text.slice(0,index++);
+    if(index<=text.length)window.setTimeout(step,21);
+  }
+  step();
+}

@@ -1,1 +1,15 @@
-export function initPractice(rows){const host=document.getElementById('practiceRows');rows.forEach((r,i)=>{const el=document.createElement('article');el.className='practice-row';el.innerHTML=`<div class="practice-title"><span>${r[0]}</span><span>${r[1]}</span></div><p class="practice-desc">${r[2]}</p>`;host.appendChild(el);observe(el,i*90)});}function observe(el,delay){const io=new IntersectionObserver(([e])=>{if(e.isIntersecting){setTimeout(()=>el.classList.add('visible'),delay);io.disconnect()}},{threshold:.25});io.observe(el)}
+export function initPractice(rows){
+  const host=document.getElementById('practiceRows');
+  rows.forEach((row,index)=>{
+    const item=document.createElement('article');
+    item.className='practice-row';
+    item.innerHTML=`<div class="practice-title"><span>${row[0]}</span><span>${row[1]}</span></div><p class="practice-desc">${row[2]}</p>`;
+    host.appendChild(item);
+    const observer=new IntersectionObserver(([entry])=>{
+      if(!entry.isIntersecting)return;
+      window.setTimeout(()=>item.classList.add('visible'),index*95);
+      observer.disconnect();
+    },{threshold:.16,rootMargin:'0px 0px -8%'});
+    observer.observe(item);
+  });
+}

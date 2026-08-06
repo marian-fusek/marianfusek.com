@@ -44,23 +44,14 @@ function startMfSite(){
 
 const mfLoaderBits=loader?{
   progress:loader.querySelector('#mfLoaderProgress'),
-  bar:loader.querySelector('#mfLoaderBar'),
-  ascii:loader.querySelector('#mfLoaderAscii'),
-  reveal:loader.querySelector('#mfLoaderReveal')
+  stage:loader.querySelector('#mfLoaderNumberStage')
 }:null;
 let mfSiteLoaderStarted=false;
 function runMfSiteLoader(){
   if(!loader||mfSiteLoaderStarted){ if(loader) setTimeout(()=>loader.classList.add('done'),50); return; }
   mfSiteLoaderStarted=true;
   const progressEl=mfLoaderBits?.progress;
-  const barEl=mfLoaderBits?.bar;
-  const asciiEl=mfLoaderBits?.ascii;
-  const syncLoaderNameHeight=()=>{
-    loader.style.setProperty('--mf-loader-name-height',`${Math.max(90,window.innerHeight/3-20).toFixed(1)}px`);
-  };
-  requestAnimationFrame(syncLoaderNameHeight);
-  document.fonts?.ready?.then(syncLoaderNameHeight);
-  window.addEventListener('resize',syncLoaderNameHeight,{passive:true});
+  const stageEl=mfLoaderBits?.stage;
   const withTimeout=(promise,ms=4200)=>Promise.race([Promise.resolve(promise),new Promise(resolve=>setTimeout(resolve,ms))]);
   const resources=[];
   const imgs=[...document.images].filter(img=>{
@@ -79,56 +70,83 @@ function runMfSiteLoader(){
     if(document.readyState==='complete')return resolve();
     window.addEventListener('load',()=>resolve(),{once:true});
   })));
-  let target=1,display=1,raf=0,finished=false,completionRequested=false;
+
+  let target=0,display=0,raf=0,finished=false,completionRequested=false,lastPainted=-1;
   let settled=0;
   const total=Math.max(1,resources.length);
-  const minDelay=450;
-  const simulatedDuration=850;
+  const minDelay=520;
+  const simulatedDuration=900;
   const startTime=performance.now();
-  function paintFrontier(value){
-    const ratio=Math.max(0,Math.min(1,value/100));
-    if(progressEl){
-      const txt=`${String(Math.round(value)).padStart(2,'0')}%`;
-      progressEl.textContent=txt;
-      progressEl.dataset.glitch=txt;
-      progressEl.style.setProperty('font-variation-settings',`'wght' ${Math.round(100+ratio*900)}, 'opsz' ${Math.round(8+ratio*136)}`,'important');
-      progressEl.style.setProperty('font-weight',String(Math.round(100+ratio*800)),'important');
-    }
-    if(barEl)barEl.style.width=`${ratio*100}%`;
-    if(asciiEl&&Math.random()>.92)asciiEl.textContent=['// assembling experience','<> signal acquired','[] loading intent','++ almost human'][Math.floor(Math.random()*4)];
+
+  function renderFoldedValue(value){
+    if(!progressEl)return;
+    const text=`${value}%`;
+    progressEl.dataset.value=text;
+    progressEl.replaceChildren(...Array.from(text).map((char,index)=>{
+      const piece=document.createElement('span');
+      piece.className='mf-loader-fold-char';
+      piece.style.setProperty('--mf-loader-char-index',String(index));
+      piece.textContent=char;
+      return piece;
+    }));
   }
+
+  function leaveGhost(value,ratio){
+    if(!stageEl||value<0)return;
+    const ghost=document.createElement('span');
+    ghost.className='mf-loader-number-ghost';
+    ghost.textContent=`${value}%`;
+    ghost.style.setProperty('--mf-loader-ghost-progress',ratio.toFixed(4));
+    stageEl.insertBefore(ghost,progressEl);
+    requestAnimationFrame(()=>ghost.classList.add('is-drifting'));
+    setTimeout(()=>ghost.remove(),1050);
+  }
+
+  function paintFrontier(value){
+    const rounded=Math.max(0,Math.min(100,Math.round(value)));
+    const ratio=rounded/100;
+    loader.style.setProperty('--mf-loader-progress',ratio.toFixed(4));
+    if(rounded===lastPainted)return;
+    if(lastPainted>=0)leaveGhost(lastPainted,ratio);
+    renderFoldedValue(rounded);
+    lastPainted=rounded;
+  }
+
   const render=()=>{
     raf=0;
     const elapsed=performance.now()-startTime;
-    const simulatedCap=Math.min(100,1+(elapsed/simulatedDuration)*99);
+    const simulatedCap=Math.min(100,(elapsed/simulatedDuration)*100);
     const effectiveTarget=Math.min(target,simulatedCap);
-    display += (effectiveTarget-display) * (effectiveTarget>=99 ? 0.14 : 0.12);
-    if(target===100 && display>99.55) display=100;
+    display += (effectiveTarget-display) * (effectiveTarget>=99 ? .18 : .135);
+    if(target===100&&display>99.55)display=100;
     paintFrontier(display);
     if(target===100&&display===100){beginCompletion();return;}
-    if(Math.abs(target-display)>.04||effectiveTarget<target)raf=requestAnimationFrame(render);
+    if(Math.abs(target-display)>.025||effectiveTarget<target)raf=requestAnimationFrame(render);
   };
   const setTarget=v=>{
     target=Math.max(target,Math.min(100,v));
-    if(!raf) raf=requestAnimationFrame(render);
+    if(!raf)raf=requestAnimationFrame(render);
   };
-  resources.forEach(p=>Promise.resolve(p).then(()=>{ settled++; setTarget(3+(settled/total)*89); }));
-  paintFrontier(1);
+
+  resources.forEach(p=>Promise.resolve(p).then(()=>{ settled++; setTarget(4+(settled/total)*90); }));
+  paintFrontier(0);
+  requestAnimationFrame(()=>{
+    loader.classList.add('is-number-entering');
+    setTimeout(()=>loader.classList.remove('is-number-entering'),900);
+  });
+
   const beginCompletion=()=>{
     if(finished)return;
     finished=true;
     setTimeout(()=>{
       loader.classList.add('is-completing');
-      progressEl?.classList.add('is-final-glitch');
-      if(asciiEl)asciiEl.textContent='// signal released';
       setTimeout(()=>{
         document.body.classList.add('mf-loader-revealing','mf-page-revealed');
-        try{sessionStorage.setItem("mfLoaderSeen","1");}catch(_){ }
+        try{sessionStorage.setItem('mfLoaderSeen','1');}catch(_){ }
         loader.classList.add('is-revealing');
-        setTimeout(()=>document.body.classList.add('mf-name-revealed'),950);
-        setTimeout(()=>loader.classList.add('done'),1500);
+        setTimeout(()=>loader.classList.add('done'),980);
       },720);
-    },1000);
+    },260);
   };
   const requestCompletion=()=>{
     if(completionRequested)return;
@@ -142,7 +160,6 @@ function runMfSiteLoader(){
   });
   setTimeout(requestCompletion,6500);
 }
-
 startMfSite();
 
 (function(){
@@ -245,7 +262,7 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY / V162 */
+/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY / V167 */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
@@ -374,8 +391,8 @@ if(indexExtra){
     /* V162: real physical stack. Cards never become translucent. The covered
        cards move upward only enough to leave a slim layered edge, so reverse
        scrolling reveals one clean card at a time instead of ghosting two. */
-    const enters=[[.135,.255],[.295,.415],[.455,.575]];
-    const introFade=1-phase(p,.105,.165);
+    const enters=[[.125,.225],[.325,.425],[.525,.625]];
+    const introFade=1-phase(p,.095,.155);
     intro.style.opacity=introFade.toFixed(4);
     intro.style.transform=`translate3d(0,${((1-introFade)*-10).toFixed(2)}px,0)`;
 
@@ -383,10 +400,11 @@ if(indexExtra){
       const enter=phase(p,...enters[index]);
       let depth=0;
       for(let next=index+1;next<cards.length;next++) depth+=phase(p,enters[next][0],enters[next][1]);
-      const y=(1-enter)*112 - depth*11;
-      const scale=1-depth*.0125;
+      const y=enter<1 ? (1-enter)*112 : -depth*10;
+      const yUnit=enter<1?'vh':'px';
+      const scale=1-depth*.015;
       const visible=enter>.002;
-      card.style.setProperty('--card-y',`${y.toFixed(3)}vh`);
+      card.style.setProperty('--card-y',`${y.toFixed(3)}${yUnit}`);
       card.style.setProperty('--card-scale',scale.toFixed(4));
       card.style.setProperty('--card-opacity',visible?'1':'0');
       card.style.setProperty('--card-shadow',Math.min(1,depth).toFixed(4));
@@ -401,7 +419,7 @@ if(indexExtra){
     raf=0;
     /* Deliberate visual drift only; native document scrolling remains untouched. */
     const delta=targetP-displayP;
-    displayP+=delta*(reduced.matches?1:.115);
+    displayP+=delta*(reduced.matches?1:.145);
     if(Math.abs(delta)<.00008)displayP=targetP;
     paint(displayP);
     if(active&&Math.abs(targetP-displayP)>.00008)raf=requestAnimationFrame(tick);
@@ -420,7 +438,7 @@ if(indexExtra){
 })();
 
 
-/* GUIDANCE GATEWAY — V162 */
+/* GUIDANCE GATEWAY — V167 */
 (function(){
   const section=document.getElementById('guidance');
   if(!section)return;
@@ -479,7 +497,7 @@ if(indexExtra){
     const rect=gateway.getBoundingClientRect();
     const travel=Math.max(1,gateway.offsetHeight-innerHeight);
     const p=Math.max(0,Math.min(1,-rect.top/travel));
-    if(p>.22)play();
+    if(p>.62)play();
   };
   addEventListener('scroll',update,{passive:true});
   addEventListener('resize',update,{passive:true});
@@ -2054,7 +2072,9 @@ const xpPlus=document.getElementById("xpPlus");if(xpPlus){function popXP(){xpPlu
       }
     }
   }
-  setTimeout(loop,2200);
+  let started=false;
+  const start=()=>{if(started)return;started=true;setTimeout(loop,140);};
+  window.addEventListener('mf:hero-typewriter-start',start,{once:true});
 })();
 
 /* BIO LETTER LOOP */
@@ -4801,4 +4821,100 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
   apply(document.body);
   new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(apply)))
     .observe(document.body,{childList:true,subtree:true});
+})();
+
+
+/* V168 — choreographed hero, practice wipes, editorial profile and Heresy arrival */
+(function(){
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const foldMarkup=(el)=>{
+    if(!el||el.dataset.foldBuilt)return;
+    const text=el.textContent;
+    el.setAttribute('aria-label',text.trim());
+    el.innerHTML=Array.from(text).map((ch,i)=>ch===' '
+      ? '<span class="mf-v168-fold-space">&nbsp;</span>'
+      : `<span class="mf-v168-fold-segment" style="--i:${i}"><span class="mf-v168-fold-piece">${ch}</span></span>`).join('');
+    el.dataset.foldBuilt='1';
+  };
+  const playFold=(el,delay=0)=>{
+    if(!el)return;
+    foldMarkup(el);
+    const pieces=[...el.querySelectorAll('.mf-v168-fold-piece')];
+    if(reduce.matches||!window.gsap){pieces.forEach(p=>{p.style.opacity='1';p.style.transform='none'});return Promise.resolve();}
+    return new Promise(resolve=>{
+      gsap.set(pieces,{opacity:0,rotateX:-88,y:'.22em',transformOrigin:'50% 0%',force3D:true});
+      gsap.to(pieces,{opacity:1,rotateX:0,y:0,duration:.7,stagger:.04,ease:'power3.out',delay,onComplete:resolve});
+    });
+  };
+
+  const heroInfo=document.querySelector('.mf-hero-info');
+  const heroTitle=heroInfo?.querySelector('h1');
+  const heroName=document.getElementById('heroName');
+  const loader=document.getElementById('mfLoader');
+  let heroPlayed=false;
+  async function playHero(){
+    if(heroPlayed)return; heroPlayed=true;
+    document.body.classList.add('mf-v168-hero-running');
+    await new Promise(r=>setTimeout(r,260));
+    await playFold(heroTitle,0);
+    heroInfo?.classList.add('is-hero-copy-visible');
+    window.dispatchEvent(new Event('mf:hero-typewriter-start'));
+    await new Promise(r=>setTimeout(r,700));
+    document.body.classList.add('mf-name-revealed');
+    await playFold(heroName,0);
+    document.body.classList.add('mf-v168-hero-complete');
+  }
+  if(loader){
+    const obs=new MutationObserver(()=>{if(loader.classList.contains('is-revealing')||loader.classList.contains('done')){obs.disconnect();playHero();}});
+    obs.observe(loader,{attributes:true,attributeFilter:['class']});
+    if(loader.classList.contains('done'))playHero();
+  } else playHero();
+
+  // Practice: strict one-by-one vertical wipes.
+  const practice=document.querySelector('.mf-practice');
+  const rows=[...document.querySelectorAll('.mf-practice .mf-roll')];
+  rows.forEach((row,i)=>{row.style.setProperty('--practice-i',i);row.classList.add('mf-practice-wipe-row');});
+  if(practice&&rows.length){
+    const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
+      if(!entry.isIntersecting)return;
+      rows.forEach((row,i)=>setTimeout(()=>row.classList.add('is-wiped-in'),i*125));
+      io.disconnect();
+    }),{threshold:.22});
+    io.observe(practice);
+  }
+
+  // Profile tabs: apply the same fold language to the large paragraph on every reveal.
+  const panels=[...document.querySelectorAll('.mf-bio-panel')];
+  const animatePanel=(panel)=>{
+    const lead=panel?.querySelector('.mf-profile-lead');
+    if(!lead)return;
+    // Preserve variable-proximity spans; animate words as panels instead of rewriting them.
+    const words=[...lead.querySelectorAll('.vp-word')];
+    if(reduce.matches||!window.gsap){words.forEach(w=>{w.style.opacity='1';w.style.transform='none'});return;}
+    gsap.killTweensOf(words);
+    gsap.fromTo(words,{opacity:0,rotateX:-82,y:18,transformOrigin:'50% 0%'},{opacity:1,rotateX:0,y:0,duration:.72,stagger:.025,ease:'power3.out'});
+  };
+  const activePanel=()=>document.querySelector('.mf-bio-panel.is-active');
+  const about=document.querySelector('.mf-about');
+  if(about){
+    const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){setTimeout(()=>animatePanel(activePanel()),80);io.disconnect();}}),{threshold:.2});
+    io.observe(about);
+    const mo=new MutationObserver(records=>{if(records.some(r=>r.type==='attributes'&&r.target.classList.contains('is-active')))setTimeout(()=>animatePanel(activePanel()),80);});
+    panels.forEach(p=>mo.observe(p,{attributes:true,attributeFilter:['class']}));
+  }
+
+  // Heresy: wait through a full clean viewport, then bring full-width strips in sequentially.
+  const heresy=document.querySelector('.mf-heresy-section');
+  const heresyHeading=heresy?.querySelector('.mf-heresy-heading');
+  const heresyItems=[...document.querySelectorAll('.mf-heresy-section .mf-heresy-item')];
+  if(heresy){
+    const io=new IntersectionObserver(entries=>entries.forEach(async e=>{
+      if(!e.isIntersecting)return;
+      heresy.classList.add('is-arriving');
+      await playFold(heresyHeading,0);
+      heresyItems.forEach((item,i)=>setTimeout(()=>item.classList.add('is-strip-visible'),260+i*90));
+      io.disconnect();
+    }),{threshold:.18,rootMargin:'0px 0px -25% 0px'});
+    io.observe(heresy.querySelector('.mf-heresy-arrival'));
+  }
 })();

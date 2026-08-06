@@ -245,7 +245,7 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY / V161 */
+/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY / V162 */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
@@ -371,22 +371,28 @@ if(indexExtra){
   };
 
   const paint=p=>{
-    /* Faster overlapping chapters: the incoming card begins before the previous
-       one has visually settled, creating the restored drifting stack. */
-    const enters=[[.145,.285],[.335,.475],[.525,.665]];
-    const nextStarts=[.335,.525,1.05];
+    /* V162: real physical stack. Cards never become translucent. The covered
+       cards move upward only enough to leave a slim layered edge, so reverse
+       scrolling reveals one clean card at a time instead of ghosting two. */
+    const enters=[[.135,.255],[.295,.415],[.455,.575]];
+    const introFade=1-phase(p,.105,.165);
+    intro.style.opacity=introFade.toFixed(4);
+    intro.style.transform=`translate3d(0,${((1-introFade)*-10).toFixed(2)}px,0)`;
+
     cards.forEach((card,index)=>{
       const enter=phase(p,...enters[index]);
-      const cover=index<2?phase(p,nextStarts[index],nextStarts[index]+.12):0;
-      const y=(1-enter)*112;
-      const scale=1-cover*.05;
-      const opacity=index<2?1-cover*.28:1;
+      let depth=0;
+      for(let next=index+1;next<cards.length;next++) depth+=phase(p,enters[next][0],enters[next][1]);
+      const y=(1-enter)*112 - depth*11;
+      const scale=1-depth*.0125;
+      const visible=enter>.002;
       card.style.setProperty('--card-y',`${y.toFixed(3)}vh`);
       card.style.setProperty('--card-scale',scale.toFixed(4));
-      card.style.setProperty('--card-opacity',opacity.toFixed(4));
-      card.style.setProperty('--card-shadow',cover.toFixed(4));
-      card.classList.toggle('is-present',enter>.985&&cover<.99);
+      card.style.setProperty('--card-opacity',visible?'1':'0');
+      card.style.setProperty('--card-shadow',Math.min(1,depth).toFixed(4));
+      card.classList.toggle('is-present',enter>.985);
       card.classList.toggle('is-entering',enter>0&&enter<.985);
+      card.style.visibility=visible?'visible':'hidden';
       card.style.pointerEvents=enter>.91?'auto':'none';
     });
   };
@@ -411,6 +417,80 @@ if(indexExtra){
   },{threshold:0});
   observer.observe(exhibition);
   measure();
+})();
+
+
+/* GUIDANCE GATEWAY — V162 */
+(function(){
+  const section=document.getElementById('guidance');
+  if(!section)return;
+  const oldTitle=section.querySelector('.mf-guidance-title');
+  const oldPortals=section.querySelector('.mf-guidance-portals');
+  const oldLabel=section.querySelector(':scope > .mf-stage-label');
+  [oldTitle,oldPortals,oldLabel].forEach(el=>{if(el){el.hidden=true;el.setAttribute('aria-hidden','true');}});
+
+  const fold=(text)=>Array.from(text).map((char,index)=>char===' '
+    ? '<span class="mf-guide-fold-space" aria-hidden="true">&nbsp;</span>'
+    : `<span class="mf-guide-fold-segment" aria-hidden="true" style="--fold-i:${index}"><span class="mf-guide-fold-piece">${char}</span></span>`
+  ).join('');
+
+  const gateway=document.createElement('div');
+  gateway.className='mf-guidance-gateway';
+  gateway.innerHTML=`
+    <div class="mf-guidance-gateway-stage">
+      <button class="mf-guidance-zone mf-guidance-zone-mc" type="button" data-guidance="mindset" aria-label="Open Mindset Coaching">
+        <span class="mf-guidance-corner-glow" aria-hidden="true"></span>
+        <span class="mf-guidance-gateway-copy">
+          <strong aria-label="Mindset Coaching"><span class="mf-guide-sr">Mindset Coaching</span><span class="mf-guide-fold-visual">${fold('Mindset Coaching')}</span></strong>
+          <small>One-on-ones with real and direct conversations for founders, leaders and digital creatives.</small>
+        </span>
+      </button>
+      <button class="mf-guidance-zone mf-guidance-zone-tl" type="button" data-guidance="leadership" aria-label="Open Team Leadership">
+        <span class="mf-guidance-corner-glow" aria-hidden="true"></span>
+        <span class="mf-guidance-gateway-copy">
+          <strong aria-label="Team Leadership"><span class="mf-guide-sr">Team Leadership</span><span class="mf-guide-fold-visual">${fold('Team Leadership')}</span></strong>
+          <small>Team leadership, people development, and audits for people-first teams.</small>
+        </span>
+      </button>
+      <div class="mf-guidance-open-cursor" aria-hidden="true"><span>OPEN MC</span></div>
+    </div>`;
+  section.appendChild(gateway);
+
+  const stage=gateway.querySelector('.mf-guidance-gateway-stage');
+  const zones=[...gateway.querySelectorAll('.mf-guidance-zone')];
+  const cursor=gateway.querySelector('.mf-guidance-open-cursor');
+  const pieces=[...gateway.querySelectorAll('.mf-guide-fold-piece')];
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let played=false;
+
+  const play=()=>{
+    if(played)return;
+    played=true;
+    gateway.classList.add('is-played');
+    if(reduced.matches||!window.gsap){pieces.forEach(piece=>{piece.style.opacity='1';piece.style.transform='none';piece.style.setProperty('--fold-crease','0');});return;}
+    const mc=[...gateway.querySelectorAll('.mf-guidance-zone-mc .mf-guide-fold-piece')];
+    const tl=[...gateway.querySelectorAll('.mf-guidance-zone-tl .mf-guide-fold-piece')];
+    gsap.timeline()
+      .to([mc,tl],{opacity:1,rotateX:0,y:0,'--fold-crease':0,duration:.68,stagger:{each:.038,from:'start'},ease:'power3.out',force3D:true})
+      .to(gateway.querySelectorAll('.mf-guidance-gateway-copy small'),{opacity:1,y:0,duration:.6,stagger:.08,ease:'power3.out'},'-=.34');
+  };
+
+  const update=()=>{
+    const rect=gateway.getBoundingClientRect();
+    const travel=Math.max(1,gateway.offsetHeight-innerHeight);
+    const p=Math.max(0,Math.min(1,-rect.top/travel));
+    if(p>.22)play();
+  };
+  addEventListener('scroll',update,{passive:true});
+  addEventListener('resize',update,{passive:true});
+  update();
+
+  zones.forEach(zone=>{
+    const isMC=zone.classList.contains('mf-guidance-zone-mc');
+    zone.addEventListener('pointerenter',()=>{cursor.querySelector('span').textContent=isMC?'OPEN MC':'OPEN TL';stage.classList.add('is-cursor-active');});
+    zone.addEventListener('pointerleave',()=>stage.classList.remove('is-cursor-active'));
+    zone.addEventListener('pointermove',event=>{cursor.style.transform=`translate3d(${event.clientX}px,${event.clientY}px,0) translate(-50%,-50%)`;});
+  });
 })();
 
 /* PROJECT OVERLAYS */

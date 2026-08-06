@@ -1,0 +1,8 @@
+V164 — GitHub-ready deployment package
+
+This archive opens directly at the website root (index.html is at the top level).
+Removed:
+- unused /vids directory containing an unreferenced 30.7 MB video
+- macOS .DS_Store metadata files
+
+Important: unzip this package before pushing. Do not upload the ZIP itself as a repository file.

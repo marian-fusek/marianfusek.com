@@ -57,3 +57,9 @@ V160 — RECENT WORKS STACK
 - Removed Vault 111 and Side Quests from the Recent Works sequence.
 - Project cards retain keyboard and pointer opening behavior.
 - Project details open full-screen with a clean fade and subtle scale-up; outer rounded overlay removed.
+
+V163
+- Loader version advanced to V#163.
+- Added an inline first-paint background declaration so the browser cannot flash the old dark base before staging.css loads.
+- Forced the Recent Works section, sticky stage and fold-animation container to inherit the live site background (#e4e6e7 / --mf-bg).
+- Kept all fold-text pieces transparent so only the crease shading animates, never a dark text panel.

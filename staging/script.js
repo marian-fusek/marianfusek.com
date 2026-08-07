@@ -2,11 +2,10 @@
   'use strict';
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
-  const smoothstep=t=>{t=clamp(t);return t*t*(3-2*t)};
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* One smooth-scroll owner. No section gets its own wheel handler. */
+  /* Single smooth-scroll owner. Sections never intercept or snap independently. */
   class SmoothScroll{
     constructor(){
       this.enabled=!reduce&&matchMedia('(pointer:fine)').matches;
@@ -33,127 +32,164 @@
     }
     start(){if(!this.raf)this.raf=requestAnimationFrame(()=>this.tick())}
     tick(){
-      this.current=lerp(this.current,this.target,.105);
-      if(Math.abs(this.target-this.current)<.22)this.current=this.target;
+      this.current=lerp(this.current,this.target,.095);
+      if(Math.abs(this.target-this.current)<.2)this.current=this.target;
       scrollTo(0,this.current);
-      document.dispatchEvent(new CustomEvent('mf:smoothscroll'));
       if(this.current!==this.target)this.raf=requestAnimationFrame(()=>this.tick());else this.raf=0;
     }
     goTo(y){this.target=clamp(y,0,this.max());this.start()}
   }
   const smooth=new SmoothScroll();
 
-  /* Hero: authored three-line statement + the original rotating meta typewriter. */
+  /* Hero three-line statement + visible rotating typewriter. */
   const typeTarget=document.getElementById('heroTypewriter');
   const metaLines=['20+ YEARS OF XP','DESIGN, LEADERSHIP, COACHING','SUPERPOWER: FINDING YOUR SUPERPOWER'];
   async function runTypewriter(){
     if(!typeTarget)return;
-    await wait(reduce?50:900);
+    await wait(reduce?30:650);
     while(true){
       for(const line of metaLines){
         typeTarget.textContent='';
-        for(const ch of line){typeTarget.textContent+=ch;await wait(reduce?2:42)}
-        await wait(reduce?80:1250);
-        while(typeTarget.textContent.length){typeTarget.textContent=typeTarget.textContent.slice(0,-1);await wait(reduce?1:20)}
-        await wait(reduce?30:260);
+        for(const ch of line){typeTarget.textContent+=ch;await wait(reduce?1:38)}
+        await wait(reduce?50:1450);
+        while(typeTarget.textContent.length){typeTarget.textContent=typeTarget.textContent.slice(0,-1);await wait(reduce?1:17)}
+        await wait(reduce?20:250);
       }
     }
   }
   runTypewriter();
 
-  /* Hero name loop: accents only. No chroma, blur, disappear, glitch or whole-name effect. */
-  const accentLetters=[...document.querySelectorAll('.name-letter[data-accent]')];
-  async function accentPulse(el){
-    const base=el.textContent,accent=el.dataset.accent;
-    el.classList.add('is-accenting');el.textContent=accent;
-    await wait(650);
-    el.textContent=base;el.classList.remove('is-accenting');
+  /* TextPressure-inspired hero name. Individual letters respond smoothly to pointer
+     distance using weight + restrained horizontal scale, while the container is
+     optically fitted to the viewport so no letter can spill over the edges. */
+  const nameWrap=document.getElementById('heroNameWrap');
+  const name=document.getElementById('heroName');
+  const letters=[...document.querySelectorAll('.name-letter')];
+  const pointer={x:innerWidth/2,y:innerHeight*.78};
+  const eased={x:pointer.x,y:pointer.y};
+  let pressureRaf=0;
+
+  function fitName(){
+    if(!nameWrap||!name)return;
+    name.style.transform='scaleX(1)';
+    const available=nameWrap.clientWidth;
+    const measured=name.scrollWidth;
+    const fit=measured>0?Math.min(1,available/measured):1;
+    name.style.transform=`scaleX(${fit})`;
   }
-  async function nameLoop(){
-    if(reduce)return;
+  addEventListener('resize',fitName,{passive:true});
+  fitName();
+
+  function pressureTick(){
+    eased.x+=(pointer.x-eased.x)/15;
+    eased.y+=(pointer.y-eased.y)/15;
+    const maxDist=Math.max(innerWidth*.38,360);
+    for(const span of letters){
+      const r=span.getBoundingClientRect();
+      const cx=r.left+r.width/2,cy=r.top+r.height/2;
+      const d=Math.hypot(eased.x-cx,eased.y-cy);
+      const influence=clamp(1-d/maxDist,0,1);
+      const wght=Math.round(360+influence*330);
+      const sx=.94+influence*.14;
+      span.style.fontVariationSettings=`'wght' ${wght}`;
+      span.style.transform=`scaleX(${sx})`;
+    }
+    pressureRaf=requestAnimationFrame(pressureTick);
+  }
+  addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY},{passive:true});
+  if(!reduce)pressureRaf=requestAnimationFrame(pressureTick);
+
+  /* Accent loop remains the only autonomous character mutation. */
+  const accentLetters=letters.filter(el=>el.dataset.accent);
+  async function accentLoop(){
+    if(reduce||!accentLetters.length)return;
     await wait(2600);
     while(true){
-      const first=accentLetters[Math.floor(Math.random()*accentLetters.length)];
-      await accentPulse(first);await wait(2200+Math.random()*2600);
+      const el=accentLetters[Math.floor(Math.random()*accentLetters.length)];
+      const base=el.dataset.base||el.textContent;
+      el.textContent=el.dataset.accent;
+      await wait(620);
+      el.textContent=base;
+      await wait(2400+Math.random()*2600);
     }
   }
-  nameLoop();
+  accentLoop();
 
-  /* Reveal = the supplied masked upward + blur-resolve animation. */
-  function buildReveal(el,mode='words'){
-    if(el.dataset.revealBuilt)return [];
-    el.dataset.revealBuilt='1';
-    const text=el.textContent;el.textContent='';
-    const parts=mode==='chars'?Array.from(text):text.split(/(\s+)/),pieces=[];
-    for(const part of parts){
-      if(!part)continue;
-      if(/^\s+$/.test(part)){el.append(document.createTextNode(part));continue}
-      const mask=document.createElement('span');mask.className='reveal-mask';
-      const piece=document.createElement('span');piece.className='reveal-piece';piece.textContent=part;
-      mask.append(piece);el.append(mask);pieces.push(piece);
-    }
-    return pieces;
-  }
-  const heading=document.getElementById('projectsHeading');
-  const headingPieces=buildReveal(heading.querySelector('[data-reveal]'),'words');
-  let headingPlayed=false;
-  function revealHeading(){
-    if(headingPlayed)return;headingPlayed=true;heading.classList.add('is-visible');
-    headingPieces.forEach((p,i)=>setTimeout(()=>p.classList.add('is-in'),i*90));
-  }
-
-  /* Recent Works: scroll progress owns every row reveal and every image state continuously. */
-  const section=document.getElementById('projects');
-  const stage=section.querySelector('.projects-sticky');
+  /* Recent Works appears only when the second (stage) viewport has fully arrived. */
+  const stage=document.getElementById('projectsStage');
+  const kicker=document.getElementById('projectsKicker');
   const rows=[...document.querySelectorAll('.project-row')];
   const previews=[...document.querySelectorAll('.project-preview')];
-  let hoverIndex=-1;
+  let stageStarted=false;
+  let cycleTimer=0;
+  let activeIndex=0;
 
-  function projectState(){
-    const rect=section.getBoundingClientRect();
-    const travel=Math.max(1,section.offsetHeight-innerHeight);
-    // progress only starts once the project background fully occupies the viewport
-    const raw=clamp(-rect.top/travel,0,1);
-
-    if(rect.top<=0 && raw>.018)revealHeading();
-
-    // strips reveal continuously, one after another
-    const revealStart=.07,revealSpan=.065;
-    rows.forEach((row,i)=>{
-      const r=smoothstep((raw-(revealStart+i*revealSpan))/revealSpan);
-      row.style.setProperty('--reveal',r.toFixed(4));
-    });
-
-    // activation begins only after all four strips have materially arrived
-    const activeStart=.31,activeEnd=.79;
-    const q=clamp((raw-activeStart)/(activeEnd-activeStart),0,1)*3;
-    const inActiveRange=raw>=activeStart;
-
-    rows.forEach((row,i)=>{
-      const scrollWeight=inActiveRange?smoothstep(1-clamp(Math.abs(q-i),0,1)):0;
-      const weight=hoverIndex===i?Math.max(scrollWeight,.92):scrollWeight;
-      row.style.setProperty('--active',weight.toFixed(4));
-    });
-
-    previews.forEach((preview,i)=>{
-      let weight=inActiveRange?smoothstep(1-clamp(Math.abs(q-i),0,1)):0;
-      if(hoverIndex>=0)weight=hoverIndex===i?1:0;
-      preview.style.opacity=weight.toFixed(4);
-      preview.style.transform=`translateY(${(1-weight)*24}px)`;
-    });
-
-    stage.classList.toggle('is-exiting',raw>.86);
+  function revealStage(){
+    if(stageStarted)return;
+    stageStarted=true;
+    kicker.classList.add('is-revealed');
+    rows.forEach((row,i)=>setTimeout(()=>row.classList.add('is-revealed'),220+i*170));
+    const introDelay=220+rows.length*170+750;
+    setTimeout(()=>startProjectCycle(0),introDelay);
   }
-  addEventListener('scroll',projectState,{passive:true});
-  document.addEventListener('mf:smoothscroll',projectState);
-  addEventListener('resize',projectState,{passive:true});
-  rows.forEach((row,i)=>{
-    row.addEventListener('mouseenter',()=>{hoverIndex=i;projectState()});
-    row.addEventListener('mouseleave',()=>{hoverIndex=-1;projectState()});
-  });
-  projectState();
 
-  /* Cursor: guaranteed visible on fine pointers; OPEN only on project rows. */
+  function setActiveProject(next,animateWipe=true){
+    next=(next+rows.length)%rows.length;
+    const old=activeIndex;
+    if(next===old && rows[next].classList.contains('is-running'))return;
+
+    clearTimeout(cycleTimer);
+    rows.forEach((row,i)=>{
+      row.classList.toggle('is-active',i===next);
+      row.classList.remove('is-running');
+      const progress=row.querySelector('.project-progress');
+      if(progress){progress.style.animation='none';void progress.offsetWidth;progress.style.animation=''}
+    });
+
+    const oldPreview=previews[old];
+    const newPreview=previews[next];
+    if(newPreview)newPreview.classList.add('is-active');
+
+    if(animateWipe && oldPreview && oldPreview!==newPreview && oldPreview.classList.contains('is-active')){
+      oldPreview.classList.add('is-wiping');
+      const done=()=>{
+        oldPreview.classList.remove('is-active','is-wiping');
+        oldPreview.removeEventListener('animationend',done);
+      };
+      oldPreview.addEventListener('animationend',done);
+      setTimeout(done,650);
+    }else if(oldPreview && oldPreview!==newPreview){
+      oldPreview.classList.remove('is-active','is-wiping');
+    }
+
+    activeIndex=next;
+    requestAnimationFrame(()=>rows[next].classList.add('is-running'));
+    cycleTimer=setTimeout(()=>setActiveProject((next+1)%rows.length,true),5000);
+  }
+
+  function startProjectCycle(index){
+    activeIndex=index;
+    rows.forEach((row,i)=>row.classList.toggle('is-active',i===index));
+    previews.forEach((preview,i)=>preview.classList.toggle('is-active',i===index));
+    rows.forEach(row=>row.classList.remove('is-running'));
+    requestAnimationFrame(()=>rows[index].classList.add('is-running'));
+    clearTimeout(cycleTimer);
+    cycleTimer=setTimeout(()=>setActiveProject((index+1)%rows.length,true),5000);
+  }
+
+  const stageObserver=new IntersectionObserver(entries=>{
+    for(const entry of entries){
+      // threshold 0.985 means the stage must essentially fill the viewport first.
+      if(entry.target===stage && entry.intersectionRatio>=.985)revealStage();
+    }
+  },{threshold:[.5,.75,.9,.985,1]});
+  stageObserver.observe(stage);
+
+  rows.forEach((row,i)=>{
+    row.addEventListener('click',()=>setActiveProject(i,true));
+  });
+
+  /* Cursor. */
   const cursor=document.getElementById('cursor');
   let cx=-100,cy=-100,tx=-100,ty=-100,raf=0;
   function tickCursor(){

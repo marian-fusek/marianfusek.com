@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Marian Fusek — Staging V181</title>
+  <title>Marian Fusek — Staging V182</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <nav class="site-nav" aria-label="Primary">
     <a class="nav-logo" href="#hero">MF</a>
-    <a href="#projects">Index</a>
+    <a href="#projectsStage">Index</a>
     <a href="#guidance">Guidance</a>
     <a href="#xp">XP</a>
     <a href="#bio">BIO</a>
@@ -30,46 +30,64 @@
         </div>
       </div>
 
-      <div class="hero-name" id="heroName" aria-label="Marian Fusek">
-        <span class="name-letter">M</span><span class="name-letter">A</span><span class="name-letter">R</span><span class="name-letter">I</span><span class="name-letter" data-accent="Á">A</span><span class="name-letter">N</span><span class="name-space">&nbsp;</span><span class="name-letter">F</span><span class="name-letter" data-accent="Ů">U</span><span class="name-letter">S</span><span class="name-letter">E</span><span class="name-letter">K</span>
+      <div class="hero-name-wrap" id="heroNameWrap">
+        <div class="hero-name" id="heroName" aria-label="Marian Fusek">
+          <span class="name-letter" data-base="M">M</span>
+          <span class="name-letter" data-base="A">A</span>
+          <span class="name-letter" data-base="R">R</span>
+          <span class="name-letter" data-base="I">I</span>
+          <span class="name-letter" data-base="A" data-accent="Á">A</span>
+          <span class="name-letter" data-base="N">N</span>
+          <span class="name-space" aria-hidden="true"></span>
+          <span class="name-letter" data-base="F">F</span>
+          <span class="name-letter" data-base="U" data-accent="Ů">U</span>
+          <span class="name-letter" data-base="S">S</span>
+          <span class="name-letter" data-base="E">E</span>
+          <span class="name-letter" data-base="K">K</span>
+        </div>
       </div>
     </section>
 
     <section class="projects" id="projects">
-      <div class="projects-sticky">
-        <header class="projects-heading" id="projectsHeading">
-          <h2 data-reveal="words">Recent Works</h2>
-        </header>
+      <div class="projects-empty" aria-hidden="true"></div>
 
-        <div class="projects-menu" id="projectsMenu">
-          <button class="project-row" data-project="0" type="button">
-            <span class="project-title">MIUNĀE</span>
-            <span class="project-meta">CREATIVE DIRECTION</span>
-          </button>
-          <button class="project-row" data-project="1" type="button">
-            <span class="project-title">GoBaller</span>
-            <span class="project-meta">BRAND, iOS APP</span>
-          </button>
-          <button class="project-row" data-project="2" type="button">
-            <span class="project-title">AIMS</span>
-            <span class="project-meta">WEBSITE, BRAND REFRESH</span>
-          </button>
-          <button class="project-row" data-project="3" type="button">
-            <span class="project-title">Explorations</span>
-            <span class="project-meta">DESIGN EXPERIMENTS</span>
-          </button>
+      <div class="projects-stage" id="projectsStage">
+        <div class="projects-index">
+          <div class="projects-kicker reveal-line" id="projectsKicker">01 // LAST YEAR PROJECTS</div>
+
+          <div class="projects-menu" id="projectsMenu">
+            <button class="project-row reveal-line" data-project="0" type="button">
+              <span class="project-title">MIUNĀE</span>
+              <span class="project-type">BRAND</span>
+              <span class="project-track" aria-hidden="true"><span class="project-progress"></span></span>
+            </button>
+            <button class="project-row reveal-line" data-project="1" type="button">
+              <span class="project-title">GoBaller</span>
+              <span class="project-type">iOS</span>
+              <span class="project-track" aria-hidden="true"><span class="project-progress"></span></span>
+            </button>
+            <button class="project-row reveal-line" data-project="2" type="button">
+              <span class="project-title">AIMS</span>
+              <span class="project-type">WEB</span>
+              <span class="project-track" aria-hidden="true"><span class="project-progress"></span></span>
+            </button>
+            <button class="project-row reveal-line" data-project="3" type="button">
+              <span class="project-title">Explorations</span>
+              <span class="project-type">EXPERIMENTS</span>
+              <span class="project-track" aria-hidden="true"><span class="project-progress"></span></span>
+            </button>
+          </div>
         </div>
 
         <div class="project-previews" id="projectPreviews" aria-live="polite">
-          <figure class="project-preview" data-project="0"><img src="../media/projects/miunae/01-miunae-logo.jpg" alt="MIUNĀE project preview"></figure>
+          <figure class="project-preview is-active" data-project="0"><img src="../media/projects/miunae/01-miunae-logo.jpg" alt="MIUNĀE project preview"></figure>
           <figure class="project-preview" data-project="1"><img src="../media/projects/goballer/01-goballer-logo.jpg" alt="GoBaller project preview"></figure>
           <figure class="project-preview" data-project="2"><img src="../media/projects/aims/01-aims-logo.jpg" alt="AIMS project preview"></figure>
           <figure class="project-preview" data-project="3"><img src="../media/projects/vault/01-nofakie-1.jpg" alt="Explorations project preview"></figure>
+          <div class="preview-wipe" id="previewWipe" aria-hidden="true"></div>
         </div>
       </div>
     </section>
-
-    <section class="after-projects" aria-hidden="true"></section>
   </main>
 
   <div class="cursor" id="cursor" aria-hidden="true">

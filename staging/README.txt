@@ -1,2 +1,2 @@
-V181 — Scratch rebuild checkpoint after V180 review.
-Only Hero + Recent Works. No loader, grid, ASCII, or legacy staging code.
+V182 — scratch checkpoint 4
+Only Hero + Recent Works. No loader. No legacy staging code.

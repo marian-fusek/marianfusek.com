@@ -4549,353 +4549,257 @@ html {scroll-behavior:smooth;}
 @media (prefers-reduced-motion:reduce) {html body.mf-cloud-study #heroSection .mf-hero-fold-piece {opacity:1 !important;transform:none !important;}}
 
 /* ============================================================
-   V174 — Recent Works / Tik-Tik archive study
-   Scope deliberately limited to #work. All other site systems stay V173.
+   V175 — RECENT WORKS / RESTRAINED AIRY INDEX
    ============================================================ */
-html body.mf-cloud-study.mf-tiktik-works #work {
+html body.mf-cloud-study.mf-recent-works-v175 #work {
+  position:relative !important;
   min-height:0 !important;
-  height:auto !important;
   padding:0 !important;
   overflow:visible !important;
   background:transparent !important;
 }
-html body.mf-cloud-study.mf-tiktik-works #work > .mf-stage-label,
-html body.mf-cloud-study.mf-tiktik-works #work > .mf-index-title,
-html body.mf-cloud-study.mf-tiktik-works #work > .mf-strips { display:none !important; }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-exhibition {
+html body.mf-cloud-study.mf-recent-works-v175 #work > .mf-index-title,
+html body.mf-cloud-study.mf-recent-works-v175 #work > .mf-stage-label,
+html body.mf-cloud-study.mf-recent-works-v175 #work > .mf-strips {display:none !important;}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-exhibition {
   position:relative;
-  width:100%;
   height:520svh;
-  margin-top:-1px;
   background:var(--mf-bg);
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-stage {
-  --archive-opacity:0;
-  --preview-tilt:0deg;
-  --preview-drift:0px;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-stage {
   position:sticky;
   top:0;
   width:100%;
   height:100svh;
   overflow:hidden;
-  isolation:isolate;
   background:var(--mf-bg);
-  transition:background-color .12s linear;
+  isolation:isolate;
 }
-/* Preserve the existing atmospheric grid rather than adding a project-only pattern. */
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-stage::before {
-  content:"";
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-scene {
   position:absolute;
   inset:0;
-  z-index:0;
-  pointer-events:none;
-  background-image:
-    linear-gradient(to right,rgba(76,88,93,.065) 1px,transparent 1px),
-    linear-gradient(to bottom,rgba(76,88,93,.065) 1px,transparent 1px);
-  background-size:10vw 33.333vh;
-  opacity:.34;
-  mix-blend-mode:multiply;
+  opacity:1;
+  transform:translate3d(0,0,0);
+  will-change:transform,opacity;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro {
-  position:absolute;
-  inset:0;
-  z-index:7;
-  display:grid;
-  place-content:center;
-  justify-items:center;
-  padding:24px;
-  color:var(--mf-title);
-  text-align:center;
-  opacity:0;
-  pointer-events:none;
-  will-change:opacity,transform;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro h2 {
-  margin:0;
-  font-family:"Geist",Arial,sans-serif;
-  font-size:clamp(58px,8.2vw,148px);
-  line-height:.86;
-  font-weight:400;
-  letter-spacing:-.062em;
-  color:var(--mf-title);
-  perspective:700px;
-  transform-style:preserve-3d;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro p {
-  margin:clamp(18px,2.5vh,30px) 0 0;
-  font-family:"Geist",Arial,sans-serif;
-  font-size:clamp(12px,.95vw,15px);
-  line-height:1.2;
-  letter-spacing:-.01em;
-  font-weight:400;
-  color:var(--mf-body);
-  perspective:700px;
-  transform-style:preserve-3d;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-sr {
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-sr {
   position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);white-space:nowrap;border:0;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-visual,
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-space { display:inline; }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-segment {
-  display:inline-block;line-height:inherit;perspective:700px;transform-style:preserve-3d;vertical-align:baseline;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-piece {
+
+/* REVEAL — masked rise + blur resolve. Background always stays transparent. */
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-mask {
   display:inline-block;
-  opacity:0;
-  transform:rotateX(-92deg) translate3d(0,13px,0);
-  transform-origin:50% 0%;
-  transform-style:preserve-3d;
-  backface-visibility:hidden;
-  will-change:transform,opacity;
+  overflow:hidden;
+  vertical-align:bottom;
+  padding:.06em 0 .1em;
+  margin:-.06em 0 -.1em;
   background:transparent !important;
 }
-/* No crease rectangle: the background is literally the section color. */
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-piece::after {content:none !important;display:none !important;}
-
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-list {
-  position:absolute;
-  inset:0;
-  z-index:3;
-  opacity:var(--archive-opacity);
-  pointer-events:none;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-space {display:inline-block;width:.26em;}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece {
+  display:inline-block;
+  opacity:1;
+  transform:translate3d(0,105%,0);
+  filter:blur(18px);
+  background:transparent !important;
+  will-change:transform,filter;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row {
-  --row-y:0px;
-  --row-opacity:0;
-  --row-scale:1;
-  --row-blur:0px;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece::before,
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece::after {content:none !important;display:none !important;}
+
+/* Top-right section identity. */
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading {
   position:absolute;
-  left:0;
-  top:50%;
-  width:100%;
-  height:clamp(98px,16vh,172px);
-  padding:0 clamp(28px,4vw,72px);
-  border:0;
-  margin:0;
-  display:grid;
-  grid-template-columns:clamp(32px,4vw,68px) minmax(0,1fr) minmax(220px,28vw);
-  align-items:center;
-  column-gap:clamp(14px,2vw,34px);
-  background:transparent;
+  z-index:5;
+  left:75vw;
+  top:clamp(92px,13.5vh,144px);
+  width:min(21vw,360px);
   color:var(--mf-title);
   text-align:left;
-  opacity:var(--row-opacity);
-  transform:translate3d(0,calc(-50% + var(--row-y)),0) scale(var(--row-scale));
-  transform-origin:center center;
-  filter:blur(var(--row-blur));
-  will-change:transform,opacity,filter;
-  cursor:none;
-  isolation:isolate;
+  opacity:0;
+  pointer-events:none;
+  will-change:opacity;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row::after {
-  content:"";
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading h2 {
+  margin:0;
+  font-family:"Geist",Arial,sans-serif;
+  font-size:clamp(18px,1.45vw,28px);
+  line-height:.98;
+  letter-spacing:-.045em;
+  font-weight:400;
+  color:var(--mf-title);
+}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading p {
+  margin:10px 0 0;
+  max-width:28em;
+  font-family:"Geist Mono",monospace;
+  font-size:clamp(7px,.56vw,10px);
+  line-height:1.38;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+  font-weight:400;
+  color:var(--mf-meta);
+}
+
+/* Compact project strips occupy only the upper-left quarter. */
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index {
+  --menu-opacity:1;
   position:absolute;
-  left:clamp(28px,4vw,72px);
-  right:clamp(28px,4vw,72px);
-  bottom:0;
-  height:1px;
-  background:rgba(67,78,83,.18);
-  transform:scaleX(.985);
-  transform-origin:center;
-  transition:background-color .45s ease,transform .6s cubic-bezier(.16,1,.3,1);
+  z-index:6;
+  left:clamp(28px,3.25vw,64px);
+  top:clamp(96px,13.5vh,148px);
+  width:calc(50vw - clamp(28px,3.25vw,64px));
+  max-width:calc(50vw - 28px);
+  opacity:var(--menu-opacity);
+  border-top:1px solid color-mix(in srgb,var(--mf-line) 72%,transparent);
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row.is-active::after {
-  background:rgba(67,78,83,.32);
-  transform:scaleX(1);
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row {
+  --row-in:0;
+  position:relative !important;
+  left:auto !important;
+  top:auto !important;
+  width:100% !important;
+  height:clamp(56px,7.2vh,74px) !important;
+  padding:0 11px 0 0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-bottom:1px solid color-mix(in srgb,var(--mf-line) 72%,transparent) !important;
+  display:grid !important;
+  grid-template-columns:minmax(105px,1.06fr) minmax(116px,1.05fr) minmax(170px,1.65fr) 12px !important;
+  align-items:center !important;
+  gap:clamp(10px,1.25vw,24px) !important;
+  color:var(--mf-title) !important;
+  background:transparent !important;
+  text-align:left !important;
+  opacity:calc(var(--row-in) * .38) !important;
+  transform:translate3d(0,calc((1 - var(--row-in)) * 16px),0) !important;
+  filter:none !important;
+  cursor:none !important;
+  pointer-events:calc(var(--row-in)) !important;
+  transition:
+    opacity 1.25s cubic-bezier(.16,1,.3,1),
+    color 1.35s cubic-bezier(.16,1,.3,1),
+    background-color 1.35s cubic-bezier(.16,1,.3,1) !important;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-number,
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-side small,
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-side em {
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row::after {content:none !important;display:none !important;}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active {
+  opacity:var(--row-in) !important;
+}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row:hover:not(.is-active) {
+  opacity:calc(var(--row-in) * .68) !important;
+}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-title {
+  font-family:"Geist",Arial,sans-serif;
+  font-size:clamp(15px,1.15vw,22px);
+  line-height:1;
+  letter-spacing:-.035em;
+  font-weight:450;
+  color:inherit;
+  white-space:nowrap;
+  transition:color 1.35s cubic-bezier(.16,1,.3,1);
+}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-meta,
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-desc,
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-plus {
   font-family:"Geist Mono",monospace;
   text-transform:uppercase;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-number {
-  align-self:center;
-  font-size:9px;
-  line-height:1;
-  letter-spacing:.08em;
   color:var(--mf-meta);
+  transition:color 1.35s cubic-bezier(.16,1,.3,1),opacity 1.35s cubic-bezier(.16,1,.3,1);
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-title {
-  display:block;
-  min-width:0;
-  font-family:"Geist",Arial,sans-serif;
-  font-size:clamp(54px,8vw,142px);
-  line-height:.80;
-  letter-spacing:-.07em;
-  font-weight:400;
-  white-space:nowrap;
-  color:var(--mf-title);
-  transition:letter-spacing .7s cubic-bezier(.16,1,.3,1),color .45s ease;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-meta {
+  font-size:clamp(6.5px,.49vw,8.5px);
+  line-height:1.28;
+  letter-spacing:.05em;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row.is-active .mf-tik-row-title {letter-spacing:-.055em;}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-side {
-  min-width:0;
-  align-self:center;
-  display:grid;
-  gap:8px;
-  justify-items:end;
-  text-align:right;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-desc {
+  font-size:clamp(6.5px,.49vw,8.5px);
+  line-height:1.28;
+  letter-spacing:.035em;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-side small {
-  max-width:100%;
-  font-size:9px;
-  line-height:1.15;
-  letter-spacing:.055em;
-  font-style:normal;
-  color:var(--mf-meta);
-  white-space:normal;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-side em {
-  max-width:30em;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-plus {
+  justify-self:end;
   font-size:8px;
-  line-height:1.3;
-  letter-spacing:.025em;
-  font-style:normal;
-  color:var(--mf-body);
-  opacity:.72;
+  line-height:1;
+  opacity:.6;
 }
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active .mf-v175-row-meta,
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active .mf-v175-row-desc,
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active .mf-v175-row-plus {color:var(--mf-body);opacity:.95;}
 
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview {
-  --drag-x:0px;
-  --drag-y:0px;
+/* Active image occupies the lower-right quarter. */
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {
+  --image-scene-opacity:1;
   position:absolute;
-  left:63%;
-  top:50%;
-  z-index:5;
-  width:clamp(250px,28vw,510px);
-  aspect-ratio:4/5;
+  z-index:4;
+  right:clamp(28px,3.25vw,64px);
+  bottom:clamp(28px,4.5vh,56px);
+  left:auto;
+  top:auto;
+  width:calc(50vw - clamp(28px,3.25vw,64px));
+  height:clamp(260px,41vh,480px);
+  aspect-ratio:auto;
   padding:0;
   border:0;
-  border-radius:clamp(18px,1.65vw,28px);
+  border-radius:clamp(16px,1.25vw,22px);
   overflow:hidden;
-  background:var(--mf-surface);
-  box-shadow:0 22px 70px rgba(43,53,57,.17),0 2px 9px rgba(43,53,57,.08);
-  transform:translate3d(calc(-50% + var(--drag-x)),calc(-50% + var(--drag-y) + var(--preview-drift)),0) rotate(var(--preview-tilt));
-  transform-origin:center;
+  background:transparent;
+  box-shadow:none;
+  opacity:var(--image-scene-opacity);
+  transform:none;
   cursor:none;
-  will-change:transform;
-  touch-action:none;
+  will-change:opacity;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview.is-dragging {
-  box-shadow:0 32px 92px rgba(43,53,57,.22),0 3px 12px rgba(43,53,57,.10);
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-images,
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-frame {
-  position:absolute;
-  inset:0;
-  display:block;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-frame {
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image-stack,
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame {position:absolute;inset:0;display:block;}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame {
   opacity:0;
-  transform:scale(1.035);
-  transition:opacity .52s cubic-bezier(.16,1,.3,1),transform .86s cubic-bezier(.16,1,.3,1);
+  transform:translate3d(0,18px,0) scale(.995);
+  filter:blur(5px);
+  transition:
+    opacity 1.15s cubic-bezier(.16,1,.3,1),
+    transform 1.5s cubic-bezier(.16,1,.3,1),
+    filter 1.3s cubic-bezier(.16,1,.3,1);
+  pointer-events:none;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-frame.is-active {
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame.is-active {
   opacity:1;
-  transform:scale(1);
+  transform:translate3d(0,0,0) scale(1);
+  filter:blur(0);
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-frame img {
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit:cover;
-  object-position:center;
+html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame img {
+  width:100%;height:100%;display:block;
+  object-fit:cover;object-position:center;
   filter:none;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-index {
-  position:absolute;
-  right:14px;
-  top:14px;
-  z-index:4;
-  display:grid;
-  place-items:center;
-  width:30px;
-  height:30px;
-  border-radius:50%;
-  background:rgba(229,231,230,.84);
-  color:#4f5b60;
-  backdrop-filter:blur(10px);
-  font-family:"Geist Mono",monospace;
-  font-size:8px;
-  letter-spacing:.06em;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-progress {
-  position:absolute;
-  left:clamp(28px,4vw,72px);
-  right:clamp(28px,4vw,72px);
-  bottom:clamp(24px,3.5vh,42px);
-  z-index:8;
-  height:1px;
-  background:rgba(67,78,83,.14);
-  opacity:var(--archive-opacity);
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-progress span {
-  display:block;
-  width:100%;
-  height:1px;
-  background:var(--mf-title);
-  transform:scaleX(0);
-  transform-origin:left center;
-  will-change:transform;
-}
-html body.mf-cloud-study.mf-tiktik-works .mf-tik-hint {
-  position:absolute;
-  left:clamp(28px,4vw,72px);
-  bottom:clamp(34px,5vh,58px);
-  z-index:8;
-  font-family:"Geist Mono",monospace;
-  font-size:8px;
-  letter-spacing:.07em;
-  color:var(--mf-meta);
-  opacity:calc(var(--archive-opacity) * .72);
-}
 
-/* Full-screen project detail remains exactly the existing system. */
-html body.mf-cloud-study.mf-tiktik-works .mf-overlay {
-  inset:0 !important;
-  border-radius:0 !important;
-  overflow:hidden !important;
-  box-shadow:none !important;
+/* Keep the existing full-screen detail system and cursor language intact. */
+html body.mf-cloud-study.mf-recent-works-v175 .mf-overlay {
+  inset:0 !important;border-radius:0 !important;overflow:hidden !important;box-shadow:none !important;
 }
-html body.mf-cloud-study.mf-tiktik-works .mf-project-shell {inset:0 !important;border-radius:0 !important;}
+html body.mf-cloud-study.mf-recent-works-v175 .mf-project-shell {inset:0 !important;border-radius:0 !important;}
 
 @media (max-width:900px) {
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-exhibition {height:480svh;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row {
-    height:clamp(96px,14vh,138px);
-    padding:0 18px;
-    grid-template-columns:26px minmax(0,1fr);
-    column-gap:10px;
-  }
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row::after {left:18px;right:18px;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-title {font-size:clamp(46px,13vw,88px);}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-side {display:none;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview {
-    left:70%;
-    top:50%;
-    width:min(40vw,330px);
-  }
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-progress {left:18px;right:18px;bottom:20px;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-hint {left:18px;bottom:31px;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-exhibition {height:500svh;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading {left:auto;right:18px;top:max(78px,12vh);width:37vw;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index {left:18px;top:max(82px,12vh);width:calc(57vw - 18px);max-width:none;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row {height:66px !important;grid-template-columns:minmax(84px,.85fr) minmax(105px,1fr) minmax(135px,1.5fr) 10px !important;gap:10px !important;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-title {font-size:15px;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {right:18px;bottom:22px;width:calc(49vw - 18px);height:37vh;border-radius:16px;}
 }
 @media (max-width:620px),(pointer:coarse) {
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-exhibition {height:440svh;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview {
-    left:68%;
-    top:36%;
-    width:min(44vw,220px);
-    border-radius:18px;
-  }
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row {top:61%;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-title {font-size:clamp(42px,12.5vw,68px);}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro h2 {font-size:clamp(52px,17vw,84px);}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-hint {display:none;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-exhibition {height:470svh;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading {left:18px;right:18px;top:max(76px,calc(env(safe-area-inset-top) + 58px));width:auto;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading p {max-width:30em;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index {left:18px;right:18px;top:25vh;width:auto;max-width:none;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row {height:58px !important;grid-template-columns:minmax(86px,.9fr) minmax(0,1.6fr) 10px !important;gap:10px !important;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-meta {display:none;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-title {font-size:14px;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-desc {font-size:6.5px;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {left:18px;right:18px;bottom:18px;width:auto;height:31vh;border-radius:15px;}
 }
 @media (prefers-reduced-motion:reduce) {
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-preview-frame,
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-row-title {transition:none !important;}
-  html body.mf-cloud-study.mf-tiktik-works .mf-tik-intro .mf-fold-piece {opacity:1 !important;transform:none !important;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece {transform:none !important;filter:none !important;}
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row,
+  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame {transition:none !important;}
 }

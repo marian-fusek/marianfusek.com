@@ -233,10 +233,10 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — TIK-TIK ARCHIVE / V174
-   Independently recreated from the interaction language of Skiper UI's
-   "Tik tik color list": eased archive scrolling, active-row background
-   transitions and a draggable preview. Native page scroll is never blocked. */
+/* SELECTED WORKS — V175 / restrained pinned index
+   Native scrolling only. Visual state follows scroll with eased drift.
+   “Reveal” = masked vertical rise + blur resolve, adapted from the user-provided
+   Originkit LineMaskSplit interaction. */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
@@ -245,7 +245,7 @@ if(indexExtra){
 
   document.documentElement.classList.remove('mf-work-snap-active');
   document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic');
-  document.body.classList.add('mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works');
+  document.body.classList.add('mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works','mf-recent-works-v175');
   section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5','mf-selected-works-v6');
   section.classList.add('mf-selected-works-v7');
 
@@ -256,12 +256,6 @@ if(indexExtra){
     '04':'/media/projects/vault/01-nofakie-1.jpg'
   };
   const slugs={'01':'miunae','02':'goballer','03':'aims','04':'explorations'};
-  const projectColors={
-    '01':'#e7e4df',
-    '02':'#dfe5e4',
-    '03':'#e5e6df',
-    '04':'#e1e3e4'
-  };
   const inlineBackground=source=>{
     const value=source.querySelector('.mf-strip-img')?.style.backgroundImage||'';
     const match=value.match(/url\(["']?(.*?)["']?\)/i);
@@ -269,71 +263,73 @@ if(indexExtra){
   };
   const projects=sources.map((source,index)=>{
     const key=source.dataset.index||String(index+1).padStart(2,'0');
-    const title=key==='04'?'Explorations':(source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project');
     return {
       key,
       slug:slugs[key],
-      title,
+      title:key==='04'?'Explorations':(source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project'),
       meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
       desc:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
-      color:projectColors[key],
       candidates:[source.dataset.img,fallbackImages[key],inlineBackground(source)].filter(Boolean)
     };
   });
 
-  const foldMarkup=text=>Array.from(text).map((char,index)=>
-    char===' '
-      ? '<span class="mf-fold-space" aria-hidden="true">&nbsp;</span>'
-      : `<span class="mf-fold-segment" aria-hidden="true" style="--fold-i:${index}"><span class="mf-fold-piece">${char}</span></span>`
-  ).join('');
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const revealMarkup=(text,mode='words')=>{
+    const tokens=mode==='chars'?Array.from(text):text.split(/(\s+)/);
+    let i=0;
+    return tokens.map(token=>{
+      if(/^\s+$/.test(token))return '<span class="mf-v175-reveal-space">&nbsp;</span>';
+      const delay=i++;
+      return `<span class="mf-v175-reveal-mask"><span class="mf-v175-reveal-piece" style="--reveal-i:${delay}">${esc(token)}</span></span>`;
+    }).join('');
+  };
 
   const exhibition=document.createElement('div');
-  exhibition.className='mf-tik-exhibition';
+  exhibition.className='mf-v175-exhibition';
   exhibition.setAttribute('aria-label','Recent Works');
   exhibition.innerHTML=`
-    <div class="mf-tik-stage">
-      <div class="mf-tik-intro" aria-hidden="true">
-        <h2 aria-label="Recent Works"><span class="mf-fold-sr">Recent Works</span><span class="mf-fold-visual">${foldMarkup('Recent Works')}</span></h2>
-        <p aria-label="Creative Direction, Brand &amp; Product Design"><span class="mf-fold-sr">Creative Direction, Brand &amp; Product Design</span><span class="mf-fold-visual">${foldMarkup('Creative Direction, Brand & Product Design')}</span></p>
+    <div class="mf-v175-stage">
+      <div class="mf-v175-scene">
+        <header class="mf-v175-heading" aria-label="Recent Works — Creative Direction, Brand & Product Design">
+          <h2><span class="mf-v175-sr">Recent Works</span><span aria-hidden="true">${revealMarkup('Recent Works','words')}</span></h2>
+          <p><span class="mf-v175-sr">Creative Direction, Brand & Product Design</span><span aria-hidden="true">${revealMarkup('Creative Direction, Brand & Product Design','words')}</span></p>
+        </header>
+        <div class="mf-v175-index" role="list"></div>
+        <button class="mf-v175-image mf-tik-preview" type="button" aria-label="Open MIUNĀE">
+          <span class="mf-v175-image-stack"></span>
+        </button>
       </div>
-      <div class="mf-tik-list" role="list"></div>
-      <button class="mf-tik-preview" type="button" aria-label="Open project">
-        <span class="mf-tik-preview-images"></span>
-        <span class="mf-tik-preview-index" aria-hidden="true">01</span>
-      </button>
-      <div class="mf-tik-progress" aria-hidden="true"><span></span></div>
-      <div class="mf-tik-hint" aria-hidden="true">SCROLL / DRAG IMAGE</div>
     </div>`;
 
-  const stage=exhibition.querySelector('.mf-tik-stage');
-  const intro=exhibition.querySelector('.mf-tik-intro');
-  const list=exhibition.querySelector('.mf-tik-list');
-  const preview=exhibition.querySelector('.mf-tik-preview');
-  const previewImages=exhibition.querySelector('.mf-tik-preview-images');
-  const previewIndex=exhibition.querySelector('.mf-tik-preview-index');
-  const progressFill=exhibition.querySelector('.mf-tik-progress span');
-  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const stage=exhibition.querySelector('.mf-v175-stage');
+  const scene=exhibition.querySelector('.mf-v175-scene');
+  const heading=exhibition.querySelector('.mf-v175-heading');
+  const list=exhibition.querySelector('.mf-v175-index');
+  const imageButton=exhibition.querySelector('.mf-v175-image');
+  const imageStack=exhibition.querySelector('.mf-v175-image-stack');
   const rows=[];
-  const images=[];
+  const frames=[];
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
 
   projects.forEach((project,index)=>{
     const row=document.createElement('button');
     row.type='button';
-    row.className=`mf-tik-row mf-strip is-${project.slug}`;
+    row.className=`mf-v175-row mf-tik-row mf-strip is-${project.slug}`;
     row.dataset.index=project.key;
     row.dataset.title=project.title;
     row.dataset.img=project.candidates[0]||'';
     row.setAttribute('role','listitem');
     row.setAttribute('aria-label',`Open ${project.title}`);
     row.innerHTML=`
-      <span class="mf-tik-row-number">${project.key}</span>
-      <span class="mf-tik-row-title">${project.title}</span>
-      <span class="mf-tik-row-side"><small>${project.meta}</small><em>${project.desc}</em></span>`;
+      <span class="mf-v175-row-title">${esc(project.title)}</span>
+      <span class="mf-v175-row-meta">${esc(project.meta)}</span>
+      <span class="mf-v175-row-desc">${esc(project.desc)}</span>
+      <span class="mf-v175-row-plus" aria-hidden="true">+</span>`;
     list.appendChild(row);
     rows.push(row);
 
     const frame=document.createElement('span');
-    frame.className='mf-tik-preview-frame';
+    frame.className='mf-v175-frame';
     frame.dataset.index=project.key;
     const img=document.createElement('img');
     img.alt=`${project.title} selected work`;
@@ -342,12 +338,15 @@ if(indexExtra){
     img.loading=index===0?'eager':'lazy';
     img.fetchPriority=index===0?'high':'auto';
     let candidateIndex=0;
-    const load=()=>{const src=project.candidates[candidateIndex];if(src){img.src=src;row.dataset.img=src;frame.dataset.img=src;}};
+    const load=()=>{
+      const src=project.candidates[candidateIndex];
+      if(src){img.src=src;row.dataset.img=src;frame.dataset.img=src;}
+    };
     img.addEventListener('load',()=>frame.classList.add('is-ready'));
     img.addEventListener('error',()=>{candidateIndex+=1;if(candidateIndex<project.candidates.length)load();});
     frame.appendChild(img);
-    previewImages.appendChild(frame);
-    images.push(frame);
+    imageStack.appendChild(frame);
+    frames.push(frame);
     load();
   });
 
@@ -358,147 +357,87 @@ if(indexExtra){
   section.insertBefore(exhibition,sourceStack);
 
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-  const lerp=(a,b,t)=>a+(b-a)*t;
   const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
-  const hexToRgb=hex=>{
-    const n=parseInt(hex.replace('#',''),16);
-    return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
-  };
-  const mixColor=(a,b,t)=>{
-    const A=hexToRgb(a),B=hexToRgb(b);t=clamp(t);
-    return `rgb(${Math.round(lerp(A.r,B.r,t))},${Math.round(lerp(A.g,B.g,t))},${Math.round(lerp(A.b,B.b,t))})`;
-  };
-
   let targetProgress=0;
   let displayProgress=0;
   let raf=0;
   let active=false;
-  let introPlayed=false;
-  let activeIndex=0;
-  let pointerDown=false;
-  let pointerId=null;
-  let dragOffset={x:0,y:0};
-  let dragStart={x:0,y:0,ox:0,oy:0};
+  let headingPlayed=false;
+  let activeIndex=-1;
 
-  const playIntro=()=>{
-    if(introPlayed)return;
-    introPlayed=true;
-    intro.classList.add('is-played');
-    const titlePieces=[...intro.querySelectorAll('h2 .mf-fold-piece')];
-    const subPieces=[...intro.querySelectorAll('p .mf-fold-piece')];
+  const playReveal=()=>{
+    if(headingPlayed)return;
+    headingPlayed=true;
+    heading.classList.add('is-revealed');
+    const title=[...heading.querySelectorAll('h2 .mf-v175-reveal-piece')];
+    const sub=[...heading.querySelectorAll('p .mf-v175-reveal-piece')];
     if(reduced.matches||!window.gsap){
-      [...titlePieces,...subPieces].forEach(piece=>{piece.style.opacity='1';piece.style.transform='none';});
+      [...title,...sub].forEach(el=>{el.style.opacity='1';el.style.transform='none';el.style.filter='none';});
       return;
     }
     gsap.timeline()
-      .to(titlePieces,{opacity:1,rotateX:0,y:0,duration:.72,stagger:.042,ease:'power3.out',force3D:true})
-      .to(subPieces,{opacity:1,rotateX:0,y:0,duration:.5,stagger:.012,ease:'power3.out',force3D:true},'-=.22');
+      .to(title,{yPercent:0,filter:'blur(0px)',duration:1.15,stagger:.07,ease:'power3.out',force3D:true})
+      .to(sub,{yPercent:0,filter:'blur(0px)',duration:1.05,stagger:.035,ease:'power3.out',force3D:true},'-=.56');
   };
-
-  const projectFromTarget=target=>{
-    const el=target.closest?.('.mf-tik-row');
-    if(el)return el;
-    return rows[activeIndex];
-  };
-  rows.forEach(row=>row.addEventListener('pointerenter',()=>{
-    if(pointerDown)return;
-    const i=rows.indexOf(row);
-    if(i<0)return;
-    stage.classList.add('is-row-hovered');
-    stage.style.setProperty('--hover-index',String(i));
-  }));
-  rows.forEach(row=>row.addEventListener('pointerleave',()=>stage.classList.remove('is-row-hovered')));
-
-  preview.addEventListener('click',event=>{
-    if(Math.hypot(dragOffset.x-dragStart.ox,dragOffset.y-dragStart.oy)>5){event.preventDefault();event.stopPropagation();return;}
-    rows[activeIndex]?.click();
-  });
-  preview.addEventListener('pointerdown',event=>{
-    if(event.button!==0)return;
-    pointerDown=true;pointerId=event.pointerId;
-    dragStart={x:event.clientX,y:event.clientY,ox:dragOffset.x,oy:dragOffset.y};
-    preview.setPointerCapture(pointerId);
-    preview.classList.add('is-dragging');
-  });
-  preview.addEventListener('pointermove',event=>{
-    if(!pointerDown||event.pointerId!==pointerId)return;
-    const limitX=innerWidth*.23,limitY=innerHeight*.22;
-    dragOffset.x=clamp(dragStart.ox+(event.clientX-dragStart.x),-limitX,limitX);
-    dragOffset.y=clamp(dragStart.oy+(event.clientY-dragStart.y),-limitY,limitY);
-    preview.style.setProperty('--drag-x',`${dragOffset.x}px`);
-    preview.style.setProperty('--drag-y',`${dragOffset.y}px`);
-  });
-  const endDrag=event=>{
-    if(!pointerDown||(event&&event.pointerId!==pointerId))return;
-    pointerDown=false;preview.classList.remove('is-dragging');
-    try{preview.releasePointerCapture(pointerId);}catch(_){}
-    pointerId=null;
-  };
-  preview.addEventListener('pointerup',endDrag);
-  preview.addEventListener('pointercancel',endDrag);
 
   const setActive=index=>{
     index=Math.max(0,Math.min(projects.length-1,index));
-    if(activeIndex!==index){
-      activeIndex=index;
-      previewIndex.textContent=projects[index].key;
-      preview.setAttribute('aria-label',`Open ${projects[index].title}`);
-    }
+    if(activeIndex===index)return;
+    activeIndex=index;
     rows.forEach((row,i)=>row.classList.toggle('is-active',i===index));
-    images.forEach((frame,i)=>frame.classList.toggle('is-active',i===index));
+    frames.forEach((frame,i)=>frame.classList.toggle('is-active',i===index));
+    imageButton.setAttribute('aria-label',`Open ${projects[index].title}`);
   };
+  setActive(0);
+
+  imageButton.addEventListener('click',event=>{
+    event.preventDefault();
+    rows[activeIndex]?.click();
+  });
 
   const paint=p=>{
-    const introIn=smooth(clamp((p-.025)/.075));
-    const archiveIn=smooth(clamp((p-.12)/.075));
-    const archiveOut=1-smooth(clamp((p-.90)/.07));
-    intro.style.opacity=String(clamp(introIn*(1-archiveIn)));
-    intro.style.transform=`translate3d(0,${(-12*archiveIn).toFixed(2)}px,0)`;
+    /* ~one viewport of clean background before the heading arrives. */
+    const headingWindow=smooth(clamp((p-.18)/.055));
+    if(p>.175)playReveal();
 
-    const archiveProgress=clamp((p-.16)/.70);
-    const virtualIndex=archiveProgress*(projects.length-1);
-    const nearest=Math.round(virtualIndex);
-    setActive(nearest);
-
-    const rowGap=Math.max(112,Math.min(174,innerHeight*.175));
+    /* Menu arrives after the reveal has had time to breathe. */
+    const menuProgress=clamp((p-.285)/.115);
     rows.forEach((row,i)=>{
-      const delta=i-virtualIndex;
-      const distance=Math.abs(delta);
-      const y=delta*rowGap;
-      const opacity=clamp(1-distance*.48,0.10,1)*archiveIn*archiveOut;
-      const scale=1-Math.min(distance,2)*.035;
-      row.style.setProperty('--row-y',`${y.toFixed(2)}px`);
-      row.style.setProperty('--row-opacity',opacity.toFixed(4));
-      row.style.setProperty('--row-scale',scale.toFixed(4));
-      row.style.setProperty('--row-blur',`${Math.min(2.8,distance*.85).toFixed(2)}px`);
-      row.style.pointerEvents=distance<.54&&archiveIn>.85?'auto':'none';
+      const local=smooth(clamp((menuProgress*4)-i));
+      row.style.setProperty('--row-in',local.toFixed(4));
     });
 
-    const floor=Math.min(projects.length-1,Math.floor(virtualIndex));
-    const ceil=Math.min(projects.length-1,floor+1);
-    const local=smooth(virtualIndex-floor);
-    const projectBg=mixColor(projects[floor].color,projects[ceil].color,local);
-    stage.style.backgroundColor=mixColor('#e4e6e7',projectBg,archiveIn*archiveOut);
-    stage.style.setProperty('--archive-opacity',String(archiveIn*archiveOut));
-    stage.style.setProperty('--preview-tilt',`${((virtualIndex-nearest)*-2.2).toFixed(3)}deg`);
-    stage.style.setProperty('--preview-drift',`${((virtualIndex-nearest)*18).toFixed(2)}px`);
-    preview.style.pointerEvents=archiveIn>.8&&archiveOut>.5?'auto':'none';
-    progressFill.style.transform=`scaleX(${archiveProgress.toFixed(4)})`;
+    /* Four deliberate project milestones. */
+    const projectProgress=clamp((p-.405)/.365);
+    const virtual=projectProgress*projects.length;
+    const nextIndex=Math.min(projects.length-1,Math.floor(virtual));
+    setActive(nextIndex);
+
+    /* After Explorations, the entire pinned composition leaves together. */
+    const exit=smooth(clamp((p-.815)/.12));
+    const sceneOpacity=1-exit;
+    scene.style.opacity=String(sceneOpacity);
+    scene.style.transform=`translate3d(0,${(-48*exit).toFixed(2)}px,0)`;
+    scene.style.pointerEvents=sceneOpacity>.35?'auto':'none';
+
+    heading.style.opacity=String(headingWindow*(1-exit));
+    list.style.setProperty('--menu-opacity',String((1-exit)));
+    imageButton.style.setProperty('--image-scene-opacity',String((1-exit)));
   };
 
   const tick=()=>{
     raf=0;
     const delta=targetProgress-displayProgress;
-    displayProgress+=delta*(reduced.matches?1:.082);
-    if(Math.abs(delta)<.00006)displayProgress=targetProgress;
+    /* Airy visual lag. Native scroll itself is never intercepted. */
+    displayProgress+=delta*(reduced.matches?1:.062);
+    if(Math.abs(delta)<.00005)displayProgress=targetProgress;
     paint(displayProgress);
-    if(active&&Math.abs(targetProgress-displayProgress)>.00006)raf=requestAnimationFrame(tick);
+    if(active&&Math.abs(targetProgress-displayProgress)>.00005)raf=requestAnimationFrame(tick);
   };
   const measure=()=>{
     const rect=exhibition.getBoundingClientRect();
     const travel=Math.max(1,exhibition.offsetHeight-innerHeight);
     targetProgress=clamp(-rect.top/travel);
-    if(targetProgress>.018)playIntro();
     if(!raf)raf=requestAnimationFrame(tick);
   };
   addEventListener('scroll',measure,{passive:true});
@@ -509,7 +448,6 @@ if(indexExtra){
     if(active)measure();
   },{threshold:0});
   observer.observe(exhibition);
-  setActive(0);
   measure();
 })();
 

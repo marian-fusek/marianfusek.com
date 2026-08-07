@@ -244,8 +244,10 @@ if(indexExtra){
   if(!section||!sourceStack||sources.length<4)return;
 
   document.documentElement.classList.remove('mf-work-snap-active');
-  document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic');
-  document.body.classList.add('mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works','mf-recent-works-v175');
+  document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic','mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works');
+  /* V176: Recent Works has one visual owner only. Legacy work-mode body classes
+     activate older CSS systems, so they are deliberately not re-added here. */
+  document.body.classList.add('mf-recent-works-v175');
   section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5','mf-selected-works-v6');
   section.classList.add('mf-selected-works-v7');
 
@@ -342,7 +344,10 @@ if(indexExtra){
       const src=project.candidates[candidateIndex];
       if(src){img.src=src;row.dataset.img=src;frame.dataset.img=src;}
     };
-    img.addEventListener('load',()=>frame.classList.add('is-ready'));
+    img.addEventListener('load',()=>{
+      frame.classList.add('is-ready');
+      if(index===activeIndex)syncImageAspect(index);
+    });
     img.addEventListener('error',()=>{candidateIndex+=1;if(candidateIndex<project.candidates.length)load();});
     frame.appendChild(img);
     imageStack.appendChild(frame);
@@ -364,6 +369,12 @@ if(indexExtra){
   let active=false;
   let headingPlayed=false;
   let activeIndex=-1;
+
+  const syncImageAspect=index=>{
+    const img=frames[index]?.querySelector('img');
+    if(!img?.naturalWidth||!img?.naturalHeight)return;
+    imageButton.style.setProperty('--mf-active-image-ratio',`${img.naturalWidth} / ${img.naturalHeight}`);
+  };
 
   const playReveal=()=>{
     if(headingPlayed)return;
@@ -387,6 +398,7 @@ if(indexExtra){
     rows.forEach((row,i)=>row.classList.toggle('is-active',i===index));
     frames.forEach((frame,i)=>frame.classList.toggle('is-active',i===index));
     imageButton.setAttribute('aria-label',`Open ${projects[index].title}`);
+    syncImageAspect(index);
   };
   setActive(0);
 

@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Marian Fusek — Staging V180</title>
+  <title>Marian Fusek — Staging V181</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div class="site-grid" id="siteGrid" aria-hidden="true"></div>
-
   <nav class="site-nav" aria-label="Primary">
     <a class="nav-logo" href="#hero">MF</a>
     <a href="#projects">Index</a>
@@ -21,54 +19,53 @@
 
   <main>
     <section class="hero" id="hero">
-      <div class="hero-copy" aria-label="Brand, UI, AI & Visual Designer. Creative Director. Mindset Coach for Digital Creatives.">
-        <div class="type-line" data-type="Brand, UI, AI & Visual Designer"></div>
-        <div class="type-line" data-type="Creative Director"></div>
-        <div class="type-line" data-type="Mindset Coach for Digital Creatives"></div>
+      <div class="hero-info">
+        <h1 class="hero-copy">
+          <span>Brand, UI, AI &amp; Visual Designer</span>
+          <span>Creative Director</span>
+          <span>Mindset Coach for Digital Creatives</span>
+        </h1>
+        <div class="hero-meta" aria-live="polite">
+          <span id="heroTypewriter"></span><span class="type-cursor">_</span>
+        </div>
       </div>
 
       <div class="hero-name" id="heroName" aria-label="Marian Fusek">
-        <span class="name-letter" data-char="M">M</span><span class="name-letter" data-char="A">A</span><span class="name-letter" data-char="R">R</span><span class="name-letter" data-char="I">I</span><span class="name-letter accent-a" data-char="A">A</span><span class="name-letter" data-char="N">N</span><span class="name-space">&nbsp;</span><span class="name-letter" data-char="F">F</span><span class="name-letter accent-u" data-char="U">U</span><span class="name-letter" data-char="S">S</span><span class="name-letter" data-char="E">E</span><span class="name-letter" data-char="K">K</span>
+        <span class="name-letter">M</span><span class="name-letter">A</span><span class="name-letter">R</span><span class="name-letter">I</span><span class="name-letter" data-accent="Á">A</span><span class="name-letter">N</span><span class="name-space">&nbsp;</span><span class="name-letter">F</span><span class="name-letter" data-accent="Ů">U</span><span class="name-letter">S</span><span class="name-letter">E</span><span class="name-letter">K</span>
       </div>
     </section>
 
     <section class="projects" id="projects">
       <div class="projects-sticky">
-        <header class="projects-heading reveal-block" id="projectsHeading">
-          <h2 data-reveal="chars">Recent Works</h2>
-          <p data-reveal="words">Creative Direction, Brand &amp; Product Design</p>
+        <header class="projects-heading" id="projectsHeading">
+          <h2 data-reveal="words">Recent Works</h2>
         </header>
 
         <div class="projects-menu" id="projectsMenu">
           <button class="project-row" data-project="0" type="button">
             <span class="project-title">MIUNĀE</span>
             <span class="project-meta">CREATIVE DIRECTION</span>
-            <span class="project-desc">A skincare brand system built around time, tactility and restraint</span>
-            <span class="project-plus">+</span>
           </button>
           <button class="project-row" data-project="1" type="button">
             <span class="project-title">GoBaller</span>
             <span class="project-meta">BRAND, iOS APP</span>
-            <span class="project-desc">Football coaching app for players of all ages</span>
-            <span class="project-plus">+</span>
           </button>
           <button class="project-row" data-project="2" type="button">
             <span class="project-title">AIMS</span>
-            <span class="project-meta">WEBSITE, BRAND REFRESH, MARKETING &amp; SALES ASSETS</span>
-            <span class="project-desc">The most advanced AI search for music catalogs</span>
-            <span class="project-plus">+</span>
+            <span class="project-meta">WEBSITE, BRAND REFRESH</span>
           </button>
           <button class="project-row" data-project="3" type="button">
             <span class="project-title">Explorations</span>
-            <span class="project-meta">RANDOM DESIGNS LOST IN TIME, EXPERIMENTS</span>
-            <span class="project-desc">Whatever I could find in old Figma files</span>
-            <span class="project-plus">+</span>
+            <span class="project-meta">DESIGN EXPERIMENTS</span>
           </button>
         </div>
 
-        <figure class="project-preview" id="projectPreview" aria-live="polite">
-          <img id="projectPreviewImage" src="../media/projects/miunae/01-miunae-logo.jpg" alt="MIUNĀE project preview">
-        </figure>
+        <div class="project-previews" id="projectPreviews" aria-live="polite">
+          <figure class="project-preview" data-project="0"><img src="../media/projects/miunae/01-miunae-logo.jpg" alt="MIUNĀE project preview"></figure>
+          <figure class="project-preview" data-project="1"><img src="../media/projects/goballer/01-goballer-logo.jpg" alt="GoBaller project preview"></figure>
+          <figure class="project-preview" data-project="2"><img src="../media/projects/aims/01-aims-logo.jpg" alt="AIMS project preview"></figure>
+          <figure class="project-preview" data-project="3"><img src="../media/projects/vault/01-nofakie-1.jpg" alt="Explorations project preview"></figure>
+        </div>
       </div>
     </section>
 

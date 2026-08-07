@@ -1,7 +1,7 @@
 {
-  "version": "171",
+  "version": "172",
   "hero": {
-    "statement": "Brand, UI, AI & Visual Designer helping founders, leaders and digital creatives build distinctive brands, digital products and visual systems.",
+    "statement": "Brand, UI, AI & Visual Designer\nCreative Director\nMindset Coach for Digital Creatives",
     "typewriter": "Creative direction, identity, product, visual systems and AI production.",
     "name": "MARIAN FUSEK"
   },
@@ -11,7 +11,7 @@
       "title": "MIUNĀE",
       "meta": "CREATIVE DIRECTION · BRAND SYSTEM",
       "description": "Eastern European beauty. Made in Romania.",
-      "image": "../media/projects/miunae/04-miunae-all.jpg",
+      "image": "../media/projects/miunae/01-miunae-logo.jpg",
       "gallery": [
         "../media/projects/miunae/01-miunae-logo.jpg",
         "../media/projects/miunae/02-miunae-web.jpg",
@@ -24,7 +24,7 @@
       "title": "GoBaller",
       "meta": "BRAND · iOS APP",
       "description": "Football coaching made direct, visual and useful.",
-      "image": "../media/projects/goballer/02-goballer-brand.jpg",
+      "image": "../media/projects/goballer/01-goballer-logo.jpg",
       "gallery": [
         "../media/projects/goballer/01-goballer-logo.jpg",
         "../media/projects/goballer/02-goballer-brand.jpg",
@@ -36,7 +36,7 @@
       "title": "AIMS",
       "meta": "BRAND REFRESH · DIGITAL",
       "description": "AI music-catalog search, made legible and desirable.",
-      "image": "../media/projects/aims/02-aims-web.jpg",
+      "image": "../media/projects/aims/01-aims-logo.jpg",
       "gallery": [
         "../media/projects/aims/01-aims-logo.jpg",
         "../media/projects/aims/02-aims-web.jpg"

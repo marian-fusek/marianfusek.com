@@ -4,7 +4,6 @@ export function initGuidance(data){
   const section=document.getElementById('guidance');
   const left=document.querySelector('.guidance-left');
   const right=document.querySelector('.guidance-right');
-  const cursor=document.getElementById('guideCursor');
   left.querySelector('p').textContent=data.mindset.description;
   right.querySelector('p').textContent=data.leadership.description;
   const heads=[left.querySelector('h2'),right.querySelector('h2')];
@@ -26,11 +25,6 @@ export function initGuidance(data){
   }
   requestAnimationFrame(frame);
 
-  [left,right].forEach((zone,i)=>{
-    zone.addEventListener('mouseenter',()=>{cursor.textContent=i?'OPEN TL':'OPEN MC';cursor.classList.add('show')});
-    zone.addEventListener('mouseleave',()=>cursor.classList.remove('show'));
-    zone.addEventListener('mousemove',event=>{cursor.style.left=`${event.clientX}px`;cursor.style.top=`${event.clientY}px`});
-  });
 }
 
 function prepareLines(head){

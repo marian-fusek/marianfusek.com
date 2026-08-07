@@ -4549,258 +4549,235 @@ html {scroll-behavior:smooth;}
 @media (prefers-reduced-motion:reduce) {html body.mf-cloud-study #heroSection .mf-hero-fold-piece {opacity:1 !important;transform:none !important;}}
 
 /* ============================================================
-   V175 — RECENT WORKS / RESTRAINED AIRY INDEX
+   V177 — Recent Works isolated scene
+   Unique namespace intentionally avoids all legacy project-strip/card rules.
    ============================================================ */
-html body.mf-cloud-study.mf-recent-works-v175 #work {
+body.mf-cloud-study.mf-recent-works-v177 #work {
   position:relative !important;
   min-height:0 !important;
   padding:0 !important;
+  margin:0 !important;
   overflow:visible !important;
   background:transparent !important;
 }
-html body.mf-cloud-study.mf-recent-works-v175 #work > .mf-index-title,
-html body.mf-cloud-study.mf-recent-works-v175 #work > .mf-stage-label,
-html body.mf-cloud-study.mf-recent-works-v175 #work > .mf-strips {display:none !important;}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-exhibition {
+body.mf-cloud-study.mf-recent-works-v177 #work > .mf-stage-label,
+body.mf-cloud-study.mf-recent-works-v177 #work > .mf-index-title,
+body.mf-cloud-study.mf-recent-works-v177 #work > .mf-strips {display:none !important;}
+
+#mfRecentWorksV177 {
   position:relative;
-  height:520svh;
-  background:var(--mf-bg);
+  width:100%;
+  height:500svh;
+  background:transparent;
+  color:var(--mf-ink);
+  isolation:isolate;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-stage {
+#mfRecentWorksV177 .mf-rw177-sticky {
   position:sticky;
   top:0;
   width:100%;
   height:100svh;
   overflow:hidden;
-  background:var(--mf-bg);
-  isolation:isolate;
+  background:transparent;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-scene {
+#mfRecentWorksV177 .mf-rw177-scene {
   position:absolute;
   inset:0;
   opacity:1;
   transform:translate3d(0,0,0);
-  will-change:transform,opacity;
-}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-sr {
-  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
-  clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  will-change:opacity,transform;
 }
 
-/* REVEAL — masked rise + blur resolve. Background always stays transparent. */
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-mask {
+/* REVEAL: user-defined masked vertical rise + blur resolve. No backdrop layer. */
+#mfRecentWorksV177 .mf-rw177-reveal-mask {
   display:inline-block;
   overflow:hidden;
   vertical-align:bottom;
-  padding:.06em 0 .1em;
-  margin:-.06em 0 -.1em;
+  padding:.08em 0 .12em;
+  margin:-.08em 0 -.12em;
   background:transparent !important;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-space {display:inline-block;width:.26em;}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece {
+#mfRecentWorksV177 .mf-rw177-reveal-space {display:inline-block;width:.27em;}
+#mfRecentWorksV177 .mf-rw177-reveal-piece {
   display:inline-block;
-  opacity:1;
   transform:translate3d(0,105%,0);
-  filter:blur(18px);
+  filter:blur(20px);
   background:transparent !important;
   will-change:transform,filter;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece::before,
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece::after {content:none !important;display:none !important;}
+#mfRecentWorksV177 .mf-rw177-reveal-piece::before,
+#mfRecentWorksV177 .mf-rw177-reveal-piece::after {content:none !important;display:none !important;}
 
-/* Top-right section identity. */
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading {
+/* Small section identity, top right, left aligned. */
+#mfRecentWorksV177 .mf-rw177-heading {
   position:absolute;
   z-index:5;
   left:75vw;
-  top:clamp(92px,13.5vh,144px);
-  width:min(21vw,360px);
-  color:var(--mf-title);
-  text-align:left;
+  top:clamp(92px,13vh,136px);
+  width:min(20vw,330px);
   opacity:0;
+  text-align:left;
+  color:var(--mf-ink);
   pointer-events:none;
-  will-change:opacity;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading h2 {
+#mfRecentWorksV177 .mf-rw177-heading h2 {
   margin:0;
-  font-family:"Geist",Arial,sans-serif;
-  font-size:clamp(18px,1.45vw,28px);
-  line-height:.98;
-  letter-spacing:-.045em;
-  font-weight:400;
-  color:var(--mf-title);
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:clamp(16px,1.28vw,24px) !important;
+  line-height:1 !important;
+  font-weight:400 !important;
+  letter-spacing:-.045em !important;
+  color:var(--mf-ink) !important;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading p {
-  margin:10px 0 0;
-  max-width:28em;
-  font-family:"Geist Mono",monospace;
-  font-size:clamp(7px,.56vw,10px);
-  line-height:1.38;
-  letter-spacing:.045em;
-  text-transform:uppercase;
-  font-weight:400;
-  color:var(--mf-meta);
+#mfRecentWorksV177 .mf-rw177-heading p {
+  margin:9px 0 0;
+  max-width:29em;
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:clamp(8px,.58vw,10px) !important;
+  line-height:1.35 !important;
+  font-weight:400 !important;
+  letter-spacing:.015em !important;
+  color:var(--mf-body) !important;
 }
 
-/* Compact project strips occupy only the upper-left quarter. */
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index {
-  --menu-opacity:1;
+/* Compact project index confined to the upper-left half. */
+#mfRecentWorksV177 .mf-rw177-index {
   position:absolute;
   z-index:6;
   left:clamp(28px,3.25vw,64px);
-  top:clamp(96px,13.5vh,148px);
+  top:clamp(92px,13vh,136px);
   width:calc(50vw - clamp(28px,3.25vw,64px));
-  max-width:calc(50vw - 28px);
-  opacity:var(--menu-opacity);
-  border-top:1px solid color-mix(in srgb,var(--mf-line) 72%,transparent);
+  border-top:1px solid var(--mf-line);
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row {
-  --row-in:0;
-  position:relative !important;
-  left:auto !important;
-  top:auto !important;
-  width:100% !important;
-  height:clamp(56px,7.2vh,74px) !important;
-  padding:0 11px 0 0 !important;
-  margin:0 !important;
-  border:0 !important;
-  border-bottom:1px solid color-mix(in srgb,var(--mf-line) 72%,transparent) !important;
-  display:grid !important;
-  grid-template-columns:minmax(105px,1.06fr) minmax(116px,1.05fr) minmax(170px,1.65fr) 12px !important;
-  align-items:center !important;
-  gap:clamp(10px,1.25vw,24px) !important;
-  color:var(--mf-title) !important;
-  background:transparent !important;
-  text-align:left !important;
-  opacity:calc(var(--row-in) * .38) !important;
-  transform:translate3d(0,calc((1 - var(--row-in)) * 16px),0) !important;
-  filter:none !important;
-  cursor:none !important;
-  pointer-events:calc(var(--row-in)) !important;
-  transition:
-    opacity 1.25s cubic-bezier(.16,1,.3,1),
-    color 1.35s cubic-bezier(.16,1,.3,1),
-    background-color 1.35s cubic-bezier(.16,1,.3,1) !important;
+#mfRecentWorksV177 .mf-rw177-row {
+  --rw177-row-in:0;
+  appearance:none;
+  position:relative;
+  width:100%;
+  height:clamp(58px,7.1vh,74px);
+  margin:0;
+  padding:0 9px 0 0;
+  border:0;
+  border-bottom:1px solid var(--mf-line);
+  border-radius:0;
+  display:grid;
+  grid-template-columns:minmax(104px,1.03fr) minmax(120px,1.05fr) minmax(170px,1.55fr) 12px;
+  align-items:center;
+  gap:clamp(10px,1.2vw,22px);
+  background:transparent;
+  color:var(--mf-ink);
+  text-align:left;
+  opacity:calc(var(--rw177-row-in) * .34);
+  transform:translate3d(0,calc((1 - var(--rw177-row-in)) * 15px),0);
+  cursor:none;
+  overflow:hidden;
+  transition:opacity 1.15s cubic-bezier(.16,1,.3,1),background-color 1.3s cubic-bezier(.16,1,.3,1),color 1.3s cubic-bezier(.16,1,.3,1);
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row::after {content:none !important;display:none !important;}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active {
-  opacity:var(--row-in) !important;
-}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row:hover:not(.is-active) {
-  opacity:calc(var(--row-in) * .68) !important;
-}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-title {
-  font-family:"Geist",Arial,sans-serif;
-  font-size:clamp(15px,1.15vw,22px);
-  line-height:1;
-  letter-spacing:-.035em;
-  font-weight:450;
-  color:inherit;
+#mfRecentWorksV177 .mf-rw177-row.is-active {opacity:var(--rw177-row-in);}
+#mfRecentWorksV177 .mf-rw177-row:hover:not(.is-active) {opacity:calc(var(--rw177-row-in) * .68);}
+#mfRecentWorksV177 .mf-rw177-row-title {
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:clamp(15px,1.08vw,21px) !important;
+  line-height:1 !important;
+  font-weight:430 !important;
+  letter-spacing:-.035em !important;
+  color:inherit !important;
   white-space:nowrap;
-  transition:color 1.35s cubic-bezier(.16,1,.3,1);
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-meta,
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-desc,
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-plus {
-  font-family:"Geist Mono",monospace;
+#mfRecentWorksV177 .mf-rw177-row-meta,
+#mfRecentWorksV177 .mf-rw177-row-desc,
+#mfRecentWorksV177 .mf-rw177-row-plus {
+  font-family:"Geist",Arial,sans-serif !important;
+  font-size:clamp(7px,.5vw,9px) !important;
+  line-height:1.28 !important;
+  font-weight:400 !important;
+  letter-spacing:.02em !important;
+  color:var(--mf-meta) !important;
   text-transform:uppercase;
-  color:var(--mf-meta);
-  transition:color 1.35s cubic-bezier(.16,1,.3,1),opacity 1.35s cubic-bezier(.16,1,.3,1);
+  transition:color 1.3s cubic-bezier(.16,1,.3,1),opacity 1.3s cubic-bezier(.16,1,.3,1);
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-meta {
-  font-size:clamp(6.5px,.49vw,8.5px);
-  line-height:1.28;
-  letter-spacing:.05em;
-}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-desc {
-  font-size:clamp(6.5px,.49vw,8.5px);
-  line-height:1.28;
-  letter-spacing:.035em;
-}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-plus {
-  justify-self:end;
-  font-size:8px;
-  line-height:1;
-  opacity:.6;
-}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active .mf-v175-row-meta,
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active .mf-v175-row-desc,
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row.is-active .mf-v175-row-plus {color:var(--mf-body);opacity:.95;}
+#mfRecentWorksV177 .mf-rw177-row-plus {justify-self:end;opacity:.55;}
+#mfRecentWorksV177 .mf-rw177-row.is-active .mf-rw177-row-meta,
+#mfRecentWorksV177 .mf-rw177-row.is-active .mf-rw177-row-desc,
+#mfRecentWorksV177 .mf-rw177-row.is-active .mf-rw177-row-plus {color:var(--mf-body) !important;opacity:.96;}
 
-/* Active image occupies the lower-right quarter. */
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {
-  --image-scene-opacity:1;
+/* Active image: exactly the right half's usable width. Ratio remains native. */
+#mfRecentWorksV177 .mf-rw177-preview {
+  --rw177-preview-in:0;
+  appearance:none;
   position:absolute;
   z-index:4;
+  left:50vw;
   right:clamp(28px,3.25vw,64px);
-  bottom:clamp(28px,4.5vh,56px);
-  left:auto;
-  top:auto;
-  width:calc(50vw - clamp(28px,3.25vw,64px));
-  height:clamp(260px,41vh,480px);
-  aspect-ratio:auto;
+  bottom:clamp(28px,4.3vh,52px);
+  width:auto;
+  height:auto;
+  aspect-ratio:var(--rw177-ratio,16 / 9);
+  margin:0;
   padding:0;
   border:0;
-  border-radius:clamp(16px,1.25vw,22px);
+  border-radius:clamp(15px,1.2vw,21px);
   overflow:hidden;
   background:transparent;
   box-shadow:none;
-  opacity:var(--image-scene-opacity);
-  transform:none;
+  opacity:var(--rw177-preview-in);
+  transform:translate3d(0,calc((1 - var(--rw177-preview-in)) * 18px),0);
   cursor:none;
-  will-change:opacity;
+  transition:height 1.15s cubic-bezier(.16,1,.3,1),aspect-ratio 1.15s cubic-bezier(.16,1,.3,1);
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image-stack,
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame {position:absolute;inset:0;display:block;}
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame {
+#mfRecentWorksV177 .mf-rw177-preview-stack,
+#mfRecentWorksV177 .mf-rw177-frame {position:absolute;inset:0;display:block;}
+#mfRecentWorksV177 .mf-rw177-frame {
   opacity:0;
-  transform:translate3d(0,18px,0) scale(.995);
-  filter:blur(5px);
-  transition:
-    opacity 1.15s cubic-bezier(.16,1,.3,1),
-    transform 1.5s cubic-bezier(.16,1,.3,1),
-    filter 1.3s cubic-bezier(.16,1,.3,1);
+  transform:translate3d(0,15px,0);
+  filter:blur(7px);
+  transition:opacity 1.15s cubic-bezier(.16,1,.3,1),transform 1.45s cubic-bezier(.16,1,.3,1),filter 1.35s cubic-bezier(.16,1,.3,1);
   pointer-events:none;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame.is-active {
+#mfRecentWorksV177 .mf-rw177-frame.is-active {
   opacity:1;
-  transform:translate3d(0,0,0) scale(1);
+  transform:translate3d(0,0,0);
   filter:blur(0);
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame img {
-  width:100%;height:100%;display:block;
-  object-fit:cover;object-position:center;
-  filter:none;
+#mfRecentWorksV177 .mf-rw177-frame img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain !important;
+  object-position:center bottom !important;
+  background:transparent !important;
 }
 
-/* Keep the existing full-screen detail system and cursor language intact. */
-html body.mf-cloud-study.mf-recent-works-v175 .mf-overlay {
-  inset:0 !important;border-radius:0 !important;overflow:hidden !important;box-shadow:none !important;
+/* Hero statement: preserve the three authored BR lines physically on desktop. */
+body.mf-cloud-study #heroSection .mf-hero-info {
+  width:48vw !important;
+  max-width:none !important;
 }
-html body.mf-cloud-study.mf-recent-works-v175 .mf-project-shell {inset:0 !important;border-radius:0 !important;}
+body.mf-cloud-study #heroSection .mf-hero-fold-line {
+  display:block !important;
+  width:max-content !important;
+  white-space:nowrap !important;
+}
 
-@media (max-width:900px) {
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-exhibition {height:500svh;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading {left:auto;right:18px;top:max(78px,12vh);width:37vw;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index {left:18px;top:max(82px,12vh);width:calc(57vw - 18px);max-width:none;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row {height:66px !important;grid-template-columns:minmax(84px,.85fr) minmax(105px,1fr) minmax(135px,1.5fr) 10px !important;gap:10px !important;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-title {font-size:15px;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {right:18px;bottom:22px;width:calc(49vw - 18px);height:37vh;border-radius:16px;}
+@media (max-width:900px){
+  #mfRecentWorksV177 {height:480svh;}
+  #mfRecentWorksV177 .mf-rw177-heading {left:auto;right:18px;top:max(82px,12vh);width:35vw;}
+  #mfRecentWorksV177 .mf-rw177-index {left:18px;top:max(82px,12vh);width:calc(59vw - 18px);}
+  #mfRecentWorksV177 .mf-rw177-row {height:64px;grid-template-columns:minmax(82px,.8fr) minmax(100px,.95fr) minmax(130px,1.35fr) 10px;gap:9px;}
+  #mfRecentWorksV177 .mf-rw177-preview {left:50vw;right:18px;bottom:22px;}
 }
-@media (max-width:620px),(pointer:coarse) {
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-exhibition {height:470svh;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading {left:18px;right:18px;top:max(76px,calc(env(safe-area-inset-top) + 58px));width:auto;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading p {max-width:30em;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index {left:18px;right:18px;top:25vh;width:auto;max-width:none;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row {height:58px !important;grid-template-columns:minmax(86px,.9fr) minmax(0,1.6fr) 10px !important;gap:10px !important;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-meta {display:none;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-title {font-size:14px;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row-desc {font-size:6.5px;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {left:18px;right:18px;bottom:18px;width:auto;height:31vh;border-radius:15px;}
+@media (max-width:620px),(pointer:coarse){
+  #mfRecentWorksV177 {height:450svh;}
+  #mfRecentWorksV177 .mf-rw177-heading {left:18px;right:18px;top:max(74px,calc(env(safe-area-inset-top) + 56px));width:auto;}
+  #mfRecentWorksV177 .mf-rw177-index {left:18px;right:18px;top:26vh;width:auto;}
+  #mfRecentWorksV177 .mf-rw177-row {height:58px;grid-template-columns:minmax(92px,1fr) minmax(0,1.4fr) 10px;}
+  #mfRecentWorksV177 .mf-rw177-row-meta {display:none;}
+  #mfRecentWorksV177 .mf-rw177-preview {left:18px;right:18px;bottom:18px;}
+  body.mf-cloud-study #heroSection .mf-hero-info {width:calc(100vw - 36px) !important;left:18px !important;}
+  body.mf-cloud-study #heroSection .mf-hero-fold-line {width:auto !important;white-space:normal !important;}
 }
-@media (prefers-reduced-motion:reduce) {
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-reveal-piece {transform:none !important;filter:none !important;}
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-row,
-  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame {transition:none !important;}
+@media (prefers-reduced-motion:reduce){
+  #mfRecentWorksV177 .mf-rw177-row,
+  #mfRecentWorksV177 .mf-rw177-frame,
+  #mfRecentWorksV177 .mf-rw177-preview {transition:none !important;}
 }
-\n\n/* ============================================================\n   V176 — Recent Works ownership + native image ratios\n   One visual system only. No legacy work-mode class may style this scene.\n   ============================================================ */\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-stage,\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-scene,\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-heading,\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-index,\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {\n  visibility:visible !important;\n}\n\n/* The preview reaches exactly from the 50vw centre line to the right page\n   padding. Height is derived from the active asset's natural ratio. */\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {\n  right:clamp(28px,3.25vw,64px) !important;\n  width:calc(50vw - clamp(28px,3.25vw,64px)) !important;\n  height:auto !important;\n  aspect-ratio:var(--mf-active-image-ratio,16 / 9) !important;\n  max-height:calc(100svh - clamp(128px,18vh,190px)) !important;\n}\nhtml body.mf-cloud-study.mf-recent-works-v175 .mf-v175-frame img {\n  width:100% !important;\n  height:100% !important;\n  object-fit:cover !important;\n  object-position:center !important;\n}\n\n/* Preserve the authored three-line hero statement. Each explicit line is a\n   composition line on desktop; Reveal/Fold may not reflow it into another line. */\nhtml body.mf-cloud-study #heroSection .mf-hero-fold-line {\n  display:block !important;\n  white-space:nowrap;\n}\n@media (max-width:760px) {\n  html body.mf-cloud-study #heroSection .mf-hero-fold-line {white-space:normal;}\n  html body.mf-cloud-study.mf-recent-works-v175 .mf-v175-image {\n    left:18px !important;right:18px !important;width:auto !important;\n    max-height:34svh !important;\n  }\n}\n

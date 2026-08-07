@@ -233,10 +233,9 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — V175 / restrained pinned index
-   Native scrolling only. Visual state follows scroll with eased drift.
-   “Reveal” = masked vertical rise + blur resolve, adapted from the user-provided
-   Originkit LineMaskSplit interaction. */
+/* SELECTED WORKS — V177 / isolated restrained index scene
+   This replaces the old stacked-card runtime completely. New DOM uses its own
+   namespace so legacy .mf-strip / stack CSS cannot style it. Native scroll only. */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
@@ -244,12 +243,12 @@ if(indexExtra){
   if(!section||!sourceStack||sources.length<4)return;
 
   document.documentElement.classList.remove('mf-work-snap-active');
-  document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic','mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works');
-  /* V176: Recent Works has one visual owner only. Legacy work-mode body classes
-     activate older CSS systems, so they are deliberately not re-added here. */
-  document.body.classList.add('mf-recent-works-v175');
-  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5','mf-selected-works-v6');
-  section.classList.add('mf-selected-works-v7');
+  document.body.classList.remove(
+    'mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic',
+    'mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works','mf-recent-works-v175'
+  );
+  document.body.classList.add('mf-recent-works-v177');
+  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5','mf-selected-works-v6','mf-selected-works-v7');
 
   const fallbackImages={
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
@@ -270,196 +269,195 @@ if(indexExtra){
       slug:slugs[key],
       title:key==='04'?'Explorations':(source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project'),
       meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
-      desc:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
+      desc:key==='04'?'Whatever I could find in old Figma files':(source.querySelector('.mf-strip-desc')?.textContent?.trim()||''),
       candidates:[source.dataset.img,fallbackImages[key],inlineBackground(source)].filter(Boolean)
     };
   });
 
-  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const revealMarkup=(text,mode='words')=>{
-    const tokens=mode==='chars'?Array.from(text):text.split(/(\s+)/);
-    let i=0;
-    return tokens.map(token=>{
-      if(/^\s+$/.test(token))return '<span class="mf-v175-reveal-space">&nbsp;</span>';
-      const delay=i++;
-      return `<span class="mf-v175-reveal-mask"><span class="mf-v175-reveal-piece" style="--reveal-i:${delay}">${esc(token)}</span></span>`;
-    }).join('');
-  };
+  const esc=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const revealWords=text=>text.split(/(\s+)/).map((token,index)=>{
+    if(/^\s+$/.test(token))return '<span class="mf-rw177-reveal-space">&nbsp;</span>';
+    return `<span class="mf-rw177-reveal-mask"><span class="mf-rw177-reveal-piece" style="--rw-i:${index}">${esc(token)}</span></span>`;
+  }).join('');
 
-  const exhibition=document.createElement('div');
-  exhibition.className='mf-v175-exhibition';
-  exhibition.setAttribute('aria-label','Recent Works');
-  exhibition.innerHTML=`
-    <div class="mf-v175-stage">
-      <div class="mf-v175-scene">
-        <header class="mf-v175-heading" aria-label="Recent Works — Creative Direction, Brand & Product Design">
-          <h2><span class="mf-v175-sr">Recent Works</span><span aria-hidden="true">${revealMarkup('Recent Works','words')}</span></h2>
-          <p><span class="mf-v175-sr">Creative Direction, Brand & Product Design</span><span aria-hidden="true">${revealMarkup('Creative Direction, Brand & Product Design','words')}</span></p>
+  const root=document.createElement('div');
+  root.id='mfRecentWorksV177';
+  root.className='mf-rw177';
+  root.setAttribute('aria-label','Recent Works');
+  root.innerHTML=`
+    <div class="mf-rw177-sticky">
+      <div class="mf-rw177-scene">
+        <header class="mf-rw177-heading">
+          <h2 aria-label="Recent Works">${revealWords('Recent Works')}</h2>
+          <p aria-label="Creative Direction, Brand & Product Design">${revealWords('Creative Direction, Brand & Product Design')}</p>
         </header>
-        <div class="mf-v175-index" role="list"></div>
-        <button class="mf-v175-image mf-tik-preview" type="button" aria-label="Open MIUNĀE">
-          <span class="mf-v175-image-stack"></span>
+        <div class="mf-rw177-index" role="list"></div>
+        <button class="mf-rw177-preview" type="button" aria-label="Open MIUNĀE">
+          <span class="mf-rw177-preview-stack"></span>
         </button>
       </div>
     </div>`;
 
-  const stage=exhibition.querySelector('.mf-v175-stage');
-  const scene=exhibition.querySelector('.mf-v175-scene');
-  const heading=exhibition.querySelector('.mf-v175-heading');
-  const list=exhibition.querySelector('.mf-v175-index');
-  const imageButton=exhibition.querySelector('.mf-v175-image');
-  const imageStack=exhibition.querySelector('.mf-v175-image-stack');
+  const sticky=root.querySelector('.mf-rw177-sticky');
+  const scene=root.querySelector('.mf-rw177-scene');
+  const heading=root.querySelector('.mf-rw177-heading');
+  const list=root.querySelector('.mf-rw177-index');
+  const preview=root.querySelector('.mf-rw177-preview');
+  const previewStack=root.querySelector('.mf-rw177-preview-stack');
   const rows=[];
   const frames=[];
-  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 
+  let activeIndex=0;
   projects.forEach((project,index)=>{
     const row=document.createElement('button');
     row.type='button';
-    row.className=`mf-v175-row mf-tik-row mf-strip is-${project.slug}`;
+    row.className=`mf-rw177-row is-${project.slug}`;
     row.dataset.index=project.key;
     row.dataset.title=project.title;
     row.dataset.img=project.candidates[0]||'';
     row.setAttribute('role','listitem');
     row.setAttribute('aria-label',`Open ${project.title}`);
     row.innerHTML=`
-      <span class="mf-v175-row-title">${esc(project.title)}</span>
-      <span class="mf-v175-row-meta">${esc(project.meta)}</span>
-      <span class="mf-v175-row-desc">${esc(project.desc)}</span>
-      <span class="mf-v175-row-plus" aria-hidden="true">+</span>`;
+      <span class="mf-rw177-row-title">${esc(project.title)}</span>
+      <span class="mf-rw177-row-meta">${esc(project.meta)}</span>
+      <span class="mf-rw177-row-desc">${esc(project.desc)}</span>
+      <span class="mf-rw177-row-plus" aria-hidden="true">+</span>`;
     list.appendChild(row);
     rows.push(row);
 
     const frame=document.createElement('span');
-    frame.className='mf-v175-frame';
+    frame.className='mf-rw177-frame';
     frame.dataset.index=project.key;
     const img=document.createElement('img');
     img.alt=`${project.title} selected work`;
     img.draggable=false;
     img.decoding='async';
     img.loading=index===0?'eager':'lazy';
-    img.fetchPriority=index===0?'high':'auto';
+    if(index===0)img.fetchPriority='high';
     let candidateIndex=0;
     const load=()=>{
       const src=project.candidates[candidateIndex];
-      if(src){img.src=src;row.dataset.img=src;frame.dataset.img=src;}
+      if(!src)return;
+      img.src=src;
+      row.dataset.img=src;
+      frame.dataset.img=src;
     };
     img.addEventListener('load',()=>{
       frame.classList.add('is-ready');
-      if(index===activeIndex)syncImageAspect(index);
+      if(index===activeIndex)syncPreviewRatio(index);
     });
     img.addEventListener('error',()=>{candidateIndex+=1;if(candidateIndex<project.candidates.length)load();});
     frame.appendChild(img);
-    imageStack.appendChild(frame);
+    previewStack.appendChild(frame);
     frames.push(frame);
     load();
   });
 
   sourceStack.hidden=true;
   sourceStack.setAttribute('aria-hidden','true');
-  section.querySelector('.mf-index-title')?.setAttribute('aria-hidden','true');
-  section.querySelector('.mf-stage-label')?.setAttribute('aria-hidden','true');
-  section.insertBefore(exhibition,sourceStack);
+  const oldTitle=section.querySelector(':scope > .mf-index-title');
+  const oldLabel=section.querySelector(':scope > .mf-stage-label');
+  if(oldTitle){oldTitle.hidden=true;oldTitle.setAttribute('aria-hidden','true');}
+  if(oldLabel){oldLabel.hidden=true;oldLabel.setAttribute('aria-hidden','true');}
+  section.insertBefore(root,sourceStack);
 
-  const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-  const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
-  let targetProgress=0;
-  let displayProgress=0;
+  const clamp=(value,min=0,max=1)=>Math.max(min,Math.min(max,value));
+  const smooth=value=>{value=clamp(value);return value*value*(3-2*value);};
+  let target=0;
+  let visual=0;
   let raf=0;
-  let active=false;
+  let inView=false;
   let headingPlayed=false;
-  let activeIndex=-1;
 
-  const syncImageAspect=index=>{
+  function syncPreviewRatio(index){
     const img=frames[index]?.querySelector('img');
     if(!img?.naturalWidth||!img?.naturalHeight)return;
-    imageButton.style.setProperty('--mf-active-image-ratio',`${img.naturalWidth} / ${img.naturalHeight}`);
-  };
+    preview.style.setProperty('--rw177-ratio',`${img.naturalWidth} / ${img.naturalHeight}`);
+  }
 
-  const playReveal=()=>{
+  function playHeadingReveal(){
     if(headingPlayed)return;
     headingPlayed=true;
     heading.classList.add('is-revealed');
-    const title=[...heading.querySelectorAll('h2 .mf-v175-reveal-piece')];
-    const sub=[...heading.querySelectorAll('p .mf-v175-reveal-piece')];
+    const title=[...heading.querySelectorAll('h2 .mf-rw177-reveal-piece')];
+    const sub=[...heading.querySelectorAll('p .mf-rw177-reveal-piece')];
     if(reduced.matches||!window.gsap){
-      [...title,...sub].forEach(el=>{el.style.opacity='1';el.style.transform='none';el.style.filter='none';});
+      [...title,...sub].forEach(el=>{el.style.transform='translate3d(0,0,0)';el.style.filter='blur(0px)';});
       return;
     }
     gsap.timeline()
-      .to(title,{yPercent:0,filter:'blur(0px)',duration:1.15,stagger:.07,ease:'power3.out',force3D:true})
-      .to(sub,{yPercent:0,filter:'blur(0px)',duration:1.05,stagger:.035,ease:'power3.out',force3D:true},'-=.56');
-  };
+      .to(title,{yPercent:0,filter:'blur(0px)',duration:1.35,stagger:.11,ease:'power3.out',force3D:true})
+      .to(sub,{yPercent:0,filter:'blur(0px)',duration:1.2,stagger:.055,ease:'power3.out',force3D:true},'-=.55');
+  }
 
-  const setActive=index=>{
-    index=Math.max(0,Math.min(projects.length-1,index));
-    if(activeIndex===index)return;
+  function setActive(index){
+    index=clamp(index,0,projects.length-1);
+    if(index===activeIndex && frames[index]?.classList.contains('is-active'))return;
     activeIndex=index;
     rows.forEach((row,i)=>row.classList.toggle('is-active',i===index));
     frames.forEach((frame,i)=>frame.classList.toggle('is-active',i===index));
-    imageButton.setAttribute('aria-label',`Open ${projects[index].title}`);
-    syncImageAspect(index);
-  };
+    preview.setAttribute('aria-label',`Open ${projects[index].title}`);
+    syncPreviewRatio(index);
+  }
+
+  rows.forEach((row,index)=>{
+    row.addEventListener('click',()=>window.mfOpenProjectByKey?.(projects[index].key,row));
+    row.addEventListener('pointerenter',()=>{ if(inView)setActive(index); });
+  });
+  preview.addEventListener('click',()=>window.mfOpenProjectByKey?.(projects[activeIndex].key,rows[activeIndex]));
   setActive(0);
 
-  imageButton.addEventListener('click',event=>{
-    event.preventDefault();
-    rows[activeIndex]?.click();
-  });
+  function paint(progress){
+    /* One clean viewport first. Then the heading reveals and stays pinned. */
+    const headingIn=smooth(clamp((progress-.185)/.055));
+    if(progress>.18)playHeadingReveal();
+    heading.style.opacity=headingIn.toFixed(4);
 
-  const paint=p=>{
-    /* ~one viewport of clean background before the heading arrives. */
-    const headingWindow=smooth(clamp((p-.18)/.055));
-    if(p>.175)playReveal();
-
-    /* Menu arrives after the reveal has had time to breathe. */
-    const menuProgress=clamp((p-.285)/.115);
-    rows.forEach((row,i)=>{
-      const local=smooth(clamp((menuProgress*4)-i));
-      row.style.setProperty('--row-in',local.toFixed(4));
+    /* Menu rows arrive sequentially after the heading animation has space to play. */
+    const rowsWindow=clamp((progress-.29)/.15);
+    rows.forEach((row,index)=>{
+      const local=smooth(clamp(rowsWindow*4-index));
+      row.style.setProperty('--rw177-row-in',local.toFixed(4));
     });
 
-    /* Four deliberate project milestones. */
-    const projectProgress=clamp((p-.405)/.365);
-    const virtual=projectProgress*projects.length;
-    const nextIndex=Math.min(projects.length-1,Math.floor(virtual));
-    setActive(nextIndex);
+    /* The four project states occupy a compact central scroll band. */
+    const projectBand=clamp((progress-.435)/.33);
+    const state=Math.min(3,Math.floor(projectBand*4));
+    setActive(state);
+    const previewIn=smooth(clamp((progress-.405)/.065));
+    preview.style.setProperty('--rw177-preview-in',previewIn.toFixed(4));
 
-    /* After Explorations, the entire pinned composition leaves together. */
-    const exit=smooth(clamp((p-.815)/.12));
-    const sceneOpacity=1-exit;
-    scene.style.opacity=String(sceneOpacity);
-    scene.style.transform=`translate3d(0,${(-48*exit).toFixed(2)}px,0)`;
-    scene.style.pointerEvents=sceneOpacity>.35?'auto':'none';
+    /* Only after Explorations is established does the complete scene leave. */
+    const exit=smooth(clamp((progress-.82)/.11));
+    scene.style.opacity=String(1-exit);
+    scene.style.transform=`translate3d(0,${(-54*exit).toFixed(2)}px,0)`;
+    scene.style.pointerEvents=exit>.75?'none':'auto';
+  }
 
-    heading.style.opacity=String(headingWindow*(1-exit));
-    list.style.setProperty('--menu-opacity',String((1-exit)));
-    imageButton.style.setProperty('--image-scene-opacity',String((1-exit)));
-  };
-
-  const tick=()=>{
+  function tick(){
     raf=0;
-    const delta=targetProgress-displayProgress;
-    /* Airy visual lag. Native scroll itself is never intercepted. */
-    displayProgress+=delta*(reduced.matches?1:.062);
-    if(Math.abs(delta)<.00005)displayProgress=targetProgress;
-    paint(displayProgress);
-    if(active&&Math.abs(targetProgress-displayProgress)>.00005)raf=requestAnimationFrame(tick);
-  };
-  const measure=()=>{
-    const rect=exhibition.getBoundingClientRect();
-    const travel=Math.max(1,exhibition.offsetHeight-innerHeight);
-    targetProgress=clamp(-rect.top/travel);
+    const delta=target-visual;
+    visual+=delta*(reduced.matches?1:.095);
+    if(Math.abs(delta)<.00006)visual=target;
+    paint(visual);
+    if(inView&&Math.abs(target-visual)>.00006)raf=requestAnimationFrame(tick);
+  }
+
+  function measure(){
+    const rect=root.getBoundingClientRect();
+    const travel=Math.max(1,root.offsetHeight-innerHeight);
+    target=clamp(-rect.top/travel);
     if(!raf)raf=requestAnimationFrame(tick);
-  };
+  }
+
   addEventListener('scroll',measure,{passive:true});
   addEventListener('resize',measure,{passive:true});
-  const observer=new IntersectionObserver(entries=>{
-    active=!!entries[0]?.isIntersecting;
-    document.body.classList.toggle('mf-selected-works-active',active);
-    if(active)measure();
-  },{threshold:0});
-  observer.observe(exhibition);
+  new IntersectionObserver(entries=>{
+    inView=!!entries[0]?.isIntersecting;
+    document.body.classList.toggle('mf-selected-works-active',inView);
+    if(inView)measure();
+  },{threshold:0}).observe(root);
   measure();
 })();
 
@@ -619,7 +617,7 @@ if(indexExtra){
       ]
     },
     "04":{
-      title:"Explorations",
+      title:"Vault 111",
       intro:"Not gonna hide these old-ass random designs just because they're not flashy enough, fully MF on-brand or were never published. Also — I would otherwise have four projects, and I needed one more because I like odd numbers.",
       scope:"Web, iOS, brand stuff",
       context:"Sometimes the night hits and you're like: “How would this layout look?” or “Can I get more minimalistic than clinical minimalism?” or “I WANT TO DESIGN A SKATE BRAND, NOW!” Hmm.",
@@ -1501,7 +1499,7 @@ if(indexExtra){
     }
   }
 
-  const getProjectStrip=key=>document.querySelector(`.mf-work-flow-chapter.mf-strip[data-index="${key}"]`)||document.querySelector(`.mf-strip[data-index="${key}"]`);
+  const getProjectStrip=key=>document.querySelector(`.mf-rw177-row[data-index="${key}"]`)||document.querySelector(`.mf-work-flow-chapter.mf-strip[data-index="${key}"]`)||document.querySelector(`.mf-strip[data-index="${key}"]`);
   const getProjectImage=(strip,key)=>strip?.querySelector('.mf-work-flow-image')?.currentSrc||strip?.querySelector('.mf-work-flow-image')?.src||strip?.querySelector('.mf-work-image')?.currentSrc||strip?.querySelector('.mf-work-image')?.src||strip?.dataset.img||{
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
     '02':'/media/projects/goballer/01-goballer-logo.jpg',
@@ -1705,6 +1703,7 @@ if(indexExtra){
   }
 
   document.querySelectorAll(".mf-strip").forEach(strip=>strip.addEventListener("click",()=>openProjectFromStrip(strip)));
+  window.mfOpenProjectByKey=(key,source)=>openProjectFromStrip(source||getProjectStrip(key));
   closeButton.addEventListener("click",()=>closeProject());
   document.addEventListener("keydown",event=>{
     if(!overlay.classList.contains("active"))return;
@@ -4488,7 +4487,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     x=event.clientX;y=event.clientY;place();
     const sideQuestsOpen=document.body.classList.contains('project-open')&&!!document.querySelector('.mf-project-shell.is-sidequests-project');
     const shouldHide=hiddenZone(event.target)||(document.body.classList.contains('project-open')&&!sideQuestsOpen)||document.body.classList.contains('art-open');
-    const openTarget=event.target?.closest?.('.mf-work-flow-chapter,.mf-tik-row,.mf-tik-preview,.mf-guidance-portal,#mfArtButton');
+    const openTarget=event.target?.closest?.('.mf-rw177-row,.mf-rw177-preview,.mf-work-flow-chapter,.mf-guidance-portal,#mfArtButton');
     const openMode=!!openTarget&&!shouldHide;
     const wasVisible=visible;
     visible=!shouldHide;

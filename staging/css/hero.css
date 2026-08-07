@@ -1,7 +1,0 @@
-.hero{min-height:100svh;position:relative;overflow:hidden;padding:0 var(--pad)}
-.hero-statement{position:absolute;z-index:4;left:50vw;top:21%;width:min(38vw,650px);font-size:clamp(24px,2.35vw,42px);line-height:1.02;letter-spacing:-.047em;font-weight:430;color:var(--ink)}
-.hero-statement .hero-line{display:block;white-space:nowrap}
-.hero-type{position:absolute;z-index:4;left:50vw;top:calc(21% + clamp(110px,10vw,180px));width:min(38vw,650px);font:450 clamp(10px,.78vw,13px)/1.45 Geist Mono;letter-spacing:.02em;color:#6f767b;opacity:0}
-.hero-name{position:absolute;z-index:3;left:var(--pad);right:var(--pad);bottom:1.5vh;font-size:clamp(76px,17.2vw,310px);line-height:.72;letter-spacing:-.083em;font-weight:560;color:var(--ink);white-space:nowrap;text-align:left}
-.caret{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
-@media(max-width:760px){.hero-statement{left:var(--pad);top:18%;width:calc(100% - var(--pad)*2);font-size:clamp(25px,7vw,42px)}.hero-statement .hero-line{white-space:normal}.hero-type{left:var(--pad);top:43%;width:calc(100% - var(--pad)*2)}.hero-name{font-size:19vw;bottom:4vh}}

@@ -233,25 +233,35 @@ if(indexExtra){
 }
 
 
-/* SELECTED WORKS — RECENT WORKS STACKED CARD STORY / V162 */
+/* SELECTED WORKS — TIK-TIK ARCHIVE / V174
+   Independently recreated from the interaction language of Skiper UI's
+   "Tik tik color list": eased archive scrolling, active-row background
+   transitions and a draggable preview. Native page scroll is never blocked. */
 (function(){
   const section=document.getElementById('work');
   const sourceStack=section?.querySelector('.mf-strips');
-  const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')].slice(0,3):[];
-  if(!section||!sourceStack||sources.length<3)return;
+  const sources=sourceStack?[...sourceStack.querySelectorAll(':scope > .mf-strip')].slice(0,4):[];
+  if(!section||!sourceStack||sources.length<4)return;
 
   document.documentElement.classList.remove('mf-work-snap-active');
   document.body.classList.remove('mf-selected-works-snap','mf-selected-works-elastic','mf-selected-works-cinematic');
-  document.body.classList.add('mf-selected-works-flow','mf-recent-works-stack');
-  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5');
-  section.classList.add('mf-selected-works-v6');
+  document.body.classList.add('mf-selected-works-flow','mf-recent-works-stack','mf-tiktik-works');
+  section.classList.remove('mf-selected-works-v2','mf-selected-works-v3','mf-selected-works-v4','mf-selected-works-v5','mf-selected-works-v6');
+  section.classList.add('mf-selected-works-v7');
 
   const fallbackImages={
     '01':'/media/projects/miunae/01-miunae-logo.jpg',
     '02':'/media/projects/goballer/01-goballer-logo.jpg',
-    '03':'/media/projects/aims/01-aims-logo.jpg'
+    '03':'/media/projects/aims/01-aims-logo.jpg',
+    '04':'/media/projects/vault/01-nofakie-1.jpg'
   };
-  const slugs={'01':'miunae','02':'goballer','03':'aims'};
+  const slugs={'01':'miunae','02':'goballer','03':'aims','04':'explorations'};
+  const projectColors={
+    '01':'#e7e4df',
+    '02':'#dfe5e4',
+    '03':'#e5e6df',
+    '04':'#e1e3e4'
+  };
   const inlineBackground=source=>{
     const value=source.querySelector('.mf-strip-img')?.style.backgroundImage||'';
     const match=value.match(/url\(["']?(.*?)["']?\)/i);
@@ -259,65 +269,86 @@ if(indexExtra){
   };
   const projects=sources.map((source,index)=>{
     const key=source.dataset.index||String(index+1).padStart(2,'0');
+    const title=key==='04'?'Explorations':(source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project');
     return {
       key,
       slug:slugs[key],
-      title:source.dataset.title||source.querySelector('.mf-strip-title')?.textContent?.trim()||'Project',
+      title,
       meta:source.querySelector('.mf-strip-meta')?.textContent?.trim()||'',
+      desc:source.querySelector('.mf-strip-desc')?.textContent?.trim()||'',
+      color:projectColors[key],
       candidates:[source.dataset.img,fallbackImages[key],inlineBackground(source)].filter(Boolean)
     };
   });
 
-  const foldMarkup=(text,kind)=>Array.from(text).map((char,index)=>
+  const foldMarkup=text=>Array.from(text).map((char,index)=>
     char===' '
       ? '<span class="mf-fold-space" aria-hidden="true">&nbsp;</span>'
       : `<span class="mf-fold-segment" aria-hidden="true" style="--fold-i:${index}"><span class="mf-fold-piece">${char}</span></span>`
   ).join('');
 
   const exhibition=document.createElement('div');
-  exhibition.className='mf-work-stack-exhibition';
+  exhibition.className='mf-tik-exhibition';
   exhibition.setAttribute('aria-label','Recent Works');
   exhibition.innerHTML=`
-    <div class="mf-work-stack-stage">
-      <div class="mf-work-stack-intro" aria-hidden="true">
-        <h2 aria-label="Recent Works"><span class="mf-fold-sr">Recent Works</span><span class="mf-fold-visual">${foldMarkup('Recent Works','title')}</span></h2>
-        <p aria-label="Creative Direction, Brand &amp; Product Design"><span class="mf-fold-sr">Creative Direction, Brand &amp; Product Design</span><span class="mf-fold-visual">${foldMarkup('Creative Direction, Brand & Product Design','sub')}</span></p>
+    <div class="mf-tik-stage">
+      <div class="mf-tik-intro" aria-hidden="true">
+        <h2 aria-label="Recent Works"><span class="mf-fold-sr">Recent Works</span><span class="mf-fold-visual">${foldMarkup('Recent Works')}</span></h2>
+        <p aria-label="Creative Direction, Brand &amp; Product Design"><span class="mf-fold-sr">Creative Direction, Brand &amp; Product Design</span><span class="mf-fold-visual">${foldMarkup('Creative Direction, Brand & Product Design')}</span></p>
       </div>
-      <div class="mf-work-stack-cards"></div>
+      <div class="mf-tik-list" role="list"></div>
+      <button class="mf-tik-preview" type="button" aria-label="Open project">
+        <span class="mf-tik-preview-images"></span>
+        <span class="mf-tik-preview-index" aria-hidden="true">01</span>
+      </button>
+      <div class="mf-tik-progress" aria-hidden="true"><span></span></div>
+      <div class="mf-tik-hint" aria-hidden="true">SCROLL / DRAG IMAGE</div>
     </div>`;
-  const cardsHost=exhibition.querySelector('.mf-work-stack-cards');
-  const intro=exhibition.querySelector('.mf-work-stack-intro');
-  const cards=[];
+
+  const stage=exhibition.querySelector('.mf-tik-stage');
+  const intro=exhibition.querySelector('.mf-tik-intro');
+  const list=exhibition.querySelector('.mf-tik-list');
+  const preview=exhibition.querySelector('.mf-tik-preview');
+  const previewImages=exhibition.querySelector('.mf-tik-preview-images');
+  const previewIndex=exhibition.querySelector('.mf-tik-preview-index');
+  const progressFill=exhibition.querySelector('.mf-tik-progress span');
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const rows=[];
+  const images=[];
 
   projects.forEach((project,index)=>{
-    const card=document.createElement('article');
-    card.className=`mf-work-stack-card mf-work-flow-chapter mf-strip is-${project.slug}`;
-    card.dataset.index=project.key;
-    card.dataset.title=project.title;
-    card.dataset.img=project.candidates[0]||'';
-    card.setAttribute('role','button');
-    card.setAttribute('tabindex','0');
-    card.setAttribute('aria-label',`Open ${project.title}`);
-    card.style.setProperty('--stack-index',String(index));
-    card.innerHTML=`
-      <div class="mf-work-stack-image-wrap mf-work-flow-image-wrap">
-        <img class="mf-work-stack-image mf-work-flow-image mf-work-image" alt="${project.title} selected work" draggable="false" decoding="async">
-        <div class="mf-work-stack-caption">
-          <span>${project.title}</span><small>${project.meta}</small>
-        </div>
-      </div>`;
-    const img=card.querySelector('img');
-    let candidateIndex=0;
-    const load=()=>{ const src=project.candidates[candidateIndex]; if(src){img.src=src;card.dataset.img=src;} };
+    const row=document.createElement('button');
+    row.type='button';
+    row.className=`mf-tik-row mf-strip is-${project.slug}`;
+    row.dataset.index=project.key;
+    row.dataset.title=project.title;
+    row.dataset.img=project.candidates[0]||'';
+    row.setAttribute('role','listitem');
+    row.setAttribute('aria-label',`Open ${project.title}`);
+    row.innerHTML=`
+      <span class="mf-tik-row-number">${project.key}</span>
+      <span class="mf-tik-row-title">${project.title}</span>
+      <span class="mf-tik-row-side"><small>${project.meta}</small><em>${project.desc}</em></span>`;
+    list.appendChild(row);
+    rows.push(row);
+
+    const frame=document.createElement('span');
+    frame.className='mf-tik-preview-frame';
+    frame.dataset.index=project.key;
+    const img=document.createElement('img');
+    img.alt=`${project.title} selected work`;
+    img.draggable=false;
+    img.decoding='async';
     img.loading=index===0?'eager':'lazy';
     img.fetchPriority=index===0?'high':'auto';
-    img.addEventListener('load',()=>card.classList.add('is-image-ready'));
+    let candidateIndex=0;
+    const load=()=>{const src=project.candidates[candidateIndex];if(src){img.src=src;row.dataset.img=src;frame.dataset.img=src;}};
+    img.addEventListener('load',()=>frame.classList.add('is-ready'));
     img.addEventListener('error',()=>{candidateIndex+=1;if(candidateIndex<project.candidates.length)load();});
+    frame.appendChild(img);
+    previewImages.appendChild(frame);
+    images.push(frame);
     load();
-    card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();card.click();}});
-    cardsHost.appendChild(card);
-    cards.push(card);
   });
 
   sourceStack.hidden=true;
@@ -327,13 +358,27 @@ if(indexExtra){
   section.insertBefore(exhibition,sourceStack);
 
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-  const smooth=t=>{t=clamp(t);return 1-Math.pow(1-t,3)};
-  const phase=(p,a,b)=>smooth((p-a)/(b-a));
-  let targetP=0;
-  let displayP=0;
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const smooth=t=>{t=clamp(t);return t*t*(3-2*t)};
+  const hexToRgb=hex=>{
+    const n=parseInt(hex.replace('#',''),16);
+    return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+  };
+  const mixColor=(a,b,t)=>{
+    const A=hexToRgb(a),B=hexToRgb(b);t=clamp(t);
+    return `rgb(${Math.round(lerp(A.r,B.r,t))},${Math.round(lerp(A.g,B.g,t))},${Math.round(lerp(A.b,B.b,t))})`;
+  };
+
+  let targetProgress=0;
+  let displayProgress=0;
   let raf=0;
   let active=false;
   let introPlayed=false;
+  let activeIndex=0;
+  let pointerDown=false;
+  let pointerId=null;
+  let dragOffset={x:0,y:0};
+  let dragStart={x:0,y:0,ox:0,oy:0};
 
   const playIntro=()=>{
     if(introPlayed)return;
@@ -342,68 +387,129 @@ if(indexExtra){
     const titlePieces=[...intro.querySelectorAll('h2 .mf-fold-piece')];
     const subPieces=[...intro.querySelectorAll('p .mf-fold-piece')];
     if(reduced.matches||!window.gsap){
-      [...titlePieces,...subPieces].forEach(piece=>{piece.style.opacity='1';piece.style.transform='none';piece.style.setProperty('--fold-crease','0');});
+      [...titlePieces,...subPieces].forEach(piece=>{piece.style.opacity='1';piece.style.transform='none';});
       return;
     }
     gsap.timeline()
-      .to(titlePieces,{opacity:1,rotateX:0,y:0,'--fold-crease':0,duration:.72,stagger:.046,ease:'power3.out',force3D:true})
-      .to(subPieces,{opacity:1,rotateX:0,y:0,'--fold-crease':0,duration:.54,stagger:.018,ease:'power3.out',force3D:true},'-=.26');
+      .to(titlePieces,{opacity:1,rotateX:0,y:0,duration:.72,stagger:.042,ease:'power3.out',force3D:true})
+      .to(subPieces,{opacity:1,rotateX:0,y:0,duration:.5,stagger:.012,ease:'power3.out',force3D:true},'-=.22');
   };
 
-  const measure=()=>{
-    const rect=exhibition.getBoundingClientRect();
-    const travel=Math.max(1,exhibition.offsetHeight-window.innerHeight);
-    targetP=clamp(-rect.top/travel);
-    if(targetP>=.055)playIntro();
-    if(!raf)raf=requestAnimationFrame(tick);
+  const projectFromTarget=target=>{
+    const el=target.closest?.('.mf-tik-row');
+    if(el)return el;
+    return rows[activeIndex];
+  };
+  rows.forEach(row=>row.addEventListener('pointerenter',()=>{
+    if(pointerDown)return;
+    const i=rows.indexOf(row);
+    if(i<0)return;
+    stage.classList.add('is-row-hovered');
+    stage.style.setProperty('--hover-index',String(i));
+  }));
+  rows.forEach(row=>row.addEventListener('pointerleave',()=>stage.classList.remove('is-row-hovered')));
+
+  preview.addEventListener('click',event=>{
+    if(Math.hypot(dragOffset.x-dragStart.ox,dragOffset.y-dragStart.oy)>5){event.preventDefault();event.stopPropagation();return;}
+    rows[activeIndex]?.click();
+  });
+  preview.addEventListener('pointerdown',event=>{
+    if(event.button!==0)return;
+    pointerDown=true;pointerId=event.pointerId;
+    dragStart={x:event.clientX,y:event.clientY,ox:dragOffset.x,oy:dragOffset.y};
+    preview.setPointerCapture(pointerId);
+    preview.classList.add('is-dragging');
+  });
+  preview.addEventListener('pointermove',event=>{
+    if(!pointerDown||event.pointerId!==pointerId)return;
+    const limitX=innerWidth*.23,limitY=innerHeight*.22;
+    dragOffset.x=clamp(dragStart.ox+(event.clientX-dragStart.x),-limitX,limitX);
+    dragOffset.y=clamp(dragStart.oy+(event.clientY-dragStart.y),-limitY,limitY);
+    preview.style.setProperty('--drag-x',`${dragOffset.x}px`);
+    preview.style.setProperty('--drag-y',`${dragOffset.y}px`);
+  });
+  const endDrag=event=>{
+    if(!pointerDown||(event&&event.pointerId!==pointerId))return;
+    pointerDown=false;preview.classList.remove('is-dragging');
+    try{preview.releasePointerCapture(pointerId);}catch(_){}
+    pointerId=null;
+  };
+  preview.addEventListener('pointerup',endDrag);
+  preview.addEventListener('pointercancel',endDrag);
+
+  const setActive=index=>{
+    index=Math.max(0,Math.min(projects.length-1,index));
+    if(activeIndex!==index){
+      activeIndex=index;
+      previewIndex.textContent=projects[index].key;
+      preview.setAttribute('aria-label',`Open ${projects[index].title}`);
+    }
+    rows.forEach((row,i)=>row.classList.toggle('is-active',i===index));
+    images.forEach((frame,i)=>frame.classList.toggle('is-active',i===index));
   };
 
   const paint=p=>{
-    /* V162: real physical stack. Cards never become translucent. The covered
-       cards move upward only enough to leave a slim layered edge, so reverse
-       scrolling reveals one clean card at a time instead of ghosting two. */
-    const enters=[[.135,.255],[.295,.415],[.455,.575]];
-    const introFade=1-phase(p,.105,.165);
-    intro.style.opacity=introFade.toFixed(4);
-    intro.style.transform=`translate3d(0,${((1-introFade)*-10).toFixed(2)}px,0)`;
+    const introIn=smooth(clamp((p-.025)/.075));
+    const archiveIn=smooth(clamp((p-.12)/.075));
+    const archiveOut=1-smooth(clamp((p-.90)/.07));
+    intro.style.opacity=String(clamp(introIn*(1-archiveIn)));
+    intro.style.transform=`translate3d(0,${(-12*archiveIn).toFixed(2)}px,0)`;
 
-    cards.forEach((card,index)=>{
-      const enter=phase(p,...enters[index]);
-      let depth=0;
-      for(let next=index+1;next<cards.length;next++) depth+=phase(p,enters[next][0],enters[next][1]);
-      const y=(1-enter)*112 - depth*11;
-      const scale=1-depth*.0125;
-      const visible=enter>.002;
-      card.style.setProperty('--card-y',`${y.toFixed(3)}vh`);
-      card.style.setProperty('--card-scale',scale.toFixed(4));
-      card.style.setProperty('--card-opacity',visible?'1':'0');
-      card.style.setProperty('--card-shadow',Math.min(1,depth).toFixed(4));
-      card.classList.toggle('is-present',enter>.985);
-      card.classList.toggle('is-entering',enter>0&&enter<.985);
-      card.style.visibility=visible?'visible':'hidden';
-      card.style.pointerEvents=enter>.91?'auto':'none';
+    const archiveProgress=clamp((p-.16)/.70);
+    const virtualIndex=archiveProgress*(projects.length-1);
+    const nearest=Math.round(virtualIndex);
+    setActive(nearest);
+
+    const rowGap=Math.max(112,Math.min(174,innerHeight*.175));
+    rows.forEach((row,i)=>{
+      const delta=i-virtualIndex;
+      const distance=Math.abs(delta);
+      const y=delta*rowGap;
+      const opacity=clamp(1-distance*.48,0.10,1)*archiveIn*archiveOut;
+      const scale=1-Math.min(distance,2)*.035;
+      row.style.setProperty('--row-y',`${y.toFixed(2)}px`);
+      row.style.setProperty('--row-opacity',opacity.toFixed(4));
+      row.style.setProperty('--row-scale',scale.toFixed(4));
+      row.style.setProperty('--row-blur',`${Math.min(2.8,distance*.85).toFixed(2)}px`);
+      row.style.pointerEvents=distance<.54&&archiveIn>.85?'auto':'none';
     });
+
+    const floor=Math.min(projects.length-1,Math.floor(virtualIndex));
+    const ceil=Math.min(projects.length-1,floor+1);
+    const local=smooth(virtualIndex-floor);
+    const projectBg=mixColor(projects[floor].color,projects[ceil].color,local);
+    stage.style.backgroundColor=mixColor('#e4e6e7',projectBg,archiveIn*archiveOut);
+    stage.style.setProperty('--archive-opacity',String(archiveIn*archiveOut));
+    stage.style.setProperty('--preview-tilt',`${((virtualIndex-nearest)*-2.2).toFixed(3)}deg`);
+    stage.style.setProperty('--preview-drift',`${((virtualIndex-nearest)*18).toFixed(2)}px`);
+    preview.style.pointerEvents=archiveIn>.8&&archiveOut>.5?'auto':'none';
+    progressFill.style.transform=`scaleX(${archiveProgress.toFixed(4)})`;
   };
 
   const tick=()=>{
     raf=0;
-    /* Deliberate visual drift only; native document scrolling remains untouched. */
-    const delta=targetP-displayP;
-    displayP+=delta*(reduced.matches?1:.075);
-    if(Math.abs(delta)<.00008)displayP=targetP;
-    paint(displayP);
-    if(active&&Math.abs(targetP-displayP)>.00008)raf=requestAnimationFrame(tick);
+    const delta=targetProgress-displayProgress;
+    displayProgress+=delta*(reduced.matches?1:.082);
+    if(Math.abs(delta)<.00006)displayProgress=targetProgress;
+    paint(displayProgress);
+    if(active&&Math.abs(targetProgress-displayProgress)>.00006)raf=requestAnimationFrame(tick);
   };
-
-  const onScroll=()=>measure();
-  window.addEventListener('scroll',onScroll,{passive:true});
-  window.addEventListener('resize',onScroll,{passive:true});
+  const measure=()=>{
+    const rect=exhibition.getBoundingClientRect();
+    const travel=Math.max(1,exhibition.offsetHeight-innerHeight);
+    targetProgress=clamp(-rect.top/travel);
+    if(targetProgress>.018)playIntro();
+    if(!raf)raf=requestAnimationFrame(tick);
+  };
+  addEventListener('scroll',measure,{passive:true});
+  addEventListener('resize',measure,{passive:true});
   const observer=new IntersectionObserver(entries=>{
     active=!!entries[0]?.isIntersecting;
     document.body.classList.toggle('mf-selected-works-active',active);
     if(active)measure();
   },{threshold:0});
   observer.observe(exhibition);
+  setActive(0);
   measure();
 })();
 
@@ -563,7 +669,7 @@ if(indexExtra){
       ]
     },
     "04":{
-      title:"Vault 111",
+      title:"Explorations",
       intro:"Not gonna hide these old-ass random designs just because they're not flashy enough, fully MF on-brand or were never published. Also — I would otherwise have four projects, and I needed one more because I like odd numbers.",
       scope:"Web, iOS, brand stuff",
       context:"Sometimes the night hits and you're like: “How would this layout look?” or “Can I get more minimalistic than clinical minimalism?” or “I WANT TO DESIGN A SKATE BRAND, NOW!” Hmm.",
@@ -4432,7 +4538,7 @@ document.querySelectorAll(".mf-roll").forEach(row=>{["mouseenter","mouseleave"].
     x=event.clientX;y=event.clientY;place();
     const sideQuestsOpen=document.body.classList.contains('project-open')&&!!document.querySelector('.mf-project-shell.is-sidequests-project');
     const shouldHide=hiddenZone(event.target)||(document.body.classList.contains('project-open')&&!sideQuestsOpen)||document.body.classList.contains('art-open');
-    const openTarget=event.target?.closest?.('.mf-work-flow-chapter,.mf-guidance-portal,#mfArtButton');
+    const openTarget=event.target?.closest?.('.mf-work-flow-chapter,.mf-tik-row,.mf-tik-preview,.mf-guidance-portal,#mfArtButton');
     const openMode=!!openTarget&&!shouldHide;
     const wasVisible=visible;
     visible=!shouldHide;

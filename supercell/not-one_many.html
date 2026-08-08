@@ -33,6 +33,32 @@
       overflow: hidden;
       border-radius: 12px;
       background: #e8e8e8;
+      cursor: pointer;
+      transform: scale(1);
+      box-shadow: 0 0 0 rgba(0,0,0,0);
+      transition:
+        transform 260ms cubic-bezier(.2,.72,.2,1),
+        box-shadow 260ms ease;
+      transform-origin: center center;
+      will-change: transform;
+    }
+
+    @media (hover: hover) {
+      .pin:hover {
+        transform: scale(1.018);
+        box-shadow: 0 10px 28px rgba(0,0,0,0.13);
+        position: relative;
+        z-index: 2;
+      }
+    }
+
+    .pin:active {
+      transform: scale(1.008);
+    }
+
+    .pin:focus-visible {
+      outline: 2px solid rgba(0,0,0,0.45);
+      outline-offset: 3px;
     }
 
     .pin img {
@@ -44,6 +70,7 @@
       transform: scale(1.02);
       opacity: 0;
       transition: opacity 0.45s ease;
+      pointer-events: none;
     }
 
     .pin img.loaded {
@@ -87,23 +114,9 @@
     const masonry = document.getElementById("masonry");
     const sentinel = document.getElementById("sentinel");
 
-    /*
-      Uses Cataas, a public cat-image service.
-      No local image library is required.
-      Each generated URL requests another random cat image.
-    */
-
     const aspectRatios = [
-      [4, 5],
-      [3, 4],
-      [2, 3],
-      [4, 6],
-      [5, 6],
-      [3, 5],
-      [1, 1],
-      [5, 7],
-      [4, 7],
-      [7, 9]
+      [4, 5], [3, 4], [2, 3], [4, 6], [5, 6],
+      [3, 5], [1, 1], [5, 7], [4, 7], [7, 9]
     ];
 
     let imageNumber = 0;
@@ -115,6 +128,9 @@
 
       const card = document.createElement("div");
       card.className = "pin";
+      card.tabIndex = 0;
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", "Play a random cat meow");
 
       const img = document.createElement("img");
       img.alt = "Blurred cat photograph";
@@ -128,7 +144,6 @@
       img.height = height;
       img.style.aspectRatio = ratio[0] + " / " + ratio[1];
 
-      // Unique timestamp/index prevents browser caching from repeating one image.
       img.src =
         "https://cataas.com/cat?width=" +
         width +
@@ -144,7 +159,6 @@
       });
 
       img.addEventListener("error", () => {
-        // Retry once with a fresh random URL.
         img.src =
           "https://cataas.com/cat?width=" +
           width +
@@ -159,6 +173,121 @@
       card.appendChild(img);
       return card;
     }
+
+    const meowPresets = [
+      { start: 520, mid: 760, end: 390, duration: 0.42, wobble: 7.0, gain: 0.18 },
+      { start: 430, mid: 690, end: 350, duration: 0.50, wobble: 6.2, gain: 0.17 },
+      { start: 610, mid: 900, end: 460, duration: 0.36, wobble: 8.5, gain: 0.15 },
+      { start: 380, mid: 620, end: 315, duration: 0.58, wobble: 5.6, gain: 0.18 },
+      { start: 570, mid: 820, end: 430, duration: 0.46, wobble: 7.8, gain: 0.16 },
+      { start: 470, mid: 730, end: 370, duration: 0.40, wobble: 9.2, gain: 0.17 },
+      { start: 640, mid: 940, end: 500, duration: 0.34, wobble: 8.8, gain: 0.14 },
+      { start: 410, mid: 650, end: 330, duration: 0.62, wobble: 5.0, gain: 0.17 },
+      { start: 550, mid: 790, end: 400, duration: 0.48, wobble: 6.8, gain: 0.16 },
+      { start: 490, mid: 710, end: 360, duration: 0.54, wobble: 7.4, gain: 0.16 }
+    ];
+
+    let audioContext = null;
+    let lastPreset = -1;
+
+    function getAudioContext() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioContext;
+    }
+
+    function choosePreset() {
+      let next = Math.floor(Math.random() * meowPresets.length);
+
+      if (next === lastPreset) {
+        next = (next + 1 + Math.floor(Math.random() * (meowPresets.length - 1))) % meowPresets.length;
+      }
+
+      lastPreset = next;
+      return meowPresets[next];
+    }
+
+    function playRandomMeow() {
+      const ctx = getAudioContext();
+
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
+
+      const preset = choosePreset();
+      const now = ctx.currentTime;
+      const stopAt = now + preset.duration;
+
+      const osc = ctx.createOscillator();
+      const harmonic = ctx.createOscillator();
+      const wobble = ctx.createOscillator();
+      const wobbleGain = ctx.createGain();
+      const gain = ctx.createGain();
+      const harmonicGain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = "sawtooth";
+      harmonic.type = "triangle";
+      wobble.type = "sine";
+
+      osc.frequency.setValueAtTime(preset.start, now);
+      osc.frequency.exponentialRampToValueAtTime(preset.mid, now + preset.duration * 0.28);
+      osc.frequency.exponentialRampToValueAtTime(preset.end, stopAt);
+
+      harmonic.frequency.setValueAtTime(preset.start * 1.98, now);
+      harmonic.frequency.exponentialRampToValueAtTime(preset.mid * 1.86, now + preset.duration * 0.28);
+      harmonic.frequency.exponentialRampToValueAtTime(preset.end * 1.92, stopAt);
+
+      wobble.frequency.setValueAtTime(preset.wobble, now);
+      wobbleGain.gain.setValueAtTime(16, now);
+
+      wobble.connect(wobbleGain);
+      wobbleGain.connect(osc.frequency);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(preset.gain, now + 0.035);
+      gain.gain.exponentialRampToValueAtTime(preset.gain * 0.72, now + preset.duration * 0.42);
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+
+      harmonicGain.gain.setValueAtTime(0.0001, now);
+      harmonicGain.gain.exponentialRampToValueAtTime(preset.gain * 0.22, now + 0.03);
+      harmonicGain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(2200, now);
+      filter.Q.setValueAtTime(1.5, now);
+
+      osc.connect(filter);
+      harmonic.connect(harmonicGain);
+      harmonicGain.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      harmonic.start(now);
+      wobble.start(now);
+
+      osc.stop(stopAt + 0.02);
+      harmonic.stop(stopAt + 0.02);
+      wobble.stop(stopAt + 0.02);
+    }
+
+    masonry.addEventListener("click", event => {
+      const pin = event.target.closest(".pin");
+      if (!pin) return;
+      playRandomMeow();
+    });
+
+    masonry.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+
+      const pin = event.target.closest(".pin");
+      if (!pin) return;
+
+      event.preventDefault();
+      playRandomMeow();
+    });
 
     function addBatch(amount = 24) {
       if (adding) return;
@@ -177,10 +306,8 @@
       }, 200);
     }
 
-    // Initial Pinterest-style board.
     addBatch(40);
 
-    // Load another batch before the user reaches the actual bottom.
     const observer = new IntersectionObserver(
       entries => {
         if (entries.some(entry => entry.isIntersecting)) {

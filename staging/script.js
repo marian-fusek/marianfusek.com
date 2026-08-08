@@ -64,6 +64,7 @@
      optically fitted to the viewport so no letter can spill over the edges. */
   const nameWrap=document.getElementById('heroNameWrap');
   const name=document.getElementById('heroName');
+  const monogram=document.querySelector('.hero-monogram');
   const letters=[...document.querySelectorAll('.name-letter')];
   const pointer={x:innerWidth/2,y:innerHeight*.78};
   const eased={x:pointer.x,y:pointer.y};
@@ -74,7 +75,7 @@
     name.style.transform='scaleX(1)';
     const available=nameWrap.clientWidth;
     const measured=name.scrollWidth;
-    const fit=measured>0?Math.min(1,available/measured):1;
+    const fit=measured>0?Math.min(1,(available/measured)*.985):1;
     name.style.transform=`scaleX(${fit})`;
   }
   addEventListener('resize',fitName,{passive:true});
@@ -89,8 +90,8 @@
       const cx=r.left+r.width/2,cy=r.top+r.height/2;
       const d=Math.hypot(eased.x-cx,eased.y-cy);
       const influence=clamp(1-d/maxDist,0,1);
-      const wght=Math.round(360+influence*330);
-      const sx=.94+influence*.14;
+      const wght=Math.round(620-influence*180);
+      const sx=1.0-influence*.06;
       span.style.fontVariationSettings=`'wght' ${wght}`;
       span.style.transform=`scaleX(${sx})`;
     }
@@ -98,6 +99,20 @@
   }
   addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY},{passive:true});
   if(!reduce)pressureRaf=requestAnimationFrame(pressureTick);
+
+  /* Only the MF monogram opens the name. Once expanded, the pointer can travel
+     across the full name without closing it. */
+  if(nameWrap&&monogram&&name){
+    const updateHoverState=e=>{
+      const r=monogram.getBoundingClientRect();
+      const overMono=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+      nameWrap.classList.toggle('is-expanded',overMono);
+    };
+    monogram.addEventListener('pointerenter',updateHoverState,{passive:true});
+    monogram.addEventListener('pointermove',updateHoverState,{passive:true});
+    monogram.addEventListener('pointerleave',()=>nameWrap.classList.remove('is-expanded'),{passive:true});
+    nameWrap.addEventListener('focusout',()=>nameWrap.classList.remove('is-expanded'));
+  }
 
   /* Accent loop remains the only autonomous character mutation. */
   const accentLetters=letters.filter(el=>el.dataset.accent);
@@ -115,79 +130,79 @@
   }
   accentLoop();
 
-  /* Recent Works appears only when the second (stage) viewport has fully arrived. */
+  /* Pinned four-step fullscreen image sequence. */
+  const projects=document.getElementById('projects');
   const stage=document.getElementById('projectsStage');
-  const kicker=document.getElementById('projectsKicker');
-  const rows=[...document.querySelectorAll('.project-row')];
-  const previews=[...document.querySelectorAll('.project-preview')];
-  let stageStarted=false;
-  let cycleTimer=0;
-  let activeIndex=0;
-
-  function revealStage(){
-    if(stageStarted)return;
-    stageStarted=true;
-    kicker.classList.add('is-revealed');
-    rows.forEach((row,i)=>setTimeout(()=>row.classList.add('is-revealed'),220+i*170));
-    const introDelay=220+rows.length*170+750;
-    setTimeout(()=>startProjectCycle(0),introDelay);
+  const frame=document.getElementById('projectsFrame');
+  const intro=document.getElementById('projectsIntro');
+  const images=frame?[...frame.querySelectorAll('.projects-image')]:[];
+  if(projects&&stage&&frame&&images.length){
+    let seqRaf=0;
+    let projectsTop=0;
+    const progressSegments=[...document.querySelectorAll('.projects-progress-segment')];
+    const smoothstep=(edge0,edge1,x)=>{
+      const t=clamp((x-edge0)/((edge1-edge0)||1e-6),0,1);
+      return t*t*(3-2*t);
+    };
+    const renderSequence=(sequenceP)=>{
+      const p=clamp(sequenceP,0,1);
+      const introP=clamp(p/.82,0,1);
+      if(intro){
+        const line=intro.querySelector('.projects-intro-piece');
+        if(line){
+          const local=smoothstep(0,.9,introP);
+          const fold=1-local;
+          line.style.opacity=String(p<.86?local:0);
+          line.style.transform=`rotateX(${92*fold}deg) translateY(${18*fold}px)`;
+          line.style.filter=`blur(${1.4*fold}px)`;
+        }
+      }
+      const steps=images.length;
+      const holdRatio=.72;
+      const openRatio=.28;
+      const unit=holdRatio+openRatio;
+      const timeline=p*steps*unit;
+      const activeIndex=Math.min(steps-1,Math.floor(timeline/unit));
+      const within=timeline-activeIndex*unit;
+      const open=smoothstep(0,1,clamp(within/openRatio,0,1));
+      stage.dataset.step=String(activeIndex);
+      progressSegments.forEach((seg,i)=>{
+        const segTimeline=clamp((timeline-i*unit)/unit,0,1);
+        const segFill=i<activeIndex?1:(i===activeIndex?Math.min(1,segTimeline):0);
+        seg.style.setProperty('--seg-fill',String(segFill));
+      });
+      images.forEach((img,i)=>{
+        const before=i<activeIndex;
+        const active=i===activeIndex;
+        const next=i===activeIndex+1;
+        const settle=before?1:active?open:0;
+        const zoom=before?1:active?lerp(1.28,1,settle):1.35;
+        const insetX=before?0:active?lerp(29,0,settle):29;
+        const insetY=before?0:active?lerp(21,0,settle):21;
+        const opacity=i===0?1:before?1:active?lerp(.35,1,smoothstep(0,.18,settle)):next?0:0;
+        img.classList.toggle('is-active',active||before);
+        img.style.opacity=String(opacity);
+        img.style.transform=`scale(${zoom})`;
+        img.style.clipPath=`inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)`;
+        img.style.zIndex=String(active?100+i:before?10+i:0);
+        img.style.pointerEvents='none';
+      });
+      stage.classList.toggle('is-released',p>=.999);
+    };
+    const updateSequence=()=>{
+      seqRaf=0;
+      const projStart=projectsTop-innerHeight;
+      const raw=clamp((scrollY-projStart)/(innerHeight*7.2),0,1);
+      renderSequence(raw);
+    };
+    const requestSequenceUpdate=()=>{if(!seqRaf)seqRaf=requestAnimationFrame(updateSequence)};
+    addEventListener('scroll',requestSequenceUpdate,{passive:true});
+    addEventListener('resize',requestSequenceUpdate,{passive:true});
+    const measure=()=>{projectsTop=projects.getBoundingClientRect().top+scrollY;};
+    measure();
+    addEventListener('resize',measure,{passive:true});
+    requestSequenceUpdate();
   }
-
-  function setActiveProject(next,animateWipe=true){
-    next=(next+rows.length)%rows.length;
-    const old=activeIndex;
-    if(next===old && rows[next].classList.contains('is-running'))return;
-
-    clearTimeout(cycleTimer);
-    rows.forEach((row,i)=>{
-      row.classList.toggle('is-active',i===next);
-      row.classList.remove('is-running');
-      const progress=row.querySelector('.project-progress');
-      if(progress){progress.style.animation='none';void progress.offsetWidth;progress.style.animation=''}
-    });
-
-    const oldPreview=previews[old];
-    const newPreview=previews[next];
-    if(newPreview)newPreview.classList.add('is-active');
-
-    if(animateWipe && oldPreview && oldPreview!==newPreview && oldPreview.classList.contains('is-active')){
-      oldPreview.classList.add('is-wiping');
-      const done=()=>{
-        oldPreview.classList.remove('is-active','is-wiping');
-        oldPreview.removeEventListener('animationend',done);
-      };
-      oldPreview.addEventListener('animationend',done);
-      setTimeout(done,650);
-    }else if(oldPreview && oldPreview!==newPreview){
-      oldPreview.classList.remove('is-active','is-wiping');
-    }
-
-    activeIndex=next;
-    requestAnimationFrame(()=>rows[next].classList.add('is-running'));
-    cycleTimer=setTimeout(()=>setActiveProject((next+1)%rows.length,true),5000);
-  }
-
-  function startProjectCycle(index){
-    activeIndex=index;
-    rows.forEach((row,i)=>row.classList.toggle('is-active',i===index));
-    previews.forEach((preview,i)=>preview.classList.toggle('is-active',i===index));
-    rows.forEach(row=>row.classList.remove('is-running'));
-    requestAnimationFrame(()=>rows[index].classList.add('is-running'));
-    clearTimeout(cycleTimer);
-    cycleTimer=setTimeout(()=>setActiveProject((index+1)%rows.length,true),5000);
-  }
-
-  const stageObserver=new IntersectionObserver(entries=>{
-    for(const entry of entries){
-      // threshold 0.985 means the stage must essentially fill the viewport first.
-      if(entry.target===stage && entry.intersectionRatio>=.985)revealStage();
-    }
-  },{threshold:[.5,.75,.9,.985,1]});
-  stageObserver.observe(stage);
-
-  rows.forEach((row,i)=>{
-    row.addEventListener('click',()=>setActiveProject(i,true));
-  });
 
   /* Cursor. */
   const cursor=document.getElementById('cursor');
@@ -199,7 +214,7 @@
   }
   addEventListener('pointermove',e=>{
     tx=e.clientX;ty=e.clientY;if(!raf)raf=requestAnimationFrame(tickCursor);
-    cursor.classList.toggle('is-open',!!e.target.closest('.project-row'));
+    cursor.classList.toggle('is-open',!!e.target.closest('.projects-frame'));
   },{passive:true});
   addEventListener('pointerdown',e=>{
     if(e.button!==0)return;

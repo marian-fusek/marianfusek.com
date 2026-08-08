@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Infinite Blurred Cat Masonry</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .masonry {
+      width: 100%;
+      padding: 10px;
+      column-count: 5;
+      column-gap: 10px;
+    }
+
+    .pin {
+      width: 100%;
+      display: block;
+      break-inside: avoid;
+      margin: 0 0 10px;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #e8e8e8;
+    }
+
+    .pin img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+      filter: blur(5px);
+      transform: scale(1.02);
+      opacity: 0;
+      transition: opacity 0.45s ease;
+    }
+
+    .pin img.loaded {
+      opacity: 1;
+    }
+
+    #sentinel {
+      height: 300px;
+      width: 100%;
+    }
+
+    @media (max-width: 1200px) {
+      .masonry { column-count: 4; }
+    }
+
+    @media (max-width: 900px) {
+      .masonry { column-count: 3; }
+    }
+
+    @media (max-width: 600px) {
+      .masonry {
+        column-count: 2;
+        column-gap: 8px;
+        padding: 8px;
+      }
+
+      .pin {
+        margin-bottom: 8px;
+        border-radius: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main id="masonry" class="masonry" aria-label="Infinite blurred cat image board"></main>
+  <div id="sentinel" aria-hidden="true"></div>
+
+  <script>
+    const masonry = document.getElementById("masonry");
+    const sentinel = document.getElementById("sentinel");
+
+    /*
+      Uses Cataas, a public cat-image service.
+      No local image library is required.
+      Each generated URL requests another random cat image.
+    */
+
+    const aspectRatios = [
+      [4, 5],
+      [3, 4],
+      [2, 3],
+      [4, 6],
+      [5, 6],
+      [3, 5],
+      [1, 1],
+      [5, 7],
+      [4, 7],
+      [7, 9]
+    ];
+
+    let imageNumber = 0;
+    let adding = false;
+
+    function createPin() {
+      const index = imageNumber++;
+      const ratio = aspectRatios[index % aspectRatios.length];
+
+      const card = document.createElement("div");
+      card.className = "pin";
+
+      const img = document.createElement("img");
+      img.alt = "Blurred cat photograph";
+      img.loading = "lazy";
+      img.decoding = "async";
+
+      const width = 600;
+      const height = Math.round(width * ratio[1] / ratio[0]);
+
+      img.width = width;
+      img.height = height;
+      img.style.aspectRatio = ratio[0] + " / " + ratio[1];
+
+      // Unique timestamp/index prevents browser caching from repeating one image.
+      img.src =
+        "https://cataas.com/cat?width=" +
+        width +
+        "&height=" +
+        height +
+        "&fit=cover&_=" +
+        Date.now() +
+        "-" +
+        index;
+
+      img.addEventListener("load", () => {
+        requestAnimationFrame(() => img.classList.add("loaded"));
+      });
+
+      img.addEventListener("error", () => {
+        // Retry once with a fresh random URL.
+        img.src =
+          "https://cataas.com/cat?width=" +
+          width +
+          "&height=" +
+          height +
+          "&fit=cover&_retry=" +
+          Date.now() +
+          "-" +
+          index;
+      }, { once: true });
+
+      card.appendChild(img);
+      return card;
+    }
+
+    function addBatch(amount = 24) {
+      if (adding) return;
+      adding = true;
+
+      const fragment = document.createDocumentFragment();
+
+      for (let i = 0; i < amount; i++) {
+        fragment.appendChild(createPin());
+      }
+
+      masonry.appendChild(fragment);
+
+      setTimeout(() => {
+        adding = false;
+      }, 200);
+    }
+
+    // Initial Pinterest-style board.
+    addBatch(40);
+
+    // Load another batch before the user reaches the actual bottom.
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          addBatch(24);
+        }
+      },
+      {
+        rootMargin: "1200px 0px"
+      }
+    );
+
+    observer.observe(sentinel);
+  </script>
+
+</body>
+</html>

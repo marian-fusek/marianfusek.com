@@ -8,31 +8,126 @@
   <style>
     * { box-sizing: border-box; }
 
+    :root {
+      --gap: 14px;
+      --row: 2px;
+      --page-bg: #f5f5f5;
+      --card-bg: #e5e5e5;
+      --cat-blur: 5px;
+      --chrome-pad: 16px;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
+      background: var(--page-bg);
     }
 
     body {
       font-family: Arial, Helvetica, sans-serif;
+      color: #111;
+    }
+
+    .topbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px var(--chrome-pad) 8px;
+    }
+
+    .topbar-title {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .topbar-button,
+    .icon-button {
+      appearance: none;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(255,255,255,0.72);
+      color: #111;
+      cursor: pointer;
+      transition:
+        transform 180ms ease,
+        box-shadow 180ms ease,
+        background 180ms ease,
+        border-color 180ms ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .topbar-button:hover,
+    .icon-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      border-color: rgba(0,0,0,0.18);
+      background: rgba(255,255,255,0.92);
+    }
+
+    .topbar-button:active,
+    .icon-button:active {
+      transform: translateY(0);
+    }
+
+    .topbar-button:focus-visible,
+    .icon-button:focus-visible,
+    .pin:focus-visible {
+      outline: 2px solid rgba(0,0,0,0.45);
+      outline-offset: 3px;
+    }
+
+    .topbar-button {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      line-height: 1;
+      font-weight: 700;
     }
 
     .masonry {
       width: 100%;
       padding: 10px;
-      column-count: 5;
-      column-gap: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-auto-rows: var(--row);
+      gap: var(--gap);
+      align-items: start;
     }
 
     .pin {
       width: 100%;
-      display: block;
-      break-inside: avoid;
-      margin: 0 0 10px;
       overflow: hidden;
+      position: relative;
       border-radius: 12px;
-      background: #e8e8e8;
+      background: var(--card-bg);
       cursor: pointer;
       transform: scale(1);
       box-shadow: 0 0 0 rgba(0,0,0,0);
@@ -56,50 +151,209 @@
       transform: scale(1.008);
     }
 
-    .pin:focus-visible {
-      outline: 2px solid rgba(0,0,0,0.45);
-      outline-offset: 3px;
-    }
-
     .pin img {
       width: 100%;
       height: auto;
       display: block;
       object-fit: cover;
-      filter: blur(5px);
+      filter: blur(var(--cat-blur));
       transform: scale(1.02);
-      opacity: 0;
-      transition: opacity 0.45s ease;
+      background: #dedede;
       pointer-events: none;
+      opacity: 0;
+      transition: opacity 320ms ease, filter 240ms ease;
     }
 
     .pin img.loaded {
       opacity: 1;
     }
 
+    .paw-loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      line-height: 1;
+      pointer-events: none;
+      animation: pawPulse 1.35s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    .pin.is-loaded .paw-loader {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 240ms ease, visibility 240ms ease;
+    }
+
+    @keyframes pawPulse {
+      0%, 100% {
+        transform: scale(0.92);
+        opacity: 0.42;
+      }
+      50% {
+        transform: scale(1.08);
+        opacity: 0.92;
+      }
+    }
+
+    .loader-wrap {
+      display: none;
+      width: 100%;
+      min-height: 340px;
+      align-items: center;
+      justify-content: center;
+      padding: 90px 20px 90px;
+    }
+
+    .loader-wrap.is-visible {
+      display: flex;
+    }
+
+    .loader {
+      position: relative;
+      width: min(92vw, 420px);
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .loader-copy {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.13em;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #111;
+    }
+
+    .orbit {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 160px;
+      height: 160px;
+      margin-left: -80px;
+      margin-top: -80px;
+      animation: orbitSpin 2.5s linear infinite;
+      pointer-events: none;
+    }
+
+    .orbit span {
+      position: absolute;
+      font-size: 24px;
+      line-height: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    .orbit span:nth-child(1) { left: 50%; top: 0%; }
+    .orbit span:nth-child(2) { left: 100%; top: 50%; }
+    .orbit span:nth-child(3) { left: 50%; top: 100%; }
+    .orbit span:nth-child(4) { left: 0%; top: 50%; }
+
+    .orbit span:nth-child(1),
+    .orbit span:nth-child(3) {
+      animation: counterSpin 2.5s linear infinite;
+    }
+
+    .orbit span:nth-child(2),
+    .orbit span:nth-child(4) {
+      animation: counterSpin 2.5s linear infinite reverse;
+    }
+
+    @keyframes orbitSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes counterSpin {
+      to { transform: rotate(-360deg); }
+    }
+
     #sentinel {
-      height: 300px;
+      height: 2px;
       width: 100%;
     }
 
     @media (max-width: 1200px) {
-      .masonry { column-count: 4; }
+      .masonry { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
     @media (max-width: 900px) {
-      .masonry { column-count: 3; }
+      .masonry { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 600px) {
+      :root {
+        --gap: 10px;
+        --chrome-pad: 12px;
+      }
+
+      .topbar {
+        padding: 14px var(--chrome-pad) 6px;
+      }
+
+      .topbar-title {
+        font-size: 11px;
+      }
+
+      .topbar-actions {
+        gap: 6px;
+      }
+
+      .topbar-button,
+      .icon-button {
+        height: 32px;
+      }
+
+      .topbar-button {
+        padding: 0 10px;
+        font-size: 10px;
+      }
+
+      .icon-button {
+        width: 32px;
+        font-size: 15px;
+      }
+
       .masonry {
-        column-count: 2;
-        column-gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         padding: 8px;
       }
 
       .pin {
-        margin-bottom: 8px;
         border-radius: 10px;
+      }
+
+      .loader {
+        height: 160px;
+      }
+
+      .orbit {
+        width: 140px;
+        height: 140px;
+        margin-left: -70px;
+        margin-top: -70px;
+      }
+
+      .loader-copy {
+        font-size: 11px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .orbit,
+      .orbit span,
+      .pin,
+      .pin img,
+      .topbar-button,
+      .icon-button {
+        animation: none;
+        transition: none;
       }
     }
   </style>
@@ -107,12 +361,59 @@
 
 <body>
 
-  <main id="masonry" class="masonry" aria-label="Infinite blurred cat image board"></main>
+  <header class="topbar" aria-label="Page controls">
+    <p class="topbar-title">No cat left behind</p>
+
+    <div class="topbar-actions">
+      <button id="intensifyButton" class="topbar-button" type="button" aria-label="Increase image blur">
+        INTENSIFY
+      </button>
+      <button id="resetBlurButton" class="icon-button" type="button" aria-label="Reset image blur to default" title="Reset blur">
+        ↺
+      </button>
+    </div>
+  </header>
+
+  <main id="masonry" class="masonry" aria-label="Blurred cat image board"></main>
+
+  <section id="loaderWrap" class="loader-wrap" aria-live="polite" aria-hidden="true">
+    <div class="loader">
+      <p class="loader-copy">BRINGING MORE IMMEOWRSION</p>
+      <div class="orbit" aria-hidden="true">
+        <span>🐈</span>
+        <span>🐱</span>
+        <span>🐈‍⬛</span>
+        <span>🐾</span>
+      </div>
+    </div>
+  </section>
+
   <div id="sentinel" aria-hidden="true"></div>
 
   <script>
     const masonry = document.getElementById("masonry");
     const sentinel = document.getElementById("sentinel");
+    const loaderWrap = document.getElementById("loaderWrap");
+    const intensifyButton = document.getElementById("intensifyButton");
+    const resetBlurButton = document.getElementById("resetBlurButton");
+
+    const DEFAULT_BLUR = 5;
+    const INTENSIFY_STEP = 2;
+    const MAX_BLUR = 21;
+    let currentBlur = DEFAULT_BLUR;
+
+    function applyBlur(value) {
+      currentBlur = Math.max(0, Math.min(MAX_BLUR, value));
+      document.documentElement.style.setProperty("--cat-blur", currentBlur + "px");
+    }
+
+    intensifyButton.addEventListener("click", () => {
+      applyBlur(currentBlur + INTENSIFY_STEP);
+    });
+
+    resetBlurButton.addEventListener("click", () => {
+      applyBlur(DEFAULT_BLUR);
+    });
 
     const aspectRatios = [
       [4, 5], [3, 4], [2, 3], [4, 6], [5, 6],
@@ -120,7 +421,48 @@
     ];
 
     let imageNumber = 0;
-    let adding = false;
+    let isLoadingBatch = false;
+
+    const fallbackCatUrls = [
+      "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1573865526739-10659fec78a5?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1529778873920-4da4926a72c2?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1511044568932-338cba0ad803?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1571566882372-1598d88abd90?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=900&q=75",
+      "https://images.unsplash.com/photo-1494256997604-768d1f608cac?auto=format&fit=crop&w=900&q=75"
+    ];
+
+    function getCatUrl(index, width, height) {
+      return (
+        "https://cataas.com/cat?width=" +
+        width +
+        "&height=" +
+        height +
+        "&fit=cover&_=" +
+        Date.now() +
+        "-" +
+        index
+      );
+    }
+
+    function resizePin(pin) {
+      const styles = getComputedStyle(masonry);
+      const rowSize = parseFloat(styles.getPropertyValue("grid-auto-rows"));
+      const gapSize = parseFloat(styles.getPropertyValue("row-gap"));
+      const contentHeight = pin.getBoundingClientRect().height;
+      const span = Math.ceil((contentHeight + gapSize) / (rowSize + gapSize));
+      pin.style.gridRowEnd = "span " + span;
+    }
+
+    function resizeAllPins() {
+      document.querySelectorAll(".pin").forEach(resizePin);
+    }
 
     function createPin() {
       const index = imageNumber++;
@@ -132,48 +474,45 @@
       card.setAttribute("role", "button");
       card.setAttribute("aria-label", "Play a random cat meow");
 
+      const paw = document.createElement("div");
+      paw.className = "paw-loader";
+      paw.setAttribute("aria-hidden", "true");
+      paw.textContent = "🐾";
+
       const img = document.createElement("img");
       img.alt = "Blurred cat photograph";
-      img.loading = "lazy";
+      img.loading = "eager";
       img.decoding = "async";
 
-      const width = 600;
+      const width = 700;
       const height = Math.round(width * ratio[1] / ratio[0]);
 
       img.width = width;
       img.height = height;
       img.style.aspectRatio = ratio[0] + " / " + ratio[1];
 
-      img.src =
-        "https://cataas.com/cat?width=" +
-        width +
-        "&height=" +
-        height +
-        "&fit=cover&_=" +
-        Date.now() +
-        "-" +
-        index;
+      let fallbackUsed = false;
 
       img.addEventListener("load", () => {
-        requestAnimationFrame(() => img.classList.add("loaded"));
+        img.classList.add("loaded");
+        card.classList.add("is-loaded");
+        requestAnimationFrame(() => resizePin(card));
       });
 
       img.addEventListener("error", () => {
-        img.src =
-          "https://cataas.com/cat?width=" +
-          width +
-          "&height=" +
-          height +
-          "&fit=cover&_retry=" +
-          Date.now() +
-          "-" +
-          index;
-      }, { once: true });
+        if (fallbackUsed) return;
+        fallbackUsed = true;
+        img.src = fallbackCatUrls[index % fallbackCatUrls.length];
+      });
 
+      img.src = getCatUrl(index, width, height);
+
+      card.appendChild(paw);
       card.appendChild(img);
       return card;
     }
 
+    // Procedural meow set.
     const meowPresets = [
       { start: 520, mid: 760, end: 390, duration: 0.42, wobble: 7.0, gain: 0.18 },
       { start: 430, mid: 690, end: 350, duration: 0.50, wobble: 6.2, gain: 0.17 },
@@ -199,11 +538,9 @@
 
     function choosePreset() {
       let next = Math.floor(Math.random() * meowPresets.length);
-
       if (next === lastPreset) {
         next = (next + 1 + Math.floor(Math.random() * (meowPresets.length - 1))) % meowPresets.length;
       }
-
       lastPreset = next;
       return meowPresets[next];
     }
@@ -241,7 +578,6 @@
 
       wobble.frequency.setValueAtTime(preset.wobble, now);
       wobbleGain.gain.setValueAtTime(16, now);
-
       wobble.connect(wobbleGain);
       wobbleGain.connect(osc.frequency);
 
@@ -281,18 +617,13 @@
 
     masonry.addEventListener("keydown", event => {
       if (event.key !== "Enter" && event.key !== " ") return;
-
       const pin = event.target.closest(".pin");
       if (!pin) return;
-
       event.preventDefault();
       playRandomMeow();
     });
 
-    function addBatch(amount = 24) {
-      if (adding) return;
-      adding = true;
-
+    function appendBatch(amount) {
       const fragment = document.createDocumentFragment();
 
       for (let i = 0; i < amount; i++) {
@@ -300,26 +631,49 @@
       }
 
       masonry.appendChild(fragment);
-
-      setTimeout(() => {
-        adding = false;
-      }, 200);
+      requestAnimationFrame(resizeAllPins);
     }
 
-    addBatch(40);
+    function showLoader() {
+      loaderWrap.classList.add("is-visible");
+      loaderWrap.setAttribute("aria-hidden", "false");
+    }
+
+    function hideLoader() {
+      loaderWrap.classList.remove("is-visible");
+      loaderWrap.setAttribute("aria-hidden", "true");
+    }
+
+    function loadMoreCats() {
+      if (isLoadingBatch) return;
+
+      isLoadingBatch = true;
+      showLoader();
+
+      window.setTimeout(() => {
+        appendBatch(12);
+        hideLoader();
+        isLoadingBatch = false;
+      }, 4000);
+    }
+
+    // Exactly 12 images are shown initially.
+    appendBatch(12);
 
     const observer = new IntersectionObserver(
       entries => {
         if (entries.some(entry => entry.isIntersecting)) {
-          addBatch(24);
+          loadMoreCats();
         }
       },
-      {
-        rootMargin: "1200px 0px"
-      }
+      { rootMargin: "250px 0px" }
     );
 
     observer.observe(sentinel);
+
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(resizeAllPins);
+    });
   </script>
 
 </body>

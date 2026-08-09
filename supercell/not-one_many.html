@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>🐈🐱🐈‍⬛ A Gift For You</title>
-
-  <style>
+  <link rel="icon" type="image/png" sizes="64x64" href="paw-favicon.png">
+<style>
     * { box-sizing: border-box; }
 
     :root {
-      --gap: 14px;
-      --row: 2px;
+      --gap: 18px;
+      --row: 1px;
       --page-bg: #f5f5f5;
-      --card-bg: #e5e5e5;
+      --card-bg: rgba(255,255,255,0.48);
       --cat-blur: 5px;
       --chrome-pad: 16px;
     }
@@ -26,9 +26,87 @@
     body {
       font-family: Arial, Helvetica, sans-serif;
       color: #111;
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(70px);
+      opacity: 0.32;
+    }
+
+    body::before {
+      width: 520px;
+      height: 520px;
+      left: -120px;
+      top: -60px;
+      background:
+        radial-gradient(circle at 40% 40%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.55) 20%, rgba(214,228,255,0.28) 42%, rgba(214,228,255,0.0) 72%);
+    }
+
+    body::after {
+      width: 720px;
+      height: 720px;
+      right: -180px;
+      top: 240px;
+      background:
+        radial-gradient(circle at 52% 48%, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.42) 18%, rgba(231,236,255,0.24) 36%, rgba(231,236,255,0.0) 72%);
+    }
+
+    .bg-clouds {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-clouds span {
+      position: absolute;
+      border-radius: 999px;
+      filter: blur(90px);
+      opacity: 0.18;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 36%, rgba(222,230,255,0.18) 58%, rgba(222,230,255,0) 76%);
+    }
+
+    .bg-clouds span:nth-child(1) {
+      width: 400px;
+      height: 240px;
+      left: 14%;
+      top: 18%;
+    }
+
+    .bg-clouds span:nth-child(2) {
+      width: 520px;
+      height: 280px;
+      right: 8%;
+      top: 8%;
+    }
+
+    .bg-clouds span:nth-child(3) {
+      width: 500px;
+      height: 260px;
+      left: 20%;
+      bottom: 8%;
+    }
+
+    .bg-clouds span:nth-child(4) {
+      width: 420px;
+      height: 240px;
+      right: 16%;
+      bottom: 16%;
     }
 
     .topbar {
+      position: relative;
+      z-index: 1;
       width: 100%;
       display: flex;
       align-items: center;
@@ -113,6 +191,8 @@
     }
 
     .masonry {
+      position: relative;
+      z-index: 1;
       width: 100%;
       padding: 10px;
       display: grid;
@@ -123,36 +203,40 @@
     }
 
     .pin {
-      width: 100%;
       overflow: hidden;
-      position: relative;
-      border-radius: 12px;
+      position: absolute;
+      border-radius: 24px;
       background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       cursor: pointer;
       transform: scale(1);
-      box-shadow: 0 0 0 rgba(0,0,0,0);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 0 0 rgba(0,0,0,0);
       transition:
-        transform 260ms cubic-bezier(.2,.72,.2,1),
-        box-shadow 260ms ease;
+        transform 1100ms cubic-bezier(.16, 1, .3, 1),
+        box-shadow 1100ms cubic-bezier(.16, 1, .3, 1);
       transform-origin: center center;
       will-change: transform;
     }
 
     @media (hover: hover) {
       .pin:hover {
-        transform: scale(1.018);
-        box-shadow: 0 10px 28px rgba(0,0,0,0.13);
-        position: relative;
+        transform: scale(1.025);
+        box-shadow:
+          0 18px 42px rgba(0,0,0,0.10),
+          0 1px 0 rgba(255,255,255,0.55) inset;
         z-index: 2;
       }
     }
 
     .pin:active {
-      transform: scale(1.008);
+      transform: scale(1.018);
+      transition-duration: 320ms;
     }
 
     .pin img {
       width: 100%;
+      border-radius: inherit;
       height: auto;
       display: block;
       object-fit: cover;
@@ -199,12 +283,14 @@
     }
 
     .loader-wrap {
+      position: relative;
+      z-index: 1;
       display: none;
       width: 100%;
       min-height: 340px;
       align-items: center;
       justify-content: center;
-      padding: 90px 20px 90px;
+      padding: 120px 20px 100px;
     }
 
     .loader-wrap.is-visible {
@@ -275,25 +361,33 @@
     }
 
     #sentinel {
+      position: relative;
+      z-index: 1;
       height: 2px;
       width: 100%;
     }
 
     @media (max-width: 1200px) {
-      .masonry { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .masonry {
+      position: relative;
+      z-index: 1; grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
 
     @media (max-width: 900px) {
-      .masonry { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .masonry {
+      position: relative;
+      z-index: 1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
 
     @media (max-width: 600px) {
       :root {
-        --gap: 10px;
+        --gap: 12px;
         --chrome-pad: 12px;
       }
 
       .topbar {
+      position: relative;
+      z-index: 1;
         padding: 14px var(--chrome-pad) 6px;
       }
 
@@ -321,12 +415,14 @@
       }
 
       .masonry {
+      position: relative;
+      z-index: 1;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         padding: 8px;
       }
 
       .pin {
-        border-radius: 10px;
+        border-radius: 20px;
       }
 
       .loader {
@@ -360,6 +456,13 @@
 </head>
 
 <body>
+
+  <div class="bg-clouds" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
 
   <header class="topbar" aria-label="Page controls">
     <p class="topbar-title">No cat left behind</p>
@@ -451,18 +554,54 @@
       );
     }
 
-    function resizePin(pin) {
-      const styles = getComputedStyle(masonry);
-      const rowSize = parseFloat(styles.getPropertyValue("grid-auto-rows"));
-      const gapSize = parseFloat(styles.getPropertyValue("row-gap"));
-      const contentHeight = pin.getBoundingClientRect().height;
-      const span = Math.ceil((contentHeight + gapSize) / (rowSize + gapSize));
-      pin.style.gridRowEnd = "span " + span;
+    function getColumnCount() {
+      const width = window.innerWidth;
+      if (width <= 600) return 2;
+      if (width <= 900) return 3;
+      if (width <= 1200) return 4;
+      return 5;
     }
 
-    function resizeAllPins() {
-      document.querySelectorAll(".pin").forEach(resizePin);
+    function layoutMasonry() {
+      const pins = Array.from(masonry.querySelectorAll(".pin"));
+      if (!pins.length) return;
+
+      const styles = getComputedStyle(document.documentElement);
+      const gap = parseFloat(styles.getPropertyValue("--gap")) || 18;
+      const masonryStyles = getComputedStyle(masonry);
+      const padLeft = parseFloat(masonryStyles.paddingLeft) || 0;
+      const padRight = parseFloat(masonryStyles.paddingRight) || 0;
+
+      const columns = getColumnCount();
+      const usableWidth = masonry.clientWidth - padLeft - padRight;
+      const columnWidth = (usableWidth - gap * (columns - 1)) / columns;
+      const heights = new Array(columns).fill(0);
+
+      pins.forEach(pin => {
+        pin.style.width = columnWidth + "px";
+
+        let column = 0;
+        for (let i = 1; i < columns; i++) {
+          if (heights[i] < heights[column]) column = i;
+        }
+
+        const x = padLeft + column * (columnWidth + gap);
+        const y = heights[column];
+
+        pin.style.left = x + "px";
+        pin.style.top = y + "px";
+
+        const height = pin.getBoundingClientRect().height;
+        heights[column] = y + height + gap;
+      });
+
+      const tallest = Math.max(...heights);
+      masonry.style.height = Math.max(0, tallest - gap) + "px";
     }
+
+    const pinResizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(layoutMasonry);
+    });
 
     function createPin() {
       const index = imageNumber++;
@@ -496,7 +635,7 @@
       img.addEventListener("load", () => {
         img.classList.add("loaded");
         card.classList.add("is-loaded");
-        requestAnimationFrame(() => resizePin(card));
+        requestAnimationFrame(layoutMasonry);
       });
 
       img.addEventListener("error", () => {
@@ -509,6 +648,7 @@
 
       card.appendChild(paw);
       card.appendChild(img);
+      pinResizeObserver.observe(card);
       return card;
     }
 
@@ -631,7 +771,7 @@
       }
 
       masonry.appendChild(fragment);
-      requestAnimationFrame(resizeAllPins);
+      requestAnimationFrame(layoutMasonry);
     }
 
     function showLoader() {
@@ -672,7 +812,7 @@
     observer.observe(sentinel);
 
     window.addEventListener("resize", () => {
-      requestAnimationFrame(resizeAllPins);
+      requestAnimationFrame(layoutMasonry);
     });
   </script>
 

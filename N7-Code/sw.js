@@ -1,0 +1,46 @@
+'use strict';
+
+const RUNTIME_CACHE = 'mf-code-runtime-v1';
+const RUNTIME_MARKER = '/__mf_project__/';
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+function runtimeRequestUrl(requestUrl) {
+  const url = new URL(requestUrl);
+  url.search = '';
+  url.hash = '';
+  return url;
+}
+
+async function runtimeResponse(request) {
+  const url = runtimeRequestUrl(request.url);
+  const cache = await caches.open(RUNTIME_CACHE);
+
+  let response = await cache.match(url.href, { ignoreSearch: true });
+  if (!response && url.pathname.endsWith('/')) {
+    const indexUrl = new URL('index.html', url.href);
+    response = await cache.match(indexUrl.href, { ignoreSearch: true });
+  }
+
+  if (response) return response.clone();
+
+  return new Response('MF Code runtime file not found', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store'
+    }
+  });
+}
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  if (!url.pathname.includes(RUNTIME_MARKER)) return;
+  event.respondWith(runtimeResponse(event.request));
+});

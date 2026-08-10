@@ -18,15 +18,25 @@
       </nav>
 
       <div class="top-actions">
-        <button class="power-button" type="button" data-power-action="format" aria-label="Format current code">FORMAT</button>
+        <button class="files-button power-button" type="button" aria-label="Show project files" aria-pressed="false">FILES</button>
+        <div class="tools-control">
+          <button class="tools-button" type="button" aria-haspopup="menu" aria-expanded="false">TOOLS</button>
+          <div class="tools-menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-tools-action="format">FORMAT</button>
+            <button type="button" role="menuitem" data-tools-action="libraries">LIBRARIES</button>
+          </div>
+        </div>
         <div class="project-control">
           <button class="project-button" type="button" aria-haspopup="menu" aria-expanded="false">PROJECT</button>
           <div class="project-menu" role="menu" hidden>
-            <button type="button" role="menuitem" data-project-action="open">OPEN</button>
+            <button type="button" role="menuitem" data-project-action="new">NEW</button>
+            <button type="button" role="menuitem" data-project-action="open-files">OPEN FILES</button>
+            <button type="button" role="menuitem" data-project-action="open-folder">OPEN FOLDER</button>
             <button type="button" role="menuitem" data-project-action="save">SAVE</button>
             <button type="button" role="menuitem" data-project-action="reset">RESET</button>
           </div>
           <input class="project-file-input" type="file" accept=".mfcode,.json,.html,.htm,.css,.js,application/json,text/html,text/css,text/javascript,application/javascript" multiple hidden />
+          <input class="project-folder-input" type="file" webkitdirectory directory multiple hidden />
         </div>
         <button class="export-button" type="button" aria-label="Export as standalone HTML">EXPORT</button>
         <button class="help-button" type="button" aria-label="Open help and shortcuts" aria-haspopup="dialog" aria-expanded="false">?</button>
@@ -41,6 +51,17 @@
     </header>
 
     <section class="workspace" aria-label="Editor workspace">
+      <aside class="file-tree" data-file-tree aria-label="Project files" aria-hidden="true">
+        <div class="file-tree-body">
+          <div class="file-tree-title">PROJECT</div>
+          <div class="file-tree-list" data-file-tree-list></div>
+        </div>
+        <footer class="file-tree-footer">3 FILES</footer>
+        <div class="file-tree-resizer" role="separator" aria-orientation="vertical" aria-label="Resize project files" tabindex="0">
+          <span class="file-tree-resizer-line" aria-hidden="true"></span>
+        </div>
+      </aside>
+
       <section class="editor-pane" aria-label="Code editor">
         <div class="single-editor" data-single-editor>
           <div class="code-surface">
@@ -92,7 +113,8 @@
 
       <section class="preview-pane" aria-label="Preview">
         <div class="preview-stage">
-          <iframe class="preview-document" data-preview title="Live preview" sandbox="allow-scripts"></iframe>
+          <iframe class="preview-document" data-preview title="Live preview" sandbox="allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock"></iframe>
+          <button class="detached-preview-placeholder" type="button" data-detached-preview-placeholder hidden>PREVIEW OPEN IN WINDOW ↗</button>
         </div>
         <footer class="pane-footer preview-footer">
           <span class="live-state"><span class="live-dot"></span> LIVE</span>
@@ -103,7 +125,18 @@
               <button class="preview-size" type="button" data-preview-size="mobile">MOBILE</button>
             </div>
             <span class="preview-control-divider" aria-hidden="true"></span>
+            <div class="preview-recovery-control">
+              <button class="preview-action preview-recover" type="button" data-preview-action="recover" aria-haspopup="menu" aria-expanded="false" hidden>RECOVER</button>
+              <div class="preview-recovery-menu" data-preview-recovery-menu role="menu" hidden>
+                <button type="button" role="menuitem" data-recovery-action="loader">HIDE LOADER</button>
+                <button type="button" role="menuitem" data-recovery-action="overlay">DISMISS OVERLAY</button>
+                <button type="button" role="menuitem" data-recovery-action="scroll">RESTORE SCROLL</button>
+                <button type="button" role="menuitem" data-recovery-action="media">DISABLE MEDIA</button>
+                <button type="button" role="menuitem" data-recovery-action="reload">RELOAD PREVIEW</button>
+              </div>
+            </div>
             <button class="preview-action" type="button" data-preview-action="refresh">REFRESH</button>
+            <button class="preview-action preview-detach" type="button" data-preview-action="detach" aria-label="Open live preview in a new window">↗</button>
             <button class="preview-action" type="button" data-preview-action="focus">FOCUS</button>
           </div>
         </footer>
@@ -111,11 +144,19 @@
     </section>
 
     <div class="find-bar" data-find-bar hidden>
-      <input class="find-input" type="text" autocomplete="off" spellcheck="false" aria-label="Find in code" placeholder="Find" />
-      <span class="find-count" aria-live="polite">0 / 0</span>
-      <button class="find-action" type="button" data-find-action="prev" aria-label="Previous match">↑</button>
-      <button class="find-action" type="button" data-find-action="next" aria-label="Next match">↓</button>
-      <button class="find-action" type="button" data-find-action="close" aria-label="Close find">ESC</button>
+      <div class="find-row">
+        <input class="find-input" type="text" autocomplete="off" spellcheck="false" aria-label="Find in code" placeholder="Find" />
+        <span class="find-count" aria-live="polite">0 / 0</span>
+        <button class="find-action find-replace-toggle" type="button" data-find-action="replace-mode" aria-label="Show replace">REPLACE</button>
+        <button class="find-action" type="button" data-find-action="prev" aria-label="Previous match">↑</button>
+        <button class="find-action" type="button" data-find-action="next" aria-label="Next match">↓</button>
+        <button class="find-action" type="button" data-find-action="close" aria-label="Close find">ESC</button>
+      </div>
+      <div class="find-replace-row">
+        <input class="replace-input" type="text" autocomplete="off" spellcheck="false" aria-label="Replace with" placeholder="Replace with" />
+        <button class="find-action replace-action" type="button" data-replace-action="one">REPLACE</button>
+        <button class="find-action replace-action" type="button" data-replace-action="all">ALL</button>
+      </div>
     </div>
 
     <div class="command-palette" data-command-palette hidden>
@@ -127,6 +168,52 @@
     </div>
 
     <div class="autocomplete" data-autocomplete hidden role="listbox"></div>
+
+    <div class="project-switch-overlay" data-project-switch hidden>
+      <section class="project-switch-card" role="dialog" aria-modal="true" aria-labelledby="project-switch-title">
+        <p class="project-switch-kicker">PROJECT</p>
+        <h2 id="project-switch-title">OPEN AS PROJECT?</h2>
+        <p class="project-switch-copy">Your current project will remain saved locally.</p>
+        <div class="project-switch-actions">
+          <button type="button" data-project-switch-action="cancel">CANCEL</button>
+          <button type="button" data-project-switch-action="confirm">OPEN</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="library-overlay" data-library-overlay hidden>
+      <section class="library-panel" role="dialog" aria-modal="true" aria-labelledby="library-title">
+        <header class="library-header">
+          <div>
+            <p class="library-kicker">TOOLS</p>
+            <h2 id="library-title">Libraries.</h2>
+          </div>
+          <button class="library-close" type="button" aria-label="Close libraries">ESC</button>
+        </header>
+        <p class="library-intro">Add common front-end tools to the live preview without touching your project files. Existing project dependencies are detected and never duplicated.</p>
+        <div class="library-columns">
+          <section class="library-section">
+            <div class="library-section-head">
+              <p class="library-label">CODE</p>
+              <span>PREVIEW ONLY</span>
+            </div>
+            <div class="library-list" data-library-list></div>
+          </section>
+          <section class="library-section">
+            <div class="library-section-head">
+              <p class="library-label">GOOGLE FONTS</p>
+              <span>400 · 500 · 600</span>
+            </div>
+            <label class="font-search-wrap">
+              <span class="sr-only">Search Google Fonts</span>
+              <input class="font-library-search" type="text" autocomplete="off" spellcheck="false" placeholder="Search fonts" aria-label="Search Google Fonts" />
+            </label>
+            <div class="font-library-list" data-font-library-list></div>
+          </section>
+        </div>
+        <footer class="library-footer"><span>INJECTED INTO PREVIEW</span><span>REFRESHES WITH PROJECT</span></footer>
+      </section>
+    </div>
 
     <div class="help-overlay" data-help-overlay hidden>
       <section class="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
@@ -152,6 +239,7 @@
                   <div class="help-feature"><span>LIVE PREVIEW</span><p>Changes appear automatically. CSS updates without reloading the page, so preview state and scroll stay put.</p></div>
                   <div class="help-feature"><span>CODE ↔ PREVIEW</span><p>Click an element in the preview to jump to its HTML. Move through HTML to softly identify the matching preview element.</p></div>
                   <div class="help-feature"><span>FORMAT + EMMET</span><p>Format keeps indentation tidy. In HTML/CSS, type an Emmet abbreviation and press Tab to expand it.</p></div>
+                  <div class="help-feature"><span>LIBRARIES</span><p>TOOLS → LIBRARIES can preload curated front-end libraries and Google Fonts into the preview. Project dependencies are detected so nothing is injected twice.</p></div>
                   <div class="help-feature"><span>DIAGNOSTICS</span><p>Errors and warnings appear quietly in the gutter and footer. JavaScript reports exact runtime lines and messages.</p></div>
                   <div class="help-feature"><span>HISTORY</span><p>Undo and redo survive reopening the editor. Drafts and interface preferences are also preserved locally.</p></div>
                 </div>
@@ -159,7 +247,7 @@
 
               <section class="help-section help-tip">
                 <p class="help-label">QUICKEST WAY AROUND</p>
-                <p class="help-copy">Press <strong>⌘ K</strong> and type what you want to do. Most actions are available without reaching for a button.</p>
+                <p class="help-copy">Press <strong data-shortcut-text="palette">⌘ K</strong> and type what you want to do. Most actions are available without reaching for a button.</p>
               </section>
             </div>
 
@@ -167,24 +255,40 @@
               <section class="help-section">
                 <p class="help-label">SHORTCUTS</p>
                 <div class="shortcut-list">
-                  <div><span>COMMAND PALETTE</span><kbd>⌘ K</kbd></div>
-                  <div><span>UNDO</span><kbd>⌘ Z</kbd></div>
-                  <div><span>REDO</span><kbd>⇧ ⌘ Z</kbd></div>
-                  <div><span>FIND</span><kbd>⌘ F</kbd></div>
-                  <div><span>COMMENT / UNCOMMENT</span><kbd>⌘ /</kbd></div>
-                  <div><span>DUPLICATE LINE</span><kbd>⌘ D</kbd></div>
-                  <div><span>MOVE LINE UP / DOWN</span><kbd>⌥ ↑ / ↓</kbd></div>
-                  <div><span>FORMAT</span><kbd>⌥ ⇧ F</kbd></div>
+                  <div><span>COMMAND PALETTE</span><kbd data-shortcut="palette">⌘ K</kbd></div>
+                  <div><span>UNDO</span><kbd data-shortcut="undo">⌘ Z</kbd></div>
+                  <div><span>REDO</span><kbd data-shortcut="redo">⇧ ⌘ Z</kbd></div>
+                  <div><span>FIND</span><kbd data-shortcut="find">⌘ F</kbd></div>
+                  <div><span>FIND + REPLACE</span><kbd data-shortcut="replace">⌥ ⌘ F</kbd></div>
+                  <div><span>COMMENT / UNCOMMENT</span><kbd data-shortcut="comment">⌘ /</kbd></div>
+                  <div><span>DUPLICATE LINE</span><kbd data-shortcut="duplicate">⌘ D</kbd></div>
+                  <div><span>MOVE LINE UP / DOWN</span><kbd data-shortcut="move">⌥ ↑ / ↓</kbd></div>
+                  <div><span>FORMAT</span><kbd data-shortcut="format">⌥ ⇧ F</kbd></div>
                   <div><span>EMMET EXPAND</span><kbd>TAB</kbd></div>
+                </div>
+              </section>
+
+              <section class="help-section help-current-state">
+                <p class="help-label">CURRENT STATE</p>
+                <div class="help-state-list">
+                  <div><span>PROJECT</span><strong data-help-state="project">SIMPLE</strong></div>
+                  <div><span>PREVIEW</span><strong data-help-state="preview">EMBEDDED</strong></div>
+                  <div><span>RUNTIME</span><strong data-help-state="runtime">LOCAL</strong></div>
+                  <div><span>FILES</span><strong data-help-state="files">HIDDEN</strong></div>
+                  <div><span>LIBRARIES</span><strong data-help-state="libraries">NONE</strong></div>
+                  <div><span>FONTS</span><strong data-help-state="fonts">NONE</strong></div>
                 </div>
               </section>
 
               <section class="help-section">
                 <p class="help-label">PROJECT + OUTPUT</p>
                 <div class="help-feature-list">
-                  <div class="help-feature"><span>PROJECT</span><p>Open HTML, CSS, JS or an MF Code project. Save preserves all three sources. Reset returns to the starter template.</p></div>
+                  <div class="help-feature"><span>FILES</span><p>Toggle the real project tree when you need it. Open folders keep their actual hierarchy; hide it again to return to the clean workspace.</p></div>
+                  <div class="help-feature"><span>PROJECT</span><p>Start fresh, open files, or open a real folder project. Folder projects keep their hierarchy and can be saved back to disk when the browser grants access.</p></div>
                   <div class="help-feature"><span>EXPORT</span><p>Creates one standalone <code>index.html</code> containing your current HTML, CSS and JavaScript.</p></div>
-                  <div class="help-feature"><span>PREVIEW</span><p>Switch desktop, tablet and mobile widths, refresh manually, or use Focus to give the preview the workspace.</p></div>
+                  <div class="help-feature"><span>PREVIEW</span><p>Switch desktop, tablet and mobile widths, refresh manually, use Focus, or detach the live preview into its own browser window.</p></div>
+                  <div class="help-feature"><span>RECOVERY</span><p>If preview JavaScript breaks and blocks the page, RECOVER offers temporary preview-only actions such as hiding a loader or restoring scroll. Your project files are never changed.</p></div>
+                  <div class="help-feature"><span>TOOLS</span><p>Optional power stays tucked away: Format and Libraries live under TOOLS, and the same actions are available from the command palette.</p></div>
                 </div>
               </section>
             </div>

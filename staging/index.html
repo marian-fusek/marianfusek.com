@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Marian Fusek — Staging V182</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?v=219">
 </head>
 <body>
   <nav class="site-nav" aria-label="Primary">
@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div class="hero-name-wrap" id="heroNameWrap" tabindex="0" role="group" aria-label="Marian Fusek — hover to expand">
+      <div class="hero-name-wrap is-expanded" id="heroNameWrap" tabindex="0" role="group" aria-label="Marian Fusek">
         <button class="hero-hitbox" type="button" aria-label="Expand Marian Fusek"></button>
         <div class="hero-monogram" aria-hidden="true">MF</div>
         <div class="hero-name" id="heroName" aria-label="Marian Fusek">
@@ -59,19 +59,17 @@
     <section class="projects" id="projects">
       <div class="projects-stage" id="projectsStage">
         <div class="projects-shell projects-shell--sequence">
-      <div class="projects-edge-glow" id="projectsEdgeGlow" aria-hidden="true"></div>
+      <div class="projects-sweep-line" id="projectsSweepLine" aria-hidden="true"></div>
       <div class="projects-intro projects-intro--overlay" id="projectsIntro" aria-hidden="true">
-        <span class="projects-intro-piece">Recent Works (〜1y)</span>
+        <span class="projects-intro-piece">Recent Works <span class="recent-period">(〜1y)</span></span>
         <span class="projects-info" id="projectsInfo">No Fake — identity / digital experience</span>
       </div>
       <div class="projects-frame" id="projectsFrame">
         <div class="projects-image-mask"><img class="projects-image is-active" data-step="0" src="../media/projects/vault/01-nofakie-1.jpg" alt="Project image 1"></div>
         <div class="projects-image-mask"><img class="projects-image" data-step="1" src="../media/projects/vault/02-nofakie-2.jpg" alt="Project image 2"></div>
         <div class="projects-image-mask"><img class="projects-image" data-step="2" src="../media/projects/vault/03-one3.jpg" alt="Project image 3"></div>
-        <div class="projects-image-mask"><img class="projects-image" data-step="3" src="../media/projects/vault/04-ennui.jpg" alt="Project image 4"></div>
           </div>
           <div class="projects-progress" aria-hidden="true">
-            <span class="projects-progress-segment"></span>
             <span class="projects-progress-segment"></span>
             <span class="projects-progress-segment"></span>
             <span class="projects-progress-segment"></span>
@@ -81,11 +79,16 @@
     </section>
   </main>
 
+  <aside class="case-overlay" id="caseOverlay" aria-hidden="true">
+    <div class="case-overlay-nav"><span>MF</span><button class="case-overlay-close" id="caseOverlayClose" type="button" aria-label="Close case study">×</button></div>
+    <figure class="case-overlay-media"><img id="caseOverlayImage" alt=""></figure>
+  </aside>
+
   <div class="cursor" id="cursor" aria-hidden="true">
     <span class="cursor-dot"></span>
-    <span class="cursor-label">OPEN</span>
+    <span class="cursor-label"><span>OPEN</span><span class="cursor-project-wrap"><span class="cursor-project">MIUNĀE</span></span></span>
   </div>
 
-  <script src="./script.js"></script>
+  <script src="./script.js?v=224"></script>
 </body>
 </html>

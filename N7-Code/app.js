@@ -12,7 +12,9 @@
   const STORAGE = {
     draft: 'mf-code-draft-v1',
     prefs: 'mf-code-prefs-v1',
-    history: 'mf-code-history-v1'
+    history: 'mf-code-history-v1',
+    tree: 'mf-code-tree-v1',
+    addons: 'mf-code-addons-v1'
   };
   const LANGUAGE_MAP = { html: 'markup', css: 'css', js: 'javascript' };
   const PAIRS = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
@@ -22,6 +24,21 @@
     css: 'body {\n  font-family: sans-serif;\n}',
     js: 'console.log("Hello.");'
   });
+
+  const CURATED_LIBRARIES = Object.freeze([
+    { id: 'react', name: 'REACT', meta: '18 · GLOBAL', scripts: [
+      'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js',
+      'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js'
+    ], detect: /(?:react(?:-dom)?(?:\.production)?(?:\.min)?\.js|from\s+[\"']react(?:-dom)?[\"'])/i },
+    { id: 'vue', name: 'VUE', meta: '3 · GLOBAL', scripts: ['https://cdn.jsdelivr.net/npm/vue@3.5.41/dist/vue.global.prod.js'], detect: /(?:vue(?:\.global|\.esm-browser)?(?:\.prod)?\.js|from\s+[\"']vue[\"'])/i },
+    { id: 'gsap', name: 'GSAP', meta: '3.15', scripts: ['https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js'], detect: /(?:\/gsap(?:@|\/)|gsap(?:\.min)?\.js|from\s+[\"']gsap[\"'])/i },
+    { id: 'three', name: 'THREE.JS', meta: '0.185', module: 'https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.min.js', global: 'THREE', detect: /(?:three(?:\.module)?(?:\.min)?\.js|from\s+[\"']three[\"'])/i },
+    { id: 'alpine', name: 'ALPINE', meta: '3.15', scripts: ['https://cdn.jsdelivr.net/npm/alpinejs@3.15.12/dist/cdn.min.js'], detect: /(?:alpinejs|@alpinejs)/i },
+    { id: 'tailwind', name: 'TAILWIND', meta: 'BROWSER · 4', scripts: ['https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4'], detect: /(?:@tailwindcss\/browser|cdn\.tailwindcss\.com)/i }
+  ]);
+  const CURATED_FONTS = Object.freeze([
+    'Inter','Manrope','Space Grotesk','DM Sans','IBM Plex Sans','Roboto','Roboto Mono','Source Sans 3','Source Code Pro','Work Sans','Outfit','Plus Jakarta Sans','Figtree','Archivo','Playfair Display','Libre Baskerville'
+  ]);
 
   const app = document.querySelector('.app');
   const workspace = document.querySelector('.workspace');
@@ -41,6 +58,11 @@
   const previewActionButtons = [...document.querySelectorAll('[data-preview-action]')];
   const refreshPreviewButton = document.querySelector('[data-preview-action="refresh"]');
   const focusPreviewButton = document.querySelector('[data-preview-action="focus"]');
+  const detachPreviewButton = document.querySelector('[data-preview-action="detach"]');
+  const detachedPreviewPlaceholder = document.querySelector('[data-detached-preview-placeholder]');
+  const recoverPreviewButton = document.querySelector('[data-preview-action="recover"]');
+  const previewRecoveryMenu = document.querySelector('[data-preview-recovery-menu]');
+  const recoveryActions = [...document.querySelectorAll('[data-recovery-action]')];
   const liveState = document.querySelector('.live-state');
   const projectButton = document.querySelector('.project-button');
   const exportButton = document.querySelector('.export-button');
@@ -48,9 +70,32 @@
   const projectInput = document.querySelector('.project-file-input');
   const projectActions = [...document.querySelectorAll('[data-project-action]')];
   const resetAction = document.querySelector('[data-project-action="reset"]');
-  const formatButton = document.querySelector('[data-power-action="format"]');
+  const toolsButton = document.querySelector('.tools-button');
+  const toolsMenu = document.querySelector('.tools-menu');
+  const toolsActions = [...document.querySelectorAll('[data-tools-action]')];
+  const formatButton = document.querySelector('[data-tools-action="format"]');
+  const libraryOverlay = document.querySelector('[data-library-overlay]');
+  const libraryClose = document.querySelector('.library-close');
+  const libraryList = document.querySelector('[data-library-list]');
+  const fontLibraryList = document.querySelector('[data-font-library-list]');
+  const fontLibrarySearch = document.querySelector('.font-library-search');
+  const filesButton = document.querySelector('.files-button');
+  const fileTree = document.querySelector('[data-file-tree]');
+  const fileTreeItems = [...document.querySelectorAll('[data-file-language]')];
+  const fileTreeList = document.querySelector('[data-file-tree-list]');
+  const fileTreeTitle = fileTree.querySelector('.file-tree-title');
+  const fileTreeFooter = fileTree.querySelector('.file-tree-footer');
+  const fileTreeResizer = fileTree.querySelector('.file-tree-resizer');
+  const projectFolderInput = document.querySelector('.project-folder-input');
+  const projectSwitchOverlay = document.querySelector('[data-project-switch]');
+  const projectSwitchTitle = document.getElementById('project-switch-title');
+  const projectSwitchCopy = projectSwitchOverlay.querySelector('.project-switch-copy');
+  const projectSwitchActions = [...projectSwitchOverlay.querySelectorAll('[data-project-switch-action]')];
   const findBar = document.querySelector('[data-find-bar]');
   const findInput = document.querySelector('.find-input');
+  const replaceInput = document.querySelector('.replace-input');
+  const replaceActions = [...document.querySelectorAll('[data-replace-action]')];
+  const findReplaceToggle = document.querySelector('[data-find-action="replace-mode"]');
   const findCount = document.querySelector('.find-count');
   const findActions = [...document.querySelectorAll('[data-find-action]')];
   const commandPalette = document.querySelector('[data-command-palette]');
@@ -61,6 +106,13 @@
   const helpButton = document.querySelector('.help-button');
   const helpOverlay = document.querySelector('[data-help-overlay]');
   const helpClose = document.querySelector('.help-close');
+  const helpStateFields = new Map([...document.querySelectorAll('[data-help-state]')].map((node) => [node.dataset.helpState, node]));
+  const switchToast = document.createElement('div');
+  switchToast.className = 'project-switch-toast';
+  switchToast.hidden = true;
+  switchToast.setAttribute('role', 'status');
+  switchToast.setAttribute('aria-live', 'polite');
+  app.appendChild(switchToast);
 
   const state = {
     view: 'html',
@@ -68,6 +120,8 @@
     font: 'geist',
     previewSize: 'desktop',
     previewFocus: false,
+    filesOpen: false,
+    filesWidth: 214,
     previewTimer: null,
     draftTimer: null,
     historyTimer: null,
@@ -81,12 +135,50 @@
     diagnostics: { html: [], css: [], js: [] },
     matchRanges: { html: [], css: [], js: [] },
     history: { past: [], future: [], lastAt: 0, lastLanguage: null },
-    autocomplete: { open: false, items: [], index: 0, input: null, language: null, container: null }
+    autocomplete: { open: false, items: [], index: 0, input: null, language: null, container: null },
+    project: null,
+    pendingProjectSwitch: null,
+    collapsedFolders: new Set(),
+    treeStates: {},
+    detachedWindow: null,
+    detachedWatchTimer: null,
+    recoveryActive: false,
+    libraries: new Set(),
+    fonts: new Set(),
+    addonStates: {},
+    libraryFailures: new Set(),
+    hostedRuntime: { supported: false, ready: false, registration: null, scope: '', projectId: null, baseUrl: '', renderUrl: '' }
   };
 
   if (window.Prism) app.classList.add('has-highlighting');
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const PLATFORM_NAME = String(navigator.userAgentData?.platform || navigator.platform || navigator.userAgent || '');
+  const IS_MAC = /Mac|iPhone|iPad|iPod/i.test(PLATFORM_NAME);
+  const SHORTCUTS = Object.freeze({
+    palette: IS_MAC ? '⌘ K' : 'CTRL K',
+    undo: IS_MAC ? '⌘ Z' : 'CTRL Z',
+    redo: IS_MAC ? '⇧ ⌘ Z' : 'CTRL ⇧ Z',
+    find: IS_MAC ? '⌘ F' : 'CTRL F',
+    replace: IS_MAC ? '⌥ ⌘ F' : 'CTRL H',
+    comment: IS_MAC ? '⌘ /' : 'CTRL /',
+    duplicate: IS_MAC ? '⌘ D' : 'CTRL D',
+    move: IS_MAC ? '⌥ ↑ / ↓' : 'ALT ↑ / ↓',
+    format: IS_MAC ? '⌥ ⇧ F' : 'ALT ⇧ F'
+  });
+  const commandShortcut = (key) => (SHORTCUTS[key] || '').replace(/ /g, '');
+  const primaryModifier = (event) => IS_MAC ? event.metaKey : event.ctrlKey;
+
+  function applyPlatformShortcuts() {
+    document.querySelectorAll('[data-shortcut]').forEach((node) => {
+      const value = SHORTCUTS[node.dataset.shortcut];
+      if (value) node.textContent = value;
+    });
+    document.querySelectorAll('[data-shortcut-text]').forEach((node) => {
+      const value = SHORTCUTS[node.dataset.shortcutText];
+      if (value) node.textContent = value;
+    });
+  }
 
   function safeStorageGet(key) {
     try { return window.localStorage.getItem(key); } catch { return null; }
@@ -98,6 +190,70 @@
 
   function safeJsonParse(value) {
     try { return JSON.parse(value); } catch { return null; }
+  }
+
+  function projectTreeKey(project = state.project) {
+    if (!project || project.mode !== 'folder') return null;
+    const signature = `${project.name}|${[...project.files.keys()].sort().join('|')}`;
+    let hash = 5381;
+    for (let i = 0; i < signature.length; i += 1) hash = ((hash << 5) + hash) ^ signature.charCodeAt(i);
+    return `p${(hash >>> 0).toString(36)}`;
+  }
+
+  function persistTreeState() {
+    const key = projectTreeKey();
+    if (!key) return;
+    state.treeStates[key] = [...state.collapsedFolders];
+    const entries = Object.entries(state.treeStates).slice(-12);
+    state.treeStates = Object.fromEntries(entries);
+    safeStorageSet(STORAGE.tree, JSON.stringify(state.treeStates));
+  }
+
+  function defaultCollapsedFolders(files) {
+    return new Set(
+      [...files.keys()].flatMap((path) => {
+        const parts = path.split('/');
+        return parts.slice(0, -1).map((_, index) => parts.slice(0, index + 1).join('/'));
+      })
+    );
+  }
+
+  function restoreTreeStateForProject(project = state.project, fallback = null) {
+    const key = projectTreeKey(project);
+    const saved = key ? state.treeStates[key] : null;
+    if (Array.isArray(saved)) return new Set(saved);
+    if (Array.isArray(fallback)) return new Set(fallback);
+    return project?.mode === 'folder' ? defaultCollapsedFolders(project.files) : new Set();
+  }
+
+  function addonProjectKey(project = state.project) {
+    if (!project || project.mode === 'simple') return 'simple';
+    return projectTreeKey(project) || `folder:${project.name || 'project'}`;
+  }
+
+  function addonSnapshot() {
+    return { libraries: [...state.libraries], fonts: [...state.fonts] };
+  }
+
+  function applyAddonSnapshot(snapshot = null) {
+    const validLibraryIds = new Set(CURATED_LIBRARIES.map((item) => item.id));
+    state.libraries = new Set(Array.isArray(snapshot?.libraries) ? snapshot.libraries.filter((id) => validLibraryIds.has(id)) : []);
+    state.fonts = new Set(Array.isArray(snapshot?.fonts) ? snapshot.fonts.filter((name) => CURATED_FONTS.includes(name)) : []);
+    state.libraryFailures.clear();
+  }
+
+  function persistAddons() {
+    const key = addonProjectKey();
+    state.addonStates[key] = addonSnapshot();
+    const entries = Object.entries(state.addonStates).slice(-20);
+    state.addonStates = Object.fromEntries(entries);
+    safeStorageSet(STORAGE.addons, JSON.stringify(state.addonStates));
+    persistDraftSoon();
+  }
+
+  function restoreAddonsForProject(fallback = null) {
+    const key = addonProjectKey();
+    applyAddonSnapshot(fallback || state.addonStates[key] || null);
   }
 
   function validCode(value) {
@@ -114,6 +270,8 @@
       if (['light', 'dark'].includes(prefs.theme)) state.theme = prefs.theme;
       if (['geist', 'jetbrains'].includes(prefs.font)) state.font = prefs.font;
       if (['desktop', 'tablet', 'mobile'].includes(prefs.previewSize)) state.previewSize = prefs.previewSize;
+      if (typeof prefs.filesOpen === 'boolean') state.filesOpen = prefs.filesOpen;
+      if (Number.isFinite(prefs.filesWidth)) state.filesWidth = clamp(prefs.filesWidth, 164, 480);
       if (Number.isFinite(prefs.editorWidth)) workspace.style.setProperty('--editor-width', `${prefs.editorWidth}px`);
     }
 
@@ -231,7 +389,9 @@
       theme: state.theme,
       font: state.font,
       previewSize: state.previewSize,
-      editorWidth: Math.round(editorPane.getBoundingClientRect().width)
+      editorWidth: Math.round(editorPane.getBoundingClientRect().width),
+      filesOpen: state.filesOpen,
+      filesWidth: Math.round(state.filesWidth)
     }));
   }
 
@@ -565,35 +725,90 @@
     return stack.length ? stack[stack.length - 1].sourceStart : null;
   }
 
+  function isDetachedPreviewOpen() {
+    return Boolean(state.detachedWindow && !state.detachedWindow.closed);
+  }
+
+  function postToPreviewSurfaces(payload) {
+    if (preview.contentWindow) preview.contentWindow.postMessage(payload, '*');
+    if (isDetachedPreviewOpen()) state.detachedWindow.postMessage(payload, '*');
+  }
+
   function requestPreviewHighlight(sourceStart) {
-    if (!state.previewReady || !preview.contentWindow) return;
-    preview.contentWindow.postMessage({
+    if (!state.previewReady && !isDetachedPreviewOpen()) return;
+    postToPreviewSurfaces({
       source: 'mf-editor',
       type: 'highlight',
       sourceStart: Number.isFinite(sourceStart) ? sourceStart : null,
       theme: state.theme,
       renderId: state.renderId
-    }, '*');
+    });
   }
 
   function highlightPreviewFromHtmlInput(input) {
     requestPreviewHighlight(htmlSourceStartAtOffset(state.code.html, input.selectionStart));
   }
 
-  function previewBridge(renderId) {
+  function previewBridge(renderId, options = {}) {
+    const hosted = Boolean(options.hosted);
+    const runtimeBase = String(options.runtimeBase || '');
     return `<script>
 (() => {
+  const hostedRuntime = ${hosted ? 'true' : 'false'};
+  const runtimeBase = ${JSON.stringify(runtimeBase)};
   const lineFrom = (error) => {
     const stack = String(error?.stack || '');
-    const match = stack.match(/mf-user\.js:(\d+):/);
+    const match = stack.match(/(?:mf-user\.js|mf-project\/[^:\s]+):(\d+):/);
     return match ? Number(match[1]) : null;
   };
-  const send = (type, message = '', line = null, extra = {}) => parent.postMessage({ source: 'mf-preview', type, message, line, renderId: ${renderId}, ...extra }, '*');
+  const host = window.opener && !window.opener.closed ? window.opener : parent;
+  const send = (type, message = '', line = null, extra = {}) => host.postMessage({ source: 'mf-preview', type, message, line, renderId: ${renderId}, ...extra }, '*');
+  window.__mfLibPromises = window.__mfLibPromises || [];
+  window.__mfLibraryError = (name) => send('library-error', String(name || 'library'));
+  // Sandboxed previews intentionally keep an opaque origin for safety. Some real
+  // front-end code still expects Web Storage to exist during startup; provide a
+  // preview-local fallback instead of letting SecurityError abort the app.
+  const memoryStorage = () => {
+    const values = new Map();
+    return { get length(){return values.size;}, key(i){return [...values.keys()][i] ?? null;}, getItem(k){k=String(k);return values.has(k)?values.get(k):null;}, setItem(k,v){values.set(String(k),String(v));}, removeItem(k){values.delete(String(k));}, clear(){values.clear();} };
+  };
+  try { void localStorage.length; } catch { try { Object.defineProperty(window, 'localStorage', { configurable:true, value:memoryStorage() }); } catch {} }
+  try { void sessionStorage.length; } catch { try { Object.defineProperty(window, 'sessionStorage', { configurable:true, value:memoryStorage() }); } catch {} }
+  send('bridge-ready');
   const inspectMap = new WeakMap();
   const sourceMap = new Map();
   let highlightOverlay = null;
   let highlightedElement = null;
   let highlightTimer = null;
+  let loaderRescueDone = false;
+
+  const rescueBlockingLoader = () => {
+    if (loaderRescueDone) return false;
+    loaderRescueDone = true;
+    const candidates = [...document.querySelectorAll('[class*=\"loader\" i],[id*=\"loader\" i],[class*=\"preloader\" i],[id*=\"preloader\" i],[data-loader],[data-loading]')];
+    let rescued = false;
+    const viewportArea = Math.max(1, innerWidth * innerHeight);
+    candidates.forEach((element) => {
+      if (!(element instanceof HTMLElement)) return;
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const coverage = Math.max(0, rect.width) * Math.max(0, rect.height) / viewportArea;
+      const blocksViewport = coverage > .42 && rect.right > 0 && rect.bottom > 0 && rect.left < innerWidth && rect.top < innerHeight;
+      if (!blocksViewport || style.display === 'none' || style.visibility === 'hidden') return;
+      element.style.setProperty('transition', 'opacity .5s cubic-bezier(.18,.78,.18,1), filter .5s cubic-bezier(.18,.78,.18,1)', 'important');
+      element.style.setProperty('opacity', '0', 'important');
+      element.style.setProperty('filter', 'blur(5px)', 'important');
+      element.style.setProperty('pointer-events', 'none', 'important');
+      window.setTimeout(() => element.style.setProperty('display', 'none', 'important'), 520);
+      rescued = true;
+    });
+    if (rescued) {
+      if (document.documentElement) document.documentElement.style.setProperty('overflow', 'auto', 'important');
+      if (document.body && getComputedStyle(document.body).overflow === 'hidden') document.body.style.setProperty('overflow', 'auto', 'important');
+      send('loader-bypassed');
+    }
+    return rescued;
+  };
 
   const removeHighlight = () => {
     window.clearTimeout(highlightTimer);
@@ -672,11 +887,59 @@
       element.removeAttribute('data-mf-source-start');
     });
   };
+  const dismissBlockingOverlay = () => {
+    const viewportArea = Math.max(1, innerWidth * innerHeight);
+    const candidates = [...document.querySelectorAll('body *')].filter((element) => {
+      if (!(element instanceof HTMLElement) || element.hasAttribute('data-mf-highlight-overlay')) return false;
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const coverage = Math.max(0, rect.width) * Math.max(0, rect.height) / viewportArea;
+      const layer = Number.parseInt(style.zIndex, 10);
+      return coverage > .38 && ['fixed','sticky'].includes(style.position) && (Number.isFinite(layer) ? layer > 5 : true) && style.display !== 'none' && style.visibility !== 'hidden';
+    });
+    const element = candidates.sort((a, b) => (Number.parseInt(getComputedStyle(b).zIndex, 10) || 0) - (Number.parseInt(getComputedStyle(a).zIndex, 10) || 0))[0];
+    if (!element) return false;
+    element.style.setProperty('transition', 'opacity .5s cubic-bezier(.18,.78,.18,1), filter .5s cubic-bezier(.18,.78,.18,1)', 'important');
+    element.style.setProperty('opacity', '0', 'important');
+    element.style.setProperty('filter', 'blur(5px)', 'important');
+    element.style.setProperty('pointer-events', 'none', 'important');
+    window.setTimeout(() => element.style.setProperty('display', 'none', 'important'), 520);
+    return true;
+  };
+  const restoreScroll = () => {
+    document.documentElement?.style.setProperty('overflow', 'auto', 'important');
+    document.body?.style.setProperty('overflow', 'auto', 'important');
+    document.documentElement?.style.removeProperty('overscroll-behavior');
+    document.body?.style.removeProperty('overscroll-behavior');
+    return true;
+  };
+  const disableMedia = () => {
+    let changed = false;
+    document.querySelectorAll('video,audio').forEach((media) => { try { media.pause(); media.autoplay = false; media.removeAttribute('autoplay'); changed = true; } catch {} });
+    return changed;
+  };
+  const runRecovery = (action) => {
+    let applied = false;
+    if (action === 'loader') applied = rescueBlockingLoader();
+    if (action === 'overlay') applied = dismissBlockingOverlay();
+    if (action === 'scroll') applied = restoreScroll();
+    if (action === 'media') applied = disableMedia();
+    send('recovery-applied', '', null, { action, applied });
+  };
   window.__mfRun = (code) => { try { (0, eval)(code + '\\n//# sourceURL=mf-user.js'); } catch (error) { send('error', error.message || 'JavaScript error', lineFrom(error)); } };
-  window.addEventListener('error', (event) => send('error', event.message || 'JavaScript error', lineFrom(event.error)));
-  window.addEventListener('unhandledrejection', (event) => send('error', String(event.reason || 'Promise error'), lineFrom(event.reason)));
+  window.addEventListener('error', (event) => {
+    if (event.target && event.target !== window) {
+      const element = event.target;
+      const ref = element?.getAttribute?.('data-mf-original-src') || element?.getAttribute?.('src') || element?.getAttribute?.('href') || '';
+      const tag = element?.tagName ? String(element.tagName).toLowerCase() : 'resource';
+      send('error', 'Resource failed: ' + tag + (ref ? ' · ' + ref : ''), null);
+      return;
+    }
+    send('error', event.message || 'JavaScript error', lineFrom(event.error));
+  }, true);
+  window.addEventListener('unhandledrejection', (event) => { send('error', String(event.reason || 'Promise error'), lineFrom(event.reason)); });
   window.addEventListener('message', (event) => {
-    if (event.source !== parent || event.data?.source !== 'mf-editor' || event.data.renderId !== ${renderId}) return;
+    if (event.source !== host || event.data?.source !== 'mf-editor' || event.data.renderId !== ${renderId}) return;
     if (event.data.type === 'css-update') {
       const style = document.getElementById('mf-user-style');
       if (!style) return;
@@ -685,45 +948,276 @@
       send('css-applied', '', null, { cssUpdateId: event.data.cssUpdateId });
     }
     if (event.data.type === 'highlight') highlightSource(event.data.sourceStart, event.data.theme);
+    if (event.data.type === 'recover') runRecovery(event.data.action);
+    if (event.data.type === 'editor-disconnected') {
+      const note = document.createElement('div');
+      note.textContent = 'EDITOR DISCONNECTED';
+      note.setAttribute('aria-live', 'polite');
+      Object.assign(note.style, { position:'fixed', left:'50%', bottom:'18px', transform:'translateX(-50%)', zIndex:'2147483647', padding:'9px 12px', borderRadius:'10px', font:'500 9px/1 sans-serif', letterSpacing:'.08em', background:'rgba(24,28,35,.84)', color:'rgba(255,255,255,.82)', backdropFilter:'blur(18px)' });
+      document.documentElement.appendChild(note);
+    }
   });
   window.addEventListener('DOMContentLoaded', () => {
+    const styleExpectation=window.__mfStyleExpectation;
+    if(styleExpectation?.localRefs>0){const active=document.querySelectorAll('style[data-mf-original-href],style[data-mf-fallback-style]').length;if(!active)send('resource-error','STYLES NOT APPLIED');}
     document.addEventListener('click', (event) => {
       let target = event.target;
       while (target && target !== document && !inspectMap.has(target)) target = target.parentElement;
       if (target && inspectMap.has(target)) send('inspect', '', null, { sourceStart: inspectMap.get(target) });
       const link = event.target?.closest?.('a[href]');
-      if (link) event.preventDefault();
+      if (link && !hostedRuntime) event.preventDefault();
     }, true);
+    if (hostedRuntime && runtimeBase) {
+      try {
+        const runtimeUrl = new URL(runtimeBase);
+        const currentUrl = new URL(location.href);
+        const basePath = runtimeUrl.pathname.endsWith('/') ? runtimeUrl.pathname : runtimeUrl.pathname + '/';
+        const runtimePath = decodeURIComponent(currentUrl.pathname.startsWith(basePath) ? currentUrl.pathname.slice(basePath.length) : '');
+        if (runtimePath) send('navigated', '', null, { runtimePath });
+      } catch {}
+    }
     send('loaded');
   });
 })();
 <\/script>`;
   }
 
-  function buildPreviewDocument(renderId) {
-    const userScript = JSON.stringify(state.code.js);
-    const previewHtml = annotateHtmlForPreview(state.code.html);
-    return `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>html,body{min-height:100%;}html{background:transparent;}body{background:transparent;}</style>
-<style id="mf-user-style">${state.code.css}</style>
-${previewBridge(renderId)}
-</head>
-<body>
-${previewHtml}
-<script data-mf-internal>window.__mfPrepareInspect();window.__mfRun(${userScript});<\/script>
-</body>
-</html>`;
+
+  const HOSTED_RUNTIME_CACHE = 'mf-code-runtime-v1';
+
+  function hostedRuntimeCapable() {
+    return location.protocol === 'https:' && 'serviceWorker' in navigator && 'caches' in window;
+  }
+
+  async function initHostedRuntime() {
+    state.hostedRuntime.supported = hostedRuntimeCapable();
+    if (!state.hostedRuntime.supported) return false;
+    try {
+      const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      await navigator.serviceWorker.ready;
+      state.hostedRuntime.registration = registration;
+      state.hostedRuntime.scope = registration.scope;
+      state.hostedRuntime.ready = true;
+      if (state.project?.mode === 'folder') renderPreview();
+      return true;
+    } catch {
+      state.hostedRuntime.ready = false;
+      return false;
+    }
+  }
+
+  function hostedProjectId() {
+    return projectTreeKey(state.project) || 'project';
+  }
+
+  function hostedPathUrl(path, projectId = hostedProjectId()) {
+    const scope = state.hostedRuntime.scope || new URL('./', location.href).href;
+    const encodedPath = normalizeProjectPath(path).split('/').filter(Boolean).map((part) => encodeURIComponent(part)).join('/');
+    return new URL(`__mf_project__/${encodeURIComponent(projectId)}/${encodedPath}`, scope).href;
+  }
+
+  function hostedProjectBase(projectId = hostedProjectId()) {
+    const scope = state.hostedRuntime.scope || new URL('./', location.href).href;
+    return new URL(`__mf_project__/${encodeURIComponent(projectId)}/`, scope).href;
+  }
+
+  function runtimeMime(path, record = null) {
+    const ext = String(path || '').split('.').pop()?.toLowerCase() || '';
+    const known = {
+      html:'text/html; charset=utf-8', htm:'text/html; charset=utf-8', css:'text/css; charset=utf-8', js:'text/javascript; charset=utf-8', mjs:'text/javascript; charset=utf-8',
+      json:'application/json; charset=utf-8', svg:'image/svg+xml', png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', avif:'image/avif',
+      ico:'image/x-icon', woff:'font/woff', woff2:'font/woff2', ttf:'font/ttf', otf:'font/otf', mp4:'video/mp4', webm:'video/webm', mp3:'audio/mpeg', wav:'audio/wav',
+      txt:'text/plain; charset=utf-8', xml:'application/xml; charset=utf-8', pdf:'application/pdf', wasm:'application/wasm'
+    };
+    return known[ext] || record?.file?.type || 'application/octet-stream';
+  }
+
+  function rewriteHostedRootRefs(text, runtimeBase, kind = 'text') {
+    let output = String(text || '');
+    const rootUrl = (ref) => `${runtimeBase}${String(ref || '').replace(/^\/+/, '')}`;
+    if (kind === 'css') {
+      output = output.replace(/url\(\s*(["']?)\/(?!\/)([^)"']+)\1\s*\)/gi, (m, q, ref) => `url("${rootUrl(ref)}")`);
+      output = output.replace(/(@import\s+(?:url\(\s*)?["']?)\/(?!\/)([^"')\s;]+)/gi, (m, lead, ref) => `${lead}${rootUrl(ref)}`);
+    }
+    if (kind === 'js') {
+      output = output.replace(/(\b(?:import|export)\s+(?:[^'";]*?\s+from\s*)?["'])\/(?!\/)([^"']+)/g, (m, lead, ref) => `${lead}${rootUrl(ref)}`);
+      output = output.replace(/(\bimport\s*\(\s*["'])\/(?!\/)([^"']+)/g, (m, lead, ref) => `${lead}${rootUrl(ref)}`);
+    }
+    return output;
+  }
+
+  function hostedCompatScript(runtimeBase) {
+    return `<script data-mf-internal>\n(() => {\n  const base=${JSON.stringify(runtimeBase)};\n  const map=(value)=>{try{const raw=String(value||'');if(raw.startsWith(base))return raw;if(/^\\/(?!\\/)/.test(raw))return base+raw.replace(/^\\/+/, '');}catch{}return value;};\n  const remapNode=(node)=>{if(!(node instanceof Element)||node.hasAttribute('data-mf-internal'))return;['href','src','poster','action','data'].forEach((name)=>{const value=node.getAttribute(name);if(value&&/^\\/(?!\\/)/.test(value))node.setAttribute(name,map(value));});const srcset=node.getAttribute('srcset');if(srcset)node.setAttribute('srcset',srcset.split(',').map((part)=>{const bits=part.trim().split(/\\s+/);if(/^\\/(?!\\/)/.test(bits[0]||''))bits[0]=map(bits[0]);return bits.join(' ');}).join(', '));};\n  const observer=new MutationObserver((records)=>records.forEach((record)=>{if(record.type==='attributes')remapNode(record.target);record.addedNodes?.forEach((node)=>{if(!(node instanceof Element))return;remapNode(node);node.querySelectorAll?.('[href],[src],[poster],[action],[data],[srcset]').forEach(remapNode);});}));\n  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['href','src','poster','action','data','srcset']});\n  const nativeFetch=window.fetch?.bind(window);\n  if(nativeFetch)window.fetch=(input,init)=>{try{if(typeof input==='string'||input instanceof URL)return nativeFetch(map(String(input)),init);if(input instanceof Request){if(String(input.url).startsWith(base))return nativeFetch(input,init);const parsed=new URL(input.url);const raw=parsed.pathname+parsed.search+parsed.hash;const mapped=map(raw);if(mapped!==raw)return nativeFetch(new Request(mapped,input),init);}}catch{}return nativeFetch(input,init);};\n  const XHR=window.XMLHttpRequest;if(XHR){const open=XHR.prototype.open;XHR.prototype.open=function(method,url,...rest){return open.call(this,method,map(url),...rest);};}\n  const WorkerCtor=window.Worker;if(WorkerCtor){window.Worker=function(url,options){return new WorkerCtor(map(url),options);};window.Worker.prototype=WorkerCtor.prototype;}\n  const SharedWorkerCtor=window.SharedWorker;if(SharedWorkerCtor){window.SharedWorker=function(url,options){return new SharedWorkerCtor(map(url),options);};window.SharedWorker.prototype=SharedWorkerCtor.prototype;}\n  const push=history.pushState.bind(history),replace=history.replaceState.bind(history);history.pushState=(state,title,url)=>push(state,title,url==null?url:map(url));history.replaceState=(state,title,url)=>replace(state,title,url==null?url:map(url));\n})();\n<\\/script>`;
+  }
+
+  function buildHostedHtml(entryPath, renderId, projectId) {
+    const record = state.project?.files.get(entryPath);
+    if (!record || typeof record.text !== 'string') return '<!doctype html><html><body></body></html>';
+    const runtimeBase = hostedProjectBase(projectId);
+    const doc = new DOMParser().parseFromString(record.text, 'text/html');
+    const doctype = (record.text.match(/<!doctype[^>]*>/i) || ['<!doctype html>'])[0];
+
+    doc.querySelectorAll('meta[http-equiv]').forEach((meta) => {
+      if ((meta.getAttribute('http-equiv') || '').toLowerCase() === 'content-security-policy') meta.remove();
+    });
+
+    const rootAttrs = ['href','src','poster','action','data'];
+    doc.querySelectorAll('[href],[src],[poster],[action],[data]').forEach((element) => {
+      rootAttrs.forEach((attr) => {
+        const value = element.getAttribute(attr);
+        if (value && /^\/(?!\/)/.test(value)) element.setAttribute(attr, `${runtimeBase}${value.replace(/^\/+/, '')}`);
+      });
+    });
+    doc.querySelectorAll('[srcset]').forEach((element) => {
+      const value = element.getAttribute('srcset') || '';
+      element.setAttribute('srcset', value.split(',').map((part) => {
+        const bits = part.trim().split(/\s+/); if (/^\/(?!\/)/.test(bits[0] || '')) bits[0] = `${runtimeBase}${bits[0].replace(/^\/+/, '')}`; return bits.join(' ');
+      }).join(', '));
+    });
+    doc.querySelectorAll('style').forEach((style) => { style.textContent = rewriteHostedRootRefs(style.textContent || '', runtimeBase, 'css'); });
+    doc.querySelectorAll('[style]').forEach((element) => { element.setAttribute('style', rewriteHostedRootRefs(element.getAttribute('style') || '', runtimeBase, 'css')); });
+    doc.querySelectorAll('script:not([src])').forEach((script) => {
+      const type = (script.getAttribute('type') || '').toLowerCase();
+      if (type === 'module') script.textContent = rewriteHostedRootRefs(script.textContent || '', runtimeBase, 'js');
+      if (type === 'importmap') {
+        try {
+          const map = JSON.parse(script.textContent || '{}');
+          const rewriteTable = (table) => {
+            if (!table || typeof table !== 'object') return;
+            Object.keys(table).forEach((key) => {
+              const value = table[key];
+              if (typeof value === 'string' && /^\/(?!\/)/.test(value)) table[key] = `${runtimeBase}${value.replace(/^\/+/, '')}`;
+            });
+          };
+          rewriteTable(map.imports);
+          if (map.scopes && typeof map.scopes === 'object') Object.values(map.scopes).forEach(rewriteTable);
+          script.textContent = JSON.stringify(map);
+        } catch {}
+      }
+    });
+    doc.querySelectorAll('base[href]').forEach((base) => {
+      const href = base.getAttribute('href') || '';
+      if (/^\/(?!\/)/.test(href)) base.setAttribute('href', `${runtimeBase}${href.replace(/^\/+/, '')}`);
+    });
+
+    if (doc.body) doc.body.innerHTML = annotateHtmlForPreview(doc.body.innerHTML || '');
+    const bridgeMarkup = `${previewBridge(renderId, { hosted: true, runtimeBase })}${hostedCompatScript(runtimeBase)}${addonHeadHtml()}`;
+    if (doc.head) doc.head.insertAdjacentHTML('afterbegin', bridgeMarkup);
+    if (doc.body) doc.body.insertAdjacentHTML('beforeend', '<script data-mf-internal>window.__mfPrepareInspect?.();<\\/script>');
+
+    const htmlAttrs = [...doc.documentElement.attributes].map((a) => `${a.name}="${String(a.value).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`).join(' ');
+    const head = doc.head?.innerHTML || '';
+    const bodyAttrs = [...(doc.body?.attributes || [])].map((a) => `${a.name}="${String(a.value).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"`).join(' ');
+    const body = doc.body?.innerHTML || '';
+    return `${doctype}\n<html${htmlAttrs ? ' '+htmlAttrs : ''}>\n<head>${head}</head>\n<body${bodyAttrs ? ' '+bodyAttrs : ''}>${body}</body>\n</html>`;
+  }
+
+  async function syncHostedProject(renderId) {
+    if (!state.hostedRuntime.ready || state.project?.mode !== 'folder') return null;
+    const projectId = hostedProjectId();
+    const runtimeBase = hostedProjectBase(projectId);
+    const cache = await caches.open(HOSTED_RUNTIME_CACHE);
+    const existing = await cache.keys();
+    const runtimePrefix = hostedProjectBase(projectId);
+    const expectedUrls = new Set();
+
+    for (const record of state.project.files.values()) {
+      const url = hostedPathUrl(record.path, projectId);
+      expectedUrls.add(url);
+      let body = null;
+      if (record.language === 'html' && typeof record.text === 'string') body = buildHostedHtml(record.path, renderId, projectId);
+      else if (typeof record.text === 'string') {
+        const kind = record.language === 'css' ? 'css' : record.language === 'js' ? 'js' : 'text';
+        body = rewriteHostedRootRefs(record.text, runtimeBase, kind);
+      } else if (record.file) body = await record.file.arrayBuffer();
+
+      // Binary files restored from MF Code's local project snapshot may no longer
+      // have a File handle after a page reload. Keep the previously cached copy
+      // rather than replacing a valid asset with an empty response.
+      if (body === null) {
+        const cached = await cache.match(url, { ignoreSearch: true });
+        if (cached) continue;
+        body = '';
+      }
+      await cache.put(url, new Response(body, { status: 200, headers: { 'Content-Type': runtimeMime(record.path, record), 'Cache-Control': 'no-store', 'X-MF-Code-Project': projectId } }));
+    }
+
+    await Promise.all(existing
+      .filter((request) => request.url.startsWith(runtimePrefix) && !expectedUrls.has(request.url.split('?')[0]))
+      .map((request) => cache.delete(request)));
+
+    state.hostedRuntime.projectId = projectId;
+    state.hostedRuntime.baseUrl = runtimeBase;
+    return runtimeBase;
+  }
+
+  async function renderHostedPreview(renderId) {
+    try {
+      const runtimeBase = await syncHostedProject(renderId);
+      if (!runtimeBase || state.renderId !== renderId) return false;
+      const entryPath = state.project.entryHtmlPath || [...state.project.files.values()].find((item) => item.language === 'html')?.path;
+      if (!entryPath) return false;
+      const entryUrl = hostedPathUrl(entryPath, state.hostedRuntime.projectId);
+      const url = `${entryUrl}?mf_render=${renderId}`;
+      state.hostedRuntime.renderUrl = url;
+      preview.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
+      preview.removeAttribute('srcdoc');
+      preview.src = url;
+      if (isDetachedPreviewOpen()) {
+        try { state.detachedWindow.opener = null; state.detachedWindow.location.replace(url); } catch {}
+      }
+      return true;
+    } catch (error) {
+      setLiveState('FULL RUNTIME ERROR', true);
+      return false;
+    }
+  }
+
+
+  function writeDetachedPreview() {
+    if (!isDetachedPreviewOpen()) return;
+    if (state.project?.mode === 'folder' && state.hostedRuntime.ready && state.hostedRuntime.renderUrl) {
+      try { state.detachedWindow.opener = null; state.detachedWindow.location.replace(state.hostedRuntime.renderUrl); } catch { returnPreviewToEditor({ closeWindow: false }); }
+      return;
+    }
+    try {
+      const doc = state.detachedWindow.document;
+      doc.open();
+      doc.write(buildPreviewDocument(state.renderId));
+      doc.close();
+      state.detachedWindow.document.title = `${state.project?.name || 'MF Code'} · Preview`;
+    } catch { returnPreviewToEditor({ closeWindow: false }); }
   }
 
   function renderPreview() {
+    state.libraryFailures.clear();
     state.renderId += 1;
     state.previewReady = false;
+    state.recoveryActive = false;
+    closeRecoveryMenu();
+    recoverPreviewButton.hidden = true;
     setLiveState('UPDATING');
-    preview.srcdoc = buildPreviewDocument(state.renderId);
+    const expectedRender = state.renderId;
+
+    if (state.project?.mode === 'folder' && state.hostedRuntime.ready) {
+      void renderHostedPreview(expectedRender).then((usedHosted) => {
+        if (!usedHosted && state.renderId === expectedRender) {
+          preview.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
+          preview.srcdoc = buildPreviewDocument(expectedRender);
+          writeDetachedPreview();
+        }
+      });
+    } else {
+      preview.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
+      preview.srcdoc = buildPreviewDocument(expectedRender);
+      writeDetachedPreview();
+    }
+
+    window.setTimeout(() => {
+      if (state.renderId !== expectedRender || state.previewReady || liveState.classList.contains('is-error')) return;
+      state.previewReady = Boolean(preview.contentWindow);
+      setLiveState(state.previewReady ? 'LIVE' : 'PREVIEW WAITING');
+    }, 1800);
   }
 
   function injectPreviewCss() {
@@ -733,23 +1227,15 @@ ${previewHtml}
     }
     state.cssUpdateId += 1;
     setLiveState('UPDATING');
-    preview.contentWindow.postMessage({
+    postToPreviewSurfaces({
       source: 'mf-editor',
       type: 'css-update',
       css: state.code.css,
       renderId: state.renderId,
       cssUpdateId: state.cssUpdateId
-    }, '*');
+    });
   }
 
-  function requestPreviewUpdate(language) {
-    window.clearTimeout(state.previewTimer);
-    setLiveState('UPDATING');
-    state.previewTimer = window.setTimeout(() => {
-      if (language === 'css') injectPreviewCss();
-      else renderPreview();
-    }, PREVIEW_DELAY);
-  }
 
   function updateCode(language, value, container, options = {}) {
     if (value === state.code[language]) {
@@ -770,6 +1256,7 @@ ${previewHtml}
     const activeTab = tabs.find((tab) => tab.dataset.view === view);
     tabs.forEach((tab) => tab.classList.toggle('is-active', tab === activeTab));
     updateIndicator(activeTab);
+    updateFileTreeActive();
 
     const show = () => {
       if (view === 'all') {
@@ -789,6 +1276,26 @@ ${previewHtml}
     if (!animate) { show(); return; }
     singleEditor.classList.add('is-leaving');
     window.setTimeout(show, 220);
+  }
+
+
+  function updateFileTreeActive() {
+    fileTreeItems.forEach((item) => item.classList.toggle('is-active', state.view !== 'all' && item.dataset.fileLanguage === state.view));
+  }
+
+  function applyFilesOpen(active) {
+    state.filesOpen = Boolean(active);
+    workspace.classList.toggle('has-files', state.filesOpen);
+    filesButton.classList.toggle('is-active', state.filesOpen);
+    filesButton.setAttribute('aria-pressed', String(state.filesOpen));
+    filesButton.setAttribute('aria-label', state.filesOpen ? 'Hide project files' : 'Show project files');
+    fileTree.setAttribute('aria-hidden', String(!state.filesOpen));
+    updateFileTreeActive();
+  }
+
+  function toggleFiles() {
+    applyFilesOpen(!state.filesOpen);
+    persistPrefs();
   }
 
   function switchView(nextView) {
@@ -1296,40 +1803,235 @@ ${previewHtml}
     syncEditor(container, language);
   }
 
-  function openFind() { findBar.hidden = false; findInput.focus(); findInput.select(); updateFind(); }
-  function closeFind() { findBar.hidden = true; activeEditorContext().input.focus(); }
+  let findIndex = 0;
+  function setReplaceMode(open, focusReplace = false) {
+    findBar.classList.toggle('is-replace', open);
+    findReplaceToggle?.classList.toggle('is-active', open);
+    findReplaceToggle?.setAttribute('aria-expanded', String(open));
+    if (open && focusReplace) requestAnimationFrame(() => replaceInput.focus());
+  }
+  function openFind(replaceMode = false) {
+    findBar.hidden = false;
+    setReplaceMode(replaceMode, false);
+    findInput.focus();
+    findInput.select();
+    findIndex = 0;
+    updateFind();
+  }
+  function closeFind() {
+    findBar.hidden = true;
+    setReplaceMode(false, false);
+    activeEditorContext().input.focus();
+  }
   function getFindMatches() {
     const { input } = activeEditorContext(); const query = findInput.value; if (!query) return [];
     const matches = []; const hay = input.value.toLowerCase(), needle = query.toLowerCase(); let from = 0;
     while ((from = hay.indexOf(needle, from)) !== -1 && matches.length < 1000) { matches.push(from); from += Math.max(1, needle.length); }
     return matches;
   }
-  function updateFind() { const matches = getFindMatches(); findCount.textContent = matches.length ? `1 / ${matches.length}` : '0 / 0'; }
+  function updateFind() {
+    const matches = getFindMatches();
+    findIndex = matches.length ? clamp(findIndex, 0, matches.length - 1) : 0;
+    findCount.textContent = matches.length ? `${findIndex + 1} / ${matches.length}` : '0 / 0';
+  }
+  function selectFindMatch(index) {
+    const { input } = activeEditorContext(); const matches = getFindMatches(); if (!matches.length) { updateFind(); return false; }
+    findIndex = ((index % matches.length) + matches.length) % matches.length;
+    const start = matches[findIndex];
+    input.focus();
+    input.setSelectionRange(start, start + findInput.value.length);
+    findCount.textContent = `${findIndex + 1} / ${matches.length}`;
+    return true;
+  }
   function stepFind(direction) {
     const { input } = activeEditorContext(); const matches = getFindMatches(); if (!matches.length) { updateFind(); return; }
-    const caret = input.selectionStart; let index = direction > 0 ? matches.findIndex((m) => m > caret) : [...matches].reverse().findIndex((m) => m < caret);
-    if (direction > 0) { if (index < 0) index = 0; }
-    else { index = index < 0 ? matches.length - 1 : matches.length - 1 - index; }
-    const start = matches[index]; input.focus(); input.setSelectionRange(start, start + findInput.value.length); findCount.textContent = `${index + 1} / ${matches.length}`;
+    const caret = input.selectionStart;
+    let index;
+    if (direction > 0) {
+      index = matches.findIndex((position) => position > caret);
+      if (index < 0) index = 0;
+    } else {
+      index = matches.length - 1;
+      for (let i = matches.length - 1; i >= 0; i -= 1) { if (matches[i] < caret) { index = i; break; } }
+    }
+    selectFindMatch(index);
+  }
+  function replaceCurrentMatch() {
+    const query = findInput.value;
+    if (!query) return;
+    const { container, input, language } = activeEditorContext();
+    const selected = input.value.slice(input.selectionStart, input.selectionEnd);
+    if (selected.toLowerCase() !== query.toLowerCase()) {
+      if (!selectFindMatch(findIndex)) return;
+    }
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    input.value = input.value.slice(0, start) + replaceInput.value + input.value.slice(end);
+    const caret = start + replaceInput.value.length;
+    input.setSelectionRange(caret, caret);
+    updateCode(language, input.value, container);
+    updateFind();
+    if (getFindMatches().length) selectFindMatch(Math.min(findIndex, getFindMatches().length - 1));
+  }
+  function replaceAllMatches() {
+    const query = findInput.value;
+    if (!query) return;
+    const { container, input, language } = activeEditorContext();
+    const pattern = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const next = input.value.replace(pattern, () => replaceInput.value);
+    if (next === input.value) return;
+    input.value = next;
+    updateCode(language, next, container);
+    input.focus();
+    updateFind();
+  }
+
+  function projectDependencySource() {
+    if (state.project?.mode === 'folder') {
+      return [...state.project.files.values()].filter((record) => typeof record.text === 'string').map((record) => record.text).join('\n');
+    }
+    return `${state.code.html}\n${state.code.js}`;
+  }
+
+  function projectProvidedLibraries() {
+    const source = projectDependencySource();
+    return new Set(CURATED_LIBRARIES.filter((library) => library.detect.test(source)).map((library) => library.id));
+  }
+
+  function effectiveLibraries() {
+    const provided = projectProvidedLibraries();
+    return CURATED_LIBRARIES.filter((library) => state.libraries.has(library.id) && !provided.has(library.id));
+  }
+
+  function googleFontHref(name) {
+    const family = encodeURIComponent(name).replace(/%20/g, '+');
+    return `https://fonts.googleapis.com/css2?family=${family}:wght@400;500;600&display=swap`;
+  }
+
+  function addonHeadHtml() {
+    const parts = [];
+    effectiveLibraries().forEach((library) => {
+      if (library.scripts) library.scripts.forEach((src) => parts.push(`<script data-mf-addon="${library.id}" src="${src}" onerror="window.__mfLibraryError&&window.__mfLibraryError('${library.id}')"></script>`));
+      if (library.module) parts.push(`<script data-mf-addon="${library.id}" type="module">window.__mfLibPromises=window.__mfLibPromises||[];window.__mfLibPromises.push(import('${library.module}').then(m=>{window.${library.global}=m;}).catch(e=>{window.__mfLibraryError&&window.__mfLibraryError('${library.id}');}));</script>`);
+    });
+    state.fonts.forEach((font) => parts.push(`<link data-mf-font="${font.replace(/"/g,'')}" rel="stylesheet" href="${googleFontHref(font)}" onerror="window.__mfLibraryError&&window.__mfLibraryError('font:${font.replace(/'/g,'')}')">`));
+    return parts.join('\n');
+  }
+
+  function libraryStatus(library, provided) {
+    if (provided.has(library.id)) return 'PROJECT';
+    if (state.libraryFailures.has(library.id)) return 'OFFLINE';
+    if (state.libraries.has(library.id)) return '✓';
+    return '+';
+  }
+
+  function renderLibraryPanel() {
+    if (!libraryList || !fontLibraryList) return;
+    const provided = projectProvidedLibraries();
+    libraryList.innerHTML = CURATED_LIBRARIES.map((library) => {
+      const status = libraryStatus(library, provided);
+      const locked = status === 'PROJECT';
+      return `<button class="library-row${state.libraries.has(library.id) ? ' is-active' : ''}${locked ? ' is-project' : ''}" type="button" data-library-id="${library.id}" ${locked ? 'disabled' : ''}><span class="library-row-main"><strong>${library.name}</strong><small>${library.meta}</small></span><span class="library-row-status">${status}</span></button>`;
+    }).join('');
+    const query = (fontLibrarySearch?.value || '').trim().toLowerCase();
+    const fonts = CURATED_FONTS.filter((name) => !query || name.toLowerCase().includes(query));
+    fontLibraryList.innerHTML = fonts.map((font) => `<button class="font-library-row${state.fonts.has(font) ? ' is-active' : ''}" type="button" data-google-font="${font}"><span><strong>${font.toUpperCase()}</strong><small>font-family: &quot;${font}&quot;</small></span><span class="library-row-status">${state.fonts.has(font) ? '✓' : '+'}</span></button>`).join('') || '<p class="library-empty">NO MATCHES</p>';
+  }
+
+  function openLibraries() {
+    closeToolsMenu();
+    closeProjectMenu();
+    if (!helpOverlay.hidden) closeHelp({ restoreFocus: false });
+    renderLibraryPanel();
+    libraryOverlay.hidden = false;
+    requestAnimationFrame(() => { libraryOverlay.classList.add('is-open'); libraryClose.focus(); });
+  }
+
+  function closeLibraries({ restoreFocus = true } = {}) {
+    if (!libraryOverlay || libraryOverlay.hidden) return;
+    libraryOverlay.classList.remove('is-open');
+    window.setTimeout(() => { if (!libraryOverlay.classList.contains('is-open')) libraryOverlay.hidden = true; }, 360);
+    if (restoreFocus) toolsButton.focus();
+  }
+
+  function toggleLibrary(id) {
+    const library = CURATED_LIBRARIES.find((item) => item.id === id);
+    if (!library || projectProvidedLibraries().has(id)) return;
+    if (state.libraries.has(id)) state.libraries.delete(id); else state.libraries.add(id);
+    state.libraryFailures.delete(id);
+    persistAddons();
+    renderLibraryPanel();
+    renderPreview();
+  }
+
+  function toggleGoogleFont(name) {
+    if (!CURATED_FONTS.includes(name)) return;
+    if (state.fonts.has(name)) state.fonts.delete(name); else state.fonts.add(name);
+    state.libraryFailures.delete(`font:${name}`);
+    persistAddons();
+    renderLibraryPanel();
+    renderPreview();
+  }
+
+  function closeToolsMenu() {
+    if (!toolsMenu || toolsMenu.hidden) return;
+    toolsMenu.classList.remove('is-open');
+    toolsButton.setAttribute('aria-expanded', 'false');
+    window.setTimeout(() => { if (!toolsMenu.classList.contains('is-open')) toolsMenu.hidden = true; }, 360);
+  }
+
+  function toggleToolsMenu() {
+    const opening = toolsMenu.hidden || !toolsMenu.classList.contains('is-open');
+    closeProjectMenu();
+    if (!opening) { closeToolsMenu(); return; }
+    toolsMenu.hidden = false;
+    toolsButton.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(() => toolsMenu.classList.add('is-open'));
   }
 
   const COMMANDS = [
-    ['Undo', '⌘Z', () => undoHistory()],
-    ['Redo', '⇧⌘Z', () => redoHistory()],
-    ['Format current code', '⌥⇧F', () => formatCurrent()],
-    ['Find in code', '⌘F', () => openFind()],
-    ['Toggle comment', '⌘/', () => toggleComment()],
-    ['Duplicate line', '⌘D', () => duplicateLine()],
-    ['Move line up', '⌥↑', () => moveLine(-1)],
-    ['Move line down', '⌥↓', () => moveLine(1)],
+    ['Undo', commandShortcut('undo'), () => undoHistory()],
+    ['Redo', commandShortcut('redo'), () => redoHistory()],
+    ['Format current code', commandShortcut('format'), () => formatCurrent()],
+    ['Libraries', '', () => openLibraries()],
+    ['Find in code', commandShortcut('find'), () => openFind(false)],
+    ['Find and replace', commandShortcut('replace'), () => openFind(true)],
+    ['Toggle comment', commandShortcut('comment'), () => toggleComment()],
+    ['Duplicate line', commandShortcut('duplicate'), () => duplicateLine()],
+    ['Move line up', IS_MAC ? '⌥↑' : 'ALT↑', () => moveLine(-1)],
+    ['Move line down', IS_MAC ? '⌥↓' : 'ALT↓', () => moveLine(1)],
+    ['Show files', '', () => applyFilesOpen(true), () => !state.filesOpen],
+    ['Hide files', '', () => applyFilesOpen(false), () => state.filesOpen],
+    ...CURATED_LIBRARIES.map((library) => [`Toggle ${library.name}`, '', () => toggleLibrary(library.id), () => !projectProvidedLibraries().has(library.id), true]),
+    ...CURATED_FONTS.map((font) => [`Toggle font ${font}`, '', () => toggleGoogleFont(font), null, true]),
+    ['New project', '', () => startSimpleProject(STARTER_CODE)],
     ['View HTML', '', () => switchView('html')], ['View CSS', '', () => switchView('css')], ['View JS', '', () => switchView('js')], ['View all', '', () => switchView('all')],
-    ['Preview desktop', '', () => { applyPreviewSize('desktop'); persistPrefs(); }], ['Preview tablet', '', () => { applyPreviewSize('tablet'); persistPrefs(); }], ['Preview mobile', '', () => { applyPreviewSize('mobile'); persistPrefs(); }],
-    ['Focus preview', '', () => setPreviewFocus(true)], ['Refresh preview', '', () => renderPreview()], ['Export HTML', '', () => exportStandaloneHtml()], ['Open project', '', () => projectInput.click()], ['Save project', '', () => saveProject()]
+    ['Preview desktop', '', () => { applyPreviewSize('desktop'); persistPrefs(); }, () => !isDetachedPreviewOpen()],
+    ['Preview tablet', '', () => { applyPreviewSize('tablet'); persistPrefs(); }, () => !isDetachedPreviewOpen()],
+    ['Preview mobile', '', () => { applyPreviewSize('mobile'); persistPrefs(); }, () => !isDetachedPreviewOpen()],
+    ['Focus preview', '', () => setPreviewFocus(true), () => !state.previewFocus && !isDetachedPreviewOpen()],
+    ['Exit preview focus', '', () => setPreviewFocus(false), () => state.previewFocus],
+    ['Open preview in window', '', () => detachPreview(), () => !isDetachedPreviewOpen()],
+    ['Return preview to editor', '', () => returnPreviewToEditor(), () => isDetachedPreviewOpen()],
+    ['Recover preview', '', () => toggleRecoveryMenu(), () => !recoverPreviewButton.hidden],
+    ['Recover: hide loader', '', () => runPreviewRecovery('loader'), () => !recoverPreviewButton.hidden, true],
+    ['Recover: dismiss overlay', '', () => runPreviewRecovery('overlay'), () => !recoverPreviewButton.hidden, true],
+    ['Recover: restore scroll', '', () => runPreviewRecovery('scroll'), () => !recoverPreviewButton.hidden, true],
+    ['Recover: disable media', '', () => runPreviewRecovery('media'), () => !recoverPreviewButton.hidden, true],
+    ['Recover: reload preview', '', () => runPreviewRecovery('reload'), () => !recoverPreviewButton.hidden, true],
+    ['Refresh preview', '', () => renderPreview()],
+    ['Export HTML', '', () => exportStandaloneHtml()],
+    ['Open files', '', () => projectInput.click()],
+    ['Open folder', '', () => openFolderPicker()],
+    ['Save project', '', () => saveProject()],
+    ['Light theme', '', () => { applyTheme('light'); persistPrefs(); }, () => state.theme !== 'light'],
+    ['Night theme', '', () => { applyTheme('dark'); persistPrefs(); }, () => state.theme !== 'dark'],
+    ['Help', '', () => openHelp()]
   ];
   let commandIndex = 0;
-  function filteredCommands() { const q = commandInput.value.trim().toLowerCase(); return COMMANDS.filter(([name]) => !q || name.toLowerCase().includes(q)); }
+  function filteredCommands() { const q = commandInput.value.trim().toLowerCase(); return COMMANDS.filter(([name, , , available, searchOnly]) => (!searchOnly || q) && (!available || available()) && (!q || name.toLowerCase().includes(q))); }
   function renderCommands() { const items = filteredCommands(); commandIndex = Math.min(commandIndex, Math.max(0, items.length - 1)); commandList.innerHTML = items.map(([name, shortcut], i) => `<button class="command-item${i === commandIndex ? ' is-active' : ''}" type="button" data-index="${i}" role="option"><span>${name.toUpperCase()}</span><span class="command-shortcut">${shortcut}</span></button>`).join(''); }
-  function openCommands() { commandIndex = 0; commandInput.value = ''; renderCommands(); commandPalette.hidden = false; requestAnimationFrame(() => commandInput.focus()); }
+  function openCommands() { closeFind(); closeProjectMenu(); closeToolsMenu(); if (!libraryOverlay.hidden) closeLibraries({ restoreFocus: false }); if (!helpOverlay.hidden) closeHelp({ restoreFocus: false }); commandIndex = 0; commandInput.value = ''; renderCommands(); commandPalette.hidden = false; requestAnimationFrame(() => commandInput.focus()); }
   function closeCommands() { commandPalette.hidden = true; activeEditorContext().input.focus(); }
   function runCommand(index = commandIndex) { const command = filteredCommands()[index]; if (!command) return; closeCommands(); command[2](); }
 
@@ -1427,6 +2129,71 @@ ${previewHtml}
     }, 900);
   }
 
+  function setDetachedPreviewUi(active) {
+    previewPane.classList.toggle('is-detached', active);
+    detachPreviewButton.classList.toggle('is-active', active);
+    detachPreviewButton.setAttribute('aria-pressed', String(active));
+    detachPreviewButton.setAttribute('aria-label', active ? 'Return preview to editor' : 'Open live preview in a new window');
+    detachedPreviewPlaceholder.hidden = !active;
+  }
+
+  function returnPreviewToEditor({ closeWindow = true } = {}) {
+    if (closeWindow && isDetachedPreviewOpen()) { try { state.detachedWindow.close(); } catch {} }
+    state.detachedWindow = null;
+    window.clearInterval(state.detachedWatchTimer);
+    state.detachedWatchTimer = null;
+    setDetachedPreviewUi(false);
+  }
+
+  function detachPreview() {
+    if (isDetachedPreviewOpen()) {
+      state.detachedWindow.focus();
+      return;
+    }
+    const win = window.open('', 'mf-code-live-preview', 'popup=yes,width=1180,height=820');
+    if (!win) {
+      previewActionFeedback(detachPreviewButton, 'BLOCKED');
+      return;
+    }
+    state.detachedWindow = win;
+    setDetachedPreviewUi(true);
+    writeDetachedPreview();
+    window.clearInterval(state.detachedWatchTimer);
+    state.detachedWatchTimer = window.setInterval(() => {
+      if (!isDetachedPreviewOpen()) returnPreviewToEditor({ closeWindow: false });
+    }, 700);
+  }
+
+  function toggleDetachedPreview() {
+    if (isDetachedPreviewOpen()) returnPreviewToEditor();
+    else detachPreview();
+  }
+
+  function closeRecoveryMenu() {
+    previewRecoveryMenu.classList.remove('is-open');
+    recoverPreviewButton.classList.remove('is-active');
+    recoverPreviewButton.setAttribute('aria-expanded', 'false');
+    window.setTimeout(() => { if (!previewRecoveryMenu.classList.contains('is-open')) previewRecoveryMenu.hidden = true; }, 260);
+  }
+
+  function toggleRecoveryMenu() {
+    if (recoverPreviewButton.hidden) return;
+    const opening = !previewRecoveryMenu.classList.contains('is-open');
+    if (!opening) { closeRecoveryMenu(); return; }
+    previewRecoveryMenu.hidden = false;
+    requestAnimationFrame(() => {
+      previewRecoveryMenu.classList.add('is-open');
+      recoverPreviewButton.classList.add('is-active');
+      recoverPreviewButton.setAttribute('aria-expanded', 'true');
+    });
+  }
+
+  function runPreviewRecovery(action) {
+    closeRecoveryMenu();
+    if (action === 'reload') { renderPreview(); return; }
+    postToPreviewSurfaces({ source: 'mf-editor', type: 'recover', action, renderId: state.renderId });
+  }
+
   function closeProjectMenu() {
     window.clearTimeout(state.menuTimer);
     projectMenu.classList.remove('is-open');
@@ -1447,14 +2214,35 @@ ${previewHtml}
     else openProjectMenu();
   }
 
+  function updateHelpCurrentState() {
+    if (!helpStateFields.size) return;
+    const set = (key, value) => { const node = helpStateFields.get(key); if (node) node.textContent = value; };
+    const projectName = String(state.project?.name || 'UNTITLED').toUpperCase();
+    set('project', state.project?.mode === 'folder' ? `FOLDER · ${projectName}` : `SIMPLE · ${projectName}`);
+    set('preview', isDetachedPreviewOpen() ? 'DETACHED' : state.previewFocus ? 'FOCUS' : 'EMBEDDED');
+    set('runtime', state.project?.mode === 'folder' && state.hostedRuntime.ready ? 'FULL PROJECT' : 'LOCAL COMPAT');
+    set('files', state.filesOpen ? 'VISIBLE' : 'HIDDEN');
+    const provided = projectProvidedLibraries();
+    const injected = CURATED_LIBRARIES.filter((library) => state.libraries.has(library.id) && !provided.has(library.id)).map((library) => library.name.toUpperCase());
+    const projectLibs = CURATED_LIBRARIES.filter((library) => provided.has(library.id)).map((library) => `${library.name.toUpperCase()} · PROJECT`);
+    const libs = [...injected, ...projectLibs];
+    set('libraries', libs.length ? libs.join(', ') : 'NONE');
+    const fonts = [...state.fonts].map((font) => String(font).toUpperCase());
+    set('fonts', fonts.length ? fonts.join(', ') : 'NONE');
+  }
+
   function openHelp() {
+    closeToolsMenu();
+    if (!libraryOverlay.hidden) closeLibraries({ restoreFocus: false });
     if (!helpOverlay) return;
+    // Help must always open, even if a nonessential current-state field ever regresses.
+    try { updateHelpCurrentState(); } catch (error) { console.warn('MF Code help state unavailable', error); }
     closeCommands();
     closeFind();
     closeProjectMenu();
     helpOverlay.hidden = false;
     helpButton.setAttribute('aria-expanded', 'true');
-    requestAnimationFrame(() => helpClose.focus());
+    requestAnimationFrame(() => helpClose?.focus());
   }
 
   function closeHelp({ restoreFocus = true } = {}) {
@@ -1497,26 +2285,327 @@ ${previewHtml}
   }
 
 
-  function buildExportDocument() {
-    const safeCss = state.code.css.replace(/<\/style/gi, '<\\/style');
-    const safeScript = state.code.js.replace(/<\/script/gi, '<\\/script');
-    return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-${safeCss}
-</style>
-</head>
-<body>
-${state.code.html}
-<script>
-${safeScript}
-<\/script>
-</body>
-</html>`;
+  function projectRuntimeBundle() {
+    if (!state.project || state.project.mode === 'simple') return null;
+    const entryPath = state.project.entryHtmlPath || [...state.project.files.values()].find((item) => item.language === 'html')?.path;
+    const entry = entryPath ? state.project.files.get(entryPath) : null;
+    if (!entry || typeof entry.text !== 'string') return { headHtml: '', html: '', htmlAttrs: '', bodyAttrs: '', doctype: '<!doctype html>', compatScript: '' };
+
+    const doc = new DOMParser().parseFromString(entry.text, 'text/html');
+    const doctype = (entry.text.match(/<!doctype[^>]*>/i) || ['<!doctype html>'])[0];
+    const textDataUrl = (text, mime, sourcePath = '') => {
+      const source = sourcePath && /javascript/.test(mime)
+        ? `${String(text || '')}\n//# sourceURL=mf-project/${sourcePath}`
+        : String(text || '');
+      return `data:${mime};charset=utf-8,${encodeURIComponent(source)}`;
+    };
+    const escapeAttr = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const serializeAttrs = (element) => [...(element?.attributes || [])].map((attr) => `${attr.name}="${escapeAttr(attr.value)}"`).join(' ');
+    const splitRef = (reference) => {
+      const raw = String(reference || '');
+      const hashAt = raw.indexOf('#');
+      const queryAt = raw.indexOf('?');
+      let cut = raw.length;
+      if (hashAt >= 0) cut = Math.min(cut, hashAt);
+      if (queryAt >= 0) cut = Math.min(cut, queryAt);
+      return { clean: raw.slice(0, cut), suffix: raw.slice(cut) };
+    };
+    const mimeForPath = (path) => {
+      const ext = fileExtension({ name: path });
+      if (ext === 'css') return 'text/css';
+      if (ext === 'js' || ext === 'mjs') return 'text/javascript';
+      if (ext === 'html' || ext === 'htm') return 'text/html';
+      if (ext === 'json') return 'application/json';
+      if (ext === 'svg') return 'image/svg+xml';
+      if (ext === 'txt') return 'text/plain';
+      return 'application/octet-stream';
+    };
+    const rawRuntimeUrl = (path) => {
+      const record = state.project.files.get(path);
+      if (!record) return null;
+      if (typeof record.text === 'string') return textDataUrl(record.text, mimeForPath(path), /(?:js|mjs)$/i.test(path) ? path : '');
+      return projectAssetUrl(path);
+    };
+    const withSuffix = (url, ref) => {
+      if (!url) return null;
+      const { suffix } = splitRef(ref);
+      // Fragment identifiers matter for SVG <use>; cache-busting queries do not
+      // change an in-memory project file, so preserve fragments and ignore query.
+      const hash = suffix.includes('#') ? `#${suffix.split('#').slice(1).join('#')}` : '';
+      return `${url}${hash}`;
+    };
+
+    const cssTextCache = new Map();
+    const compileCssText = (path, stack = new Set()) => {
+      if (cssTextCache.has(path)) return cssTextCache.get(path);
+      const record = state.project.files.get(path);
+      if (!record || typeof record.text !== 'string') return '';
+      if (stack.has(path)) return '';
+      const nextStack = new Set(stack); nextStack.add(path);
+      let css = String(record.text || '');
+      css = css.replace(/@import\s+(?:url\(\s*)?(["']?)([^"'\)\s;]+)\1\s*\)?([^;]*);/gi, (match, quote, ref, tail) => {
+        const dep = resolveProjectPath(path, ref);
+        const depRecord = dep ? state.project.files.get(dep) : null;
+        if (!depRecord || depRecord.language !== 'css') return match;
+        const imported = compileCssText(dep, nextStack);
+        const media = String(tail || '').trim();
+        return media ? `@media ${media} {\n${imported}\n}` : imported;
+      });
+      css = css.replace(/url\(\s*(["']?)(.*?)\1\s*\)/gi, (match, quote, rawRef) => {
+        const ref = String(rawRef || '').trim();
+        if (!ref || /^(?:data:|blob:|https?:|#|\/\/)/i.test(ref)) return match;
+        const resolved = resolveProjectPath(path, ref);
+        const url = resolved ? projectAssetUrl(resolved) : null;
+        return url ? `url("${withSuffix(url, ref)}")` : match;
+      });
+      cssTextCache.set(path, css);
+      return css;
+    };
+
+    const cssCache = new Map();
+    const compileCss = (path, stack = new Set()) => {
+      if (cssCache.has(path)) return cssCache.get(path);
+      const record = state.project.files.get(path);
+      if (!record || typeof record.text !== 'string') return projectAssetUrl(path);
+      const css = compileCssText(path, stack);
+      const url = textDataUrl(css, 'text/css', path);
+      cssCache.set(path, url);
+      return url;
+    };
+
+    const moduleCache = new Map();
+    const moduleCompiling = new Set();
+    const compileModule = (path) => {
+      if (moduleCache.has(path)) return moduleCache.get(path);
+      const record = state.project.files.get(path);
+      if (!record || typeof record.text !== 'string') return projectAssetUrl(path);
+      if (moduleCompiling.has(path)) {
+        // Cyclic ESM graphs cannot be represented perfectly with data URLs in a
+        // file://-hosted editor. Keep the module loadable and let diagnostics
+        // report any cycle-dependent import that genuinely needs a real origin.
+        return textDataUrl(`${record.text}\n//# sourceURL=mf-project/${path}`, 'text/javascript', path);
+      }
+      moduleCompiling.add(path);
+      let code = String(record.text || '');
+      const rewriteSpecifier = (ref) => {
+        const dep = resolveProjectPath(path, ref);
+        const depRecord = dep ? state.project.files.get(dep) : null;
+        if (!depRecord || typeof depRecord.text !== 'string' || !/(?:js|mjs)$/i.test(dep)) return ref;
+        return compileModule(dep) || ref;
+      };
+      code = code.replace(/(\b(?:import|export)\s+(?:[^'";]*?\s+from\s*)?)(['"])([^'"]+)\2/g, (m, lead, q, ref) => `${lead}${q}${rewriteSpecifier(ref)}${q}`);
+      code = code.replace(/(\bimport\s*\(\s*)(['"])([^'"]+)\2(\s*\))/g, (m, lead, q, ref, tail) => `${lead}${q}${rewriteSpecifier(ref)}${q}${tail}`);
+      code = code.replace(/new\s+URL\(\s*(['"])([^'"]+)\1\s*,\s*import\.meta\.url\s*\)/g, (m, q, ref) => {
+        const dep = resolveProjectPath(path, ref);
+        const url = dep ? rawRuntimeUrl(dep) : null;
+        return url ? `new URL(${JSON.stringify(withSuffix(url, ref))})` : m;
+      });
+      const url = textDataUrl(`${code}\n//# sourceURL=mf-project/${path}`, 'text/javascript', path);
+      moduleCache.set(path, url);
+      moduleCompiling.delete(path);
+      return url;
+    };
+
+    // Preview must not inherit a project's CSP because MF Code injects its own
+    // diagnostics/inspection bridge and in-memory data/blob resources.
+    doc.querySelectorAll('meta[http-equiv]').forEach((meta) => {
+      if ((meta.getAttribute('http-equiv') || '').toLowerCase() === 'content-security-policy') meta.remove();
+    });
+    // Relative/local <base> values point at about:srcdoc in an embedded preview,
+    // which is never the opened project directory. Resources are virtualized below.
+    doc.querySelectorAll('base[href]').forEach((base) => {
+      const href = base.getAttribute('href') || '';
+      if (!/^(?:https?:)?\/\//i.test(href)) base.remove();
+    });
+
+    const missingLocalStyles = [];
+    const appliedLocalStyles = new Set();
+    // Local stylesheets are converted in-place. Keeping each sheet at its
+    // original DOM position preserves the page's authored cascade/order, which
+    // is critical on multi-page sites where page-specific sheets intentionally
+    // override shared/global CSS.
+    let localStyleRefs = 0;
+    const isExternalRef = (ref) => /^(?:data:|blob:|https?:|\/\/)/i.test(String(ref || ''));
+    const resolveLocalStyleRecord = (ref) => {
+      let path = resolveProjectPath(entryPath, ref);
+      let record = path ? state.project.files.get(path) : null;
+      if ((!record || record.language !== 'css') && !isExternalRef(ref)) {
+        let cleanRef = String(ref || '').split('#')[0].split('?')[0];
+        try { cleanRef = decodeURIComponent(cleanRef); } catch {}
+        const baseName = cleanRef.replace(/\\/g, '/').split('/').pop()?.toLowerCase();
+        const matches = baseName
+          ? [...state.project.files.values()].filter((item) => item.language === 'css' && item.name.toLowerCase() === baseName)
+          : [];
+        if (matches.length === 1) { record = matches[0]; path = record.path; }
+      }
+      return { path, record };
+    };
+    const captureLocalStylesheet = (link) => {
+      const ref = link.getAttribute('href');
+      if (!ref) return false;
+      const { path, record } = resolveLocalStyleRecord(ref);
+      if (record?.language === 'css' && typeof record.text === 'string') {
+        const style = doc.createElement('style');
+        style.setAttribute('data-mf-project-style', path);
+        style.setAttribute('data-mf-original-href', ref);
+        if (link.media) style.setAttribute('media', link.media);
+        if (link.getAttribute('title')) style.setAttribute('title', link.getAttribute('title'));
+        if (link.hasAttribute('disabled')) style.setAttribute('disabled', '');
+        style.textContent = compileCssText(path);
+        appliedLocalStyles.add(path);
+        link.replaceWith(style);
+        return true;
+      }
+      if (!isExternalRef(ref)) { missingLocalStyles.push(ref); link.remove(); }
+      return false;
+    };
+    [...doc.querySelectorAll('link[href]')].forEach((link) => {
+      const rel = (link.getAttribute('rel') || '').toLowerCase();
+      const as = (link.getAttribute('as') || '').toLowerCase();
+      const onload = (link.getAttribute('onload') || '').toLowerCase();
+      const styleBearing = rel.split(/\s+/).includes('stylesheet') || (rel.split(/\s+/).includes('preload') && as === 'style') || onload.includes("rel='stylesheet'") || onload.includes('rel="stylesheet"') || onload.includes('rel=stylesheet');
+      if (!styleBearing) return;
+      if (!isExternalRef(link.getAttribute('href'))) localStyleRefs += 1;
+      captureLocalStylesheet(link);
+    });
+    let fallbackStylePath = null;
+    if (!appliedLocalStyles.size) {
+      const cssFiles = [...state.project.files.values()].filter((item) => item.language === 'css' && typeof item.text === 'string');
+      const preferredNames = ['style.css','styles.css','main.css','app.css','index.css','global.css'];
+      const preferred = cssFiles.filter((item) => preferredNames.includes(item.name.toLowerCase()));
+      const fallback = preferred.length === 1 ? preferred[0] : cssFiles.length === 1 ? cssFiles[0] : null;
+      if (fallback) {
+        const style = doc.createElement('style');
+        style.setAttribute('data-mf-project-style', fallback.path);
+        style.setAttribute('data-mf-fallback-style', 'true');
+        style.textContent = compileCssText(fallback.path);
+        // A fallback has no authored position because no usable stylesheet link
+        // was found. Append it to the end of head so it behaves like a normal
+        // late stylesheet rather than unexpectedly overriding from the front.
+        doc.head?.appendChild(style);
+        appliedLocalStyles.add(fallback.path);
+        fallbackStylePath = fallback.path;
+      }
+    }
+
+    // Inline module scripts also resolve relative specifiers against the HTML
+    // page that contains them. In srcdoc/data-url previews the browser cannot do
+    // that on its own, so virtualize those specifiers before serialization.
+    const rewriteInlineModule = (code, basePath) => {
+      const rewriteSpecifier = (ref) => {
+        const dep = resolveProjectPath(basePath, ref);
+        const depRecord = dep ? state.project.files.get(dep) : null;
+        if (!depRecord || typeof depRecord.text !== 'string' || !/(?:js|mjs)$/i.test(dep)) return ref;
+        return compileModule(dep) || ref;
+      };
+      let out = String(code || '');
+      out = out.replace(/(\b(?:import|export)\s+(?:[^'";]*?\s+from\s*)?)(['"])([^'"]+)\2/g, (m, lead, q, ref) => `${lead}${q}${rewriteSpecifier(ref)}${q}`);
+      out = out.replace(/(\bimport\s*\(\s*)(['"])([^'"]+)\2(\s*\))/g, (m, lead, q, ref, tail) => `${lead}${q}${rewriteSpecifier(ref)}${q}${tail}`);
+      out = out.replace(/new\s+URL\(\s*(['"])([^'"]+)\1\s*,\s*import\.meta\.url\s*\)/g, (m, q, ref) => {
+        const dep = resolveProjectPath(basePath, ref);
+        const url = dep ? rawRuntimeUrl(dep) : null;
+        return url ? `new URL(${JSON.stringify(withSuffix(url, ref))})` : m;
+      });
+      return out;
+    };
+    [...doc.querySelectorAll('script[type="module"]:not([src])')].forEach((script) => {
+      script.textContent = rewriteInlineModule(script.textContent || '', entryPath);
+    });
+
+    // Preserve local scripts in their exact DOM position and preserve defer / async /
+    // nomodule / type. Module scripts get their relative imports virtualized too.
+    [...doc.querySelectorAll('script[src]')].forEach((script) => {
+      const src = script.getAttribute('src');
+      const path = src ? resolveProjectPath(entryPath, src) : null;
+      const record = path ? state.project.files.get(path) : null;
+      if (record && typeof record.text === 'string' && /(?:js|mjs)$/i.test(path)) {
+        script.removeAttribute('integrity');
+        const isModule = (script.getAttribute('type') || '').trim().toLowerCase() === 'module' || /\.mjs$/i.test(path);
+        let scriptUrl;
+        if (isModule) {
+          scriptUrl = compileModule(path);
+        } else {
+          // Classic scripts can still use dynamic import() and import.meta-like
+          // asset helpers through generated code. Rewriting dynamic imports here
+          // prevents them from resolving relative to a data: URL.
+          let code = String(record.text || '');
+          code = code.replace(/(\bimport\s*\(\s*)(['"])([^'"]+)\2(\s*\))/g, (m, lead, q, ref, tail) => {
+            const dep = resolveProjectPath(path, ref);
+            const depRecord = dep ? state.project.files.get(dep) : null;
+            const mapped = depRecord && typeof depRecord.text === 'string' && /(?:js|mjs)$/i.test(dep) ? compileModule(dep) : null;
+            return mapped ? `${lead}${q}${mapped}${q}${tail}` : m;
+          });
+          scriptUrl = textDataUrl(code, 'text/javascript', path);
+        }
+        script.setAttribute('src', scriptUrl);
+        script.setAttribute('data-mf-original-src', src);
+      }
+    });
+
+    // modulepreload / preload entries should point at the same in-memory files as
+    // the scripts/styles they are warming up.
+    [...doc.querySelectorAll('link[href]')].forEach((link) => {
+      if (link.matches('link[rel~="stylesheet"]')) return;
+      const rel = (link.getAttribute('rel') || '').toLowerCase();
+      const as = (link.getAttribute('as') || '').toLowerCase();
+      if (!/(?:modulepreload|preload|icon)/.test(rel)) return;
+      const ref = link.getAttribute('href');
+      const path = resolveProjectPath(entryPath, ref);
+      const record = path ? state.project.files.get(path) : null;
+      if (!record) return;
+      let url = null;
+      if (rel.includes('modulepreload') && typeof record.text === 'string') url = compileModule(path);
+      else if (as === 'style' && record.language === 'css') url = compileCss(path);
+      else url = rawRuntimeUrl(path);
+      if (url) { link.removeAttribute('integrity'); link.setAttribute('href', withSuffix(url, ref)); }
+    });
+
+    const rewriteAsset = (element, attribute) => {
+      const ref = element.getAttribute(attribute);
+      if (!ref || /^(?:data:|blob:|https?:|#|\/\/)/i.test(ref)) return;
+      const path = resolveProjectPath(entryPath, ref);
+      const url = path ? rawRuntimeUrl(path) : null;
+      if (url) element.setAttribute(attribute, withSuffix(url, ref));
+    };
+    doc.querySelectorAll('[src],[poster],[data]').forEach((element) => {
+      if (element.tagName !== 'SCRIPT') rewriteAsset(element, 'src');
+      rewriteAsset(element, 'poster');
+      if (['OBJECT'].includes(element.tagName)) rewriteAsset(element, 'data');
+    });
+    doc.querySelectorAll('use[href],image[href]').forEach((element) => rewriteAsset(element, 'href'));
+    doc.querySelectorAll('[srcset]').forEach((element) => {
+      const value = element.getAttribute('srcset') || '';
+      const rewritten = value.split(',').map((candidate) => {
+        const bits = candidate.trim().split(/\s+/);
+        const ref = bits.shift();
+        if (!ref) return candidate;
+        const path = resolveProjectPath(entryPath, ref);
+        const url = path ? rawRuntimeUrl(path) : null;
+        return [url ? withSuffix(url, ref) : ref, ...bits].join(' ');
+      }).join(', ');
+      element.setAttribute('srcset', rewritten);
+    });
+
+    const manifest = {};
+    state.project.files.forEach((record, path) => {
+      const url = record.language === 'css' && typeof record.text === 'string' ? compileCss(path) : rawRuntimeUrl(path);
+      if (url) manifest[path] = url;
+    });
+    const manifestJson = JSON.stringify(manifest).replace(/</g, '\\u003c');
+    const entryJson = JSON.stringify(entryPath);
+    const compatScript = `<script data-mf-internal>\n(() => {\n  const files = ${manifestJson};\n  const entryPath = ${entryJson};\n  const missingLocalStyles = ${JSON.stringify(missingLocalStyles).replace(/</g, '\\u003c')};\n  if (missingLocalStyles.length) {\n    queueMicrotask(() => window.parent?.postMessage?.({ source:'mf-preview', type:'resource-error', renderId:${state.renderId}, message:'MISSING STYLESHEET · '+missingLocalStyles.join(', ') }, '*'));\n  }\n  const fallbackStylePath = ${JSON.stringify(fallbackStylePath)};\n  window.__mfStyleExpectation = { localRefs:${localStyleRefs}, applied:${appliedLocalStyles.size}, fallback:Boolean(fallbackStylePath) };\n  if (fallbackStylePath) queueMicrotask(() => window.parent?.postMessage?.({ source:'mf-preview', type:'resource-warning', renderId:${state.renderId}, message:'PREVIEW FALLBACK STYLE · '+fallbackStylePath }, '*'));\n  const normalize = (value) => { const out=[]; String(value||'').replace(/\\\\/g,'/').split('/').forEach(p=>{if(!p||p==='.')return;if(p==='..')out.pop();else out.push(p)}); return out.join('/'); };\n  const resolve = (raw) => {\n    const ref=String(raw||'').trim();\n    if(!ref || /^(?:[a-z]+:|#|\\/\\/)/i.test(ref)) return null;\n    const clean=ref.split('#')[0].split('?')[0];\n    const base=clean.startsWith('/')?'':(entryPath.includes('/')?entryPath.slice(0,entryPath.lastIndexOf('/')+1):'');\n    const path=normalize((clean.startsWith('/')?'':base)+clean.replace(/^\\//,''));\n    const url=files[path];\n    if(!url) return null;\n    const hash=ref.includes('#')?'#'+ref.split('#').slice(1).join('#'):'';\n    return url+hash;\n  };\n  window.__mfResolveProjectUrl = resolve;\n  const remapResourceNode=(node)=>{if(!(node instanceof Element)||node.hasAttribute('data-mf-internal'))return;const tag=node.tagName;const remap=(name)=>{const value=node.getAttribute(name);if(!value)return;const mapped=resolve(value);if(mapped&&mapped!==value)node.setAttribute(name,mapped);};if(tag==='LINK')remap('href');if(['SCRIPT','IMG','SOURCE','VIDEO','AUDIO','IFRAME'].includes(tag))remap('src');if(tag==='OBJECT')remap('data');if(tag==='USE'||tag==='IMAGE')remap('href');};\n  const resourceObserver=new MutationObserver((records)=>records.forEach((record)=>{if(record.type==='attributes')remapResourceNode(record.target);record.addedNodes?.forEach((node)=>{if(!(node instanceof Element))return;remapResourceNode(node);node.querySelectorAll?.('link[href],script[src],img[src],source[src],video[src],audio[src],iframe[src],object[data],use[href],image[href]').forEach(remapResourceNode);});}));\n  resourceObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['href','src','data']});\n  const nativeFetch=window.fetch?.bind(window);\n  if(nativeFetch) window.fetch=(input,init)=>{\n    try {\n      if(typeof input==='string' || input instanceof URL){ const mapped=resolve(String(input)); if(mapped) return nativeFetch(mapped,init); }\n      else if(input instanceof Request){ const mapped=resolve(input.url); if(mapped) return nativeFetch(new Request(mapped,input),init); }\n    } catch {}\n    return nativeFetch(input,init);\n  };\n  const XHR=window.XMLHttpRequest;\n  if(XHR){ const open=XHR.prototype.open; XHR.prototype.open=function(method,url,...rest){ return open.call(this,method,resolve(url)||url,...rest); }; }\n  const NativeWorker=window.Worker;\n  if(NativeWorker){ window.Worker=function(url,options){ return new NativeWorker(resolve(url)||url,options); }; window.Worker.prototype=NativeWorker.prototype; }\n  const NativeSharedWorker=window.SharedWorker;\n  if(NativeSharedWorker){ window.SharedWorker=function(url,options){ return new NativeSharedWorker(resolve(url)||url,options); }; window.SharedWorker.prototype=NativeSharedWorker.prototype; }\n})();\n<\\/script>`;
+
+    return {
+      doctype,
+      htmlAttrs: serializeAttrs(doc.documentElement),
+      bodyAttrs: serializeAttrs(doc.body),
+      headHtml: doc.head?.innerHTML || '',
+      styleHtml: '',
+      html: doc.body?.innerHTML || '',
+      compatScript
+    };
   }
+
 
   function exportStandaloneHtml() {
     const blob = new Blob([buildExportDocument()], { type: 'text/html;charset=utf-8' });
@@ -1628,9 +2717,921 @@ ${safeScript}
     projectFeedback('RESET');
   }
 
+
+  /* Real project model ----------------------------------------------------- */
+  const EDITABLE_EXTENSIONS = new Set(['html', 'htm', 'css', 'js', 'mjs']);
+  const ASSET_URLS = new Map();
+
+  function projectLanguage(path) {
+    const extension = fileExtension({ name: path });
+    if (extension === 'html' || extension === 'htm') return 'html';
+    if (extension === 'css') return 'css';
+    if (extension === 'js' || extension === 'mjs') return 'js';
+    return null;
+  }
+
+  function normalizeProjectPath(path) {
+    const parts = String(path || '').replace(/\\/g, '/').split('/');
+    const output = [];
+    parts.forEach((part) => {
+      if (!part || part === '.') return;
+      if (part === '..') output.pop();
+      else output.push(part);
+    });
+    return output.join('/');
+  }
+
+  function resolveProjectPath(fromPath, reference) {
+    const raw = String(reference || '').trim();
+    if (!raw || /^(?:[a-z]+:|#|\/\/)/i.test(raw)) return null;
+    let clean = raw.split('#')[0].split('?')[0];
+    if (!clean) return null;
+    // Browsers decode URL-escaped path segments before filesystem lookup. Mirror
+    // that behavior, but never let a malformed escape break preview compilation.
+    try { clean = decodeURIComponent(clean); } catch {}
+    const base = clean.startsWith('/')
+      ? ''
+      : (fromPath.includes('/') ? fromPath.slice(0, fromPath.lastIndexOf('/') + 1) : '');
+    const candidate = normalizeProjectPath(base + clean.replace(/^\//, ''));
+    if (!candidate) return null;
+    // Exact match first. Then tolerate case differences the same way many local
+    // macOS/Windows project folders do. This matters for CSS/assets authored on
+    // case-insensitive filesystems and later previewed in our in-memory map.
+    if (state.project?.files?.has(candidate)) return candidate;
+    const lower = candidate.toLowerCase();
+    const insensitive = state.project?.files
+      ? [...state.project.files.keys()].find((path) => path.toLowerCase() === lower)
+      : null;
+    return insensitive || candidate;
+  }
+
+  function simpleProjectFromCode() {
+    const files = new Map([
+      ['index.html', { path: 'index.html', name: 'index.html', language: 'html', text: state.code.html, file: null, handle: null, dirty: false }],
+      ['style.css', { path: 'style.css', name: 'style.css', language: 'css', text: state.code.css, file: null, handle: null, dirty: false }],
+      ['script.js', { path: 'script.js', name: 'script.js', language: 'js', text: state.code.js, file: null, handle: null, dirty: false }]
+    ]);
+    return {
+      mode: 'simple',
+      name: 'PROJECT',
+      files,
+      activePath: state.view === 'css' ? 'style.css' : state.view === 'js' ? 'script.js' : 'index.html',
+      entryHtmlPath: 'index.html',
+      lastByLanguage: { html: 'index.html', css: 'style.css', js: 'script.js' },
+      directoryHandle: null,
+      detached: false
+    };
+  }
+
+  function serializeCurrentProject() {
+    if (!state.project || state.project.mode === 'simple') {
+      return { mode: 'simple', name: 'PROJECT', code: { ...state.code }, addons: addonSnapshot() };
+    }
+    return {
+      mode: 'folder',
+      name: state.project.name,
+      activePath: state.project.activePath,
+      entryHtmlPath: state.project.entryHtmlPath,
+      lastByLanguage: { ...state.project.lastByLanguage },
+      collapsedFolders: [...state.collapsedFolders],
+      addons: addonSnapshot(),
+      files: [...state.project.files.values()].map((record) => ({
+        path: record.path,
+        language: record.language,
+        text: typeof record.text === 'string' ? record.text : null,
+        type: record.file?.type || '',
+        editable: Boolean(record.language)
+      }))
+    };
+  }
+
+  function restoreProjectSnapshot(snapshot) {
+    if (!snapshot || snapshot.mode === 'simple') {
+      if (validCode(snapshot?.code)) state.code = { ...snapshot.code };
+      state.project = simpleProjectFromCode();
+      applyAddonSnapshot(snapshot?.addons || null);
+      return;
+    }
+    if (snapshot.mode !== 'folder' || !Array.isArray(snapshot.files)) {
+      state.project = simpleProjectFromCode();
+      return;
+    }
+    const files = new Map();
+    snapshot.files.forEach((item) => {
+      const path = normalizeProjectPath(item.path);
+      if (!path) return;
+      files.set(path, {
+        path,
+        name: path.split('/').pop(),
+        language: projectLanguage(path),
+        text: typeof item.text === 'string' ? item.text : null,
+        file: null,
+        handle: null,
+        dirty: false
+      });
+    });
+    state.project = {
+      mode: 'folder',
+      name: snapshot.name || 'PROJECT',
+      files,
+      activePath: files.has(snapshot.activePath) ? snapshot.activePath : null,
+      entryHtmlPath: files.has(snapshot.entryHtmlPath) ? snapshot.entryHtmlPath : null,
+      lastByLanguage: snapshot.lastByLanguage || {},
+      directoryHandle: null,
+      detached: true
+    };
+    state.collapsedFolders = restoreTreeStateForProject(state.project, snapshot.collapsedFolders);
+    applyAddonSnapshot(snapshot.addons || state.addonStates[addonProjectKey(state.project)] || null);
+    state.code = { html: '', css: '', js: '' };
+    ['html','css','js'].forEach((language) => {
+      const preferred = state.project.lastByLanguage[language];
+      const record = (preferred && files.get(preferred)?.language === language) ? files.get(preferred) : [...files.values()].find((item) => item.language === language);
+      if (record && typeof record.text === 'string') { state.code[language] = record.text; state.project.lastByLanguage[language] = record.path; }
+    });
+    const firstHtml = [...files.values()].find((item) => item.language === 'html');
+    const firstEditable = [...files.values()].find((item) => item.language);
+    if (!state.project.entryHtmlPath && firstHtml) state.project.entryHtmlPath = firstHtml.path;
+    if (!state.project.activePath && firstEditable) state.project.activePath = firstEditable.path;
+    if (state.project.activePath) syncActiveProjectFileToEditor(false);
+  }
+
+  function restoreLocalState() {
+    const storedTreeStates = safeJsonParse(safeStorageGet(STORAGE.tree));
+    if (storedTreeStates && typeof storedTreeStates === 'object' && !Array.isArray(storedTreeStates)) state.treeStates = storedTreeStates;
+    const storedAddonStates = safeJsonParse(safeStorageGet(STORAGE.addons));
+    if (storedAddonStates && typeof storedAddonStates === 'object' && !Array.isArray(storedAddonStates)) state.addonStates = storedAddonStates;
+
+    const draft = safeJsonParse(safeStorageGet(STORAGE.draft));
+    if (validCode(draft?.code)) state.code = { ...draft.code };
+    if (draft?.project) restoreProjectSnapshot(draft.project);
+    else state.project = simpleProjectFromCode();
+    restoreAddonsForProject(draft?.project?.addons || draft?.addons || null);
+
+    const prefs = safeJsonParse(safeStorageGet(STORAGE.prefs));
+    if (prefs) {
+      if (['html', 'css', 'js', 'all'].includes(prefs.view)) state.view = prefs.view;
+      if (['light', 'dark'].includes(prefs.theme)) state.theme = prefs.theme;
+      if (['geist', 'jetbrains'].includes(prefs.font)) state.font = prefs.font;
+      if (['desktop', 'tablet', 'mobile'].includes(prefs.previewSize)) state.previewSize = prefs.previewSize;
+      if (typeof prefs.filesOpen === 'boolean') state.filesOpen = prefs.filesOpen;
+      if (Number.isFinite(prefs.filesWidth)) state.filesWidth = clamp(prefs.filesWidth, 164, 480);
+      if (Number.isFinite(prefs.editorWidth)) workspace.style.setProperty('--editor-width', `${prefs.editorWidth}px`);
+    }
+
+    const history = safeJsonParse(safeStorageGet(STORAGE.history));
+    if (history) {
+      const validEntries = (entries) => Array.isArray(entries) ? entries.filter(validCode).slice(-HISTORY_LIMIT).map((code) => ({ ...code })) : [];
+      state.history.past = validEntries(history.past);
+      state.history.future = validEntries(history.future);
+    }
+  }
+
+  function persistDraftSoon() {
+    window.clearTimeout(state.draftTimer);
+    state.draftTimer = window.setTimeout(persistDraftNow, SAVE_DELAY);
+  }
+
+  function persistDraftNow() {
+    window.clearTimeout(state.draftTimer);
+    safeStorageSet(STORAGE.draft, JSON.stringify({ code: state.code, project: serializeCurrentProject() }));
+  }
+
+  function activeProjectRecord() {
+    return state.project?.activePath ? state.project.files.get(state.project.activePath) || null : null;
+  }
+
+
+  function setSingleEditor(language) {
+    setEditorValue(singleEditor, language, state.code[language]);
+    const record = state.project?.mode === 'folder' ? activeProjectRecord() : null;
+    footerLanguage.textContent = record?.language === language ? record.name.toUpperCase() : language.toUpperCase();
+  }
+
+  function syncActiveProjectFileToEditor(render = true) {
+    if (!state.project || state.project.mode !== 'folder') return;
+    const record = activeProjectRecord();
+    if (!record?.language || typeof record.text !== 'string') return;
+    state.project.lastByLanguage[record.language] = record.path;
+    state.code[record.language] = record.text;
+    state.view = record.language;
+    if (render) applyView(record.language, true);
+    else {
+      setSingleEditor(record.language);
+      footerLanguage.textContent = record.name.toUpperCase();
+    }
+  }
+
+  function updateCode(language, value, container, options = {}) {
+    if (value === state.code[language]) {
+      syncEditor(container, language);
+      return;
+    }
+    recordHistory(language, Boolean(options.coalesce));
+    state.code[language] = value;
+    if (state.project?.mode === 'folder') {
+      const record = activeProjectRecord();
+      if (record?.language === language) {
+        record.text = value;
+        record.dirty = true;
+      }
+    } else if (state.project?.mode === 'simple') {
+      const path = language === 'html' ? 'index.html' : language === 'css' ? 'style.css' : 'script.js';
+      const record = state.project.files.get(path);
+      if (record) record.text = value;
+    }
+    if (language === 'js') state.errorLine.js = null;
+    updateDiagnostics(language);
+    syncEditor(container, language);
+    persistDraftSoon();
+    requestPreviewUpdate(language);
+  }
+
+  function applyHistorySnapshot(code) {
+    state.code = { ...code };
+    if (state.project?.mode === 'folder') {
+      const record = activeProjectRecord();
+      if (record?.language && typeof state.code[record.language] === 'string') {
+        record.text = state.code[record.language];
+        record.dirty = true;
+      }
+    } else if (state.project?.mode === 'simple') {
+      ['html','css','js'].forEach((language) => {
+        const path = language === 'html' ? 'index.html' : language === 'css' ? 'style.css' : 'script.js';
+        const record = state.project.files.get(path);
+        if (record) record.text = state.code[language];
+      });
+    }
+    state.errorLine = { html: null, css: null, js: null };
+    refreshVisibleEditors();
+    populateAllEditors();
+    persistDraftNow();
+    renderPreview();
+  }
+
+  function clearProjectHistory() {
+    state.history.past = [];
+    state.history.future = [];
+    breakHistoryCoalescing();
+    persistHistoryNow();
+  }
+
+  function renderFileTree() {
+    if (!state.project) state.project = simpleProjectFromCode();
+    fileTreeTitle.textContent = state.project.name.toUpperCase();
+    fileTreeList.innerHTML = '';
+    const files = [...state.project.files.values()].sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true }));
+    const root = { folders: new Map(), files: [] };
+
+    files.forEach((record) => {
+      const parts = record.path.split('/');
+      let node = root;
+      parts.slice(0, -1).forEach((folder) => {
+        if (!node.folders.has(folder)) node.folders.set(folder, { folders: new Map(), files: [] });
+        node = node.folders.get(folder);
+      });
+      node.files.push(record);
+    });
+
+    const appendNode = (node, depth, prefix) => {
+      [...node.folders.entries()].sort(([a],[b]) => a.localeCompare(b)).forEach(([name, child]) => {
+        const path = prefix ? `${prefix}/${name}` : name;
+        const collapsed = state.collapsedFolders.has(path);
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = `file-tree-row is-folder${collapsed ? ' is-collapsed' : ''}`;
+        row.style.paddingLeft = `${9 + depth * 12}px`;
+        row.dataset.folderPath = path;
+        row.innerHTML = `<span class="file-tree-caret">›</span><span class="file-tree-name">${escapeHtml(name)}</span>`;
+        fileTreeList.appendChild(row);
+        if (!collapsed) appendNode(child, depth + 1, path);
+      });
+
+      node.files.sort((a,b) => a.name.localeCompare(b.name, undefined, { numeric: true })).forEach((record) => {
+        const editable = Boolean(record.language);
+        const row = document.createElement(editable ? 'button' : 'div');
+        if (editable) row.type = 'button';
+        row.className = `file-tree-row${editable ? '' : ' is-muted'}${record.path === state.project.activePath ? ' is-active' : ''}`;
+        row.style.paddingLeft = `${9 + depth * 12}px`;
+        row.dataset.filePath = record.path;
+        row.innerHTML = `<span class="file-tree-spacer"></span><span class="file-tree-name">${escapeHtml(record.name)}</span>`;
+        fileTreeList.appendChild(row);
+      });
+    };
+
+    appendNode(root, 0, '');
+    const editableCount = files.filter((file) => file.language).length;
+    fileTreeFooter.textContent = `${files.length} FILE${files.length === 1 ? '' : 'S'}${editableCount !== files.length ? ` · ${editableCount} EDITABLE` : ''}`;
+  }
+
+  function updateFileTreeActive() {
+    if (!fileTreeList) return;
+    fileTreeList.querySelectorAll('[data-file-path]').forEach((item) => item.classList.toggle('is-active', item.dataset.filePath === state.project?.activePath));
+  }
+
+  function applyFilesOpen(active) {
+    state.filesOpen = Boolean(active);
+    workspace.classList.toggle('has-files', state.filesOpen);
+    filesButton.classList.toggle('is-active', state.filesOpen);
+    filesButton.setAttribute('aria-pressed', String(state.filesOpen));
+    filesButton.setAttribute('aria-label', state.filesOpen ? 'Hide project files' : 'Show project files');
+    fileTree.setAttribute('aria-hidden', String(!state.filesOpen));
+    workspace.style.setProperty('--tree-width', `${state.filesWidth}px`);
+    renderFileTree();
+  }
+
+  function activateProjectFile(path, { animate = true } = {}) {
+    const record = state.project?.files.get(path);
+    if (!record?.language || typeof record.text !== 'string') return false;
+    state.project.activePath = path;
+    state.project.lastByLanguage[record.language] = path;
+    if (record.language === 'html') state.project.entryHtmlPath = path;
+    state.code[record.language] = record.text;
+    clearProjectHistory();
+    applyView(record.language, animate);
+    footerLanguage.textContent = record.name.toUpperCase();
+    renderFileTree();
+    persistDraftNow();
+    renderPreview();
+    return true;
+  }
+
+  function switchView(nextView) {
+    if (state.project?.mode === 'folder' && nextView !== 'all') {
+      const preferred = state.project.lastByLanguage[nextView];
+      const fallback = [...state.project.files.values()].find((item) => item.language === nextView)?.path;
+      if (preferred || fallback) {
+        activateProjectFile(preferred || fallback);
+        persistPrefs();
+      }
+      return;
+    }
+    if (nextView === state.view) return;
+    applyView(nextView, true);
+    persistPrefs();
+  }
+
+  function projectAssetUrl(path) {
+    const record = state.project?.files.get(path);
+    if (!record?.file) return null;
+    const previous = ASSET_URLS.get(path);
+    if (previous) return previous;
+    const url = URL.createObjectURL(record.file);
+    ASSET_URLS.set(path, url);
+    return url;
+  }
+
+  function rewriteCssAssetUrls(css, cssPath) {
+    return String(css || '').replace(/url\((['"]?)([^)'"\s]+)\1\)/g, (match, quote, ref) => {
+      const resolved = resolveProjectPath(cssPath, ref);
+      if (!resolved) return match;
+      const url = projectAssetUrl(resolved);
+      return url ? `url("${url}")` : match;
+    });
+  }
+
+  function projectPreviewBundle() {
+    if (!state.project || state.project.mode === 'simple') return { headHtml: '', ...state.code };
+    const entryPath = state.project.entryHtmlPath || [...state.project.files.values()].find((item) => item.language === 'html')?.path;
+    const entry = entryPath ? state.project.files.get(entryPath) : null;
+    if (!entry || typeof entry.text !== 'string') return { html: '', css: '', js: '' };
+
+    const doc = new DOMParser().parseFromString(entry.text, 'text/html');
+    const cssParts = [];
+    const jsParts = [];
+
+    [...doc.querySelectorAll('style')].forEach((style) => { cssParts.push(style.textContent || ''); style.remove(); });
+    [...doc.querySelectorAll('link[rel~="stylesheet"][href]')].forEach((link) => {
+      const path = resolveProjectPath(entryPath, link.getAttribute('href'));
+      const record = path ? state.project.files.get(path) : null;
+      if (record?.language === 'css' && typeof record.text === 'string') {
+        cssParts.push(rewriteCssAssetUrls(record.text, path));
+        link.remove();
+      }
+    });
+    [...doc.querySelectorAll('script')].forEach((script) => {
+      const src = script.getAttribute('src');
+      if (src) {
+        const path = resolveProjectPath(entryPath, src);
+        const record = path ? state.project.files.get(path) : null;
+        if (record?.language === 'js' && typeof record.text === 'string') {
+          jsParts.push(record.text);
+          script.remove();
+        }
+      } else {
+        jsParts.push(script.textContent || '');
+        script.remove();
+      }
+    });
+
+    const assetAttributes = ['src','poster'];
+    doc.querySelectorAll('[src],[poster]').forEach((element) => {
+      assetAttributes.forEach((attribute) => {
+        const ref = element.getAttribute(attribute);
+        if (!ref) return;
+        const path = resolveProjectPath(entryPath, ref);
+        const url = path ? projectAssetUrl(path) : null;
+        if (url) element.setAttribute(attribute, url);
+      });
+    });
+
+    return {
+      headHtml: doc.head?.innerHTML || '',
+      html: doc.body?.innerHTML || '',
+      css: cssParts.join('\n\n'),
+      js: jsParts.join('\n\n')
+    };
+  }
+
+  function buildExportDocument() {
+    const bundle = projectPreviewBundle();
+    const safeCss = bundle.css.replace(/<\/style/gi, '<\\/style');
+    const safeScript = bundle.js.replace(/<\/script/gi, '<\\/script');
+    return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+${safeCss}
+</style>
+</head>
+<body>
+${bundle.html}
+<script>
+${safeScript}
+<\/script>
+</body>
+</html>`;
+  }
+
+  function buildPreviewDocument(renderId) {
+    if (state.project?.mode === 'folder') {
+      const runtime = projectRuntimeBundle();
+      const previewHtml = annotateHtmlForPreview(runtime?.html || '');
+      const htmlAttrs = runtime?.htmlAttrs ? ` ${runtime.htmlAttrs}` : '';
+      const bodyAttrs = runtime?.bodyAttrs ? ` ${runtime.bodyAttrs}` : '';
+      return `${runtime?.doctype || '<!doctype html>'}
+<html${htmlAttrs}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style data-mf-internal>html,body{min-height:100%;}</style>
+${runtime?.styleHtml || ''}
+${previewBridge(renderId)}
+${runtime?.compatScript || ''}
+${addonHeadHtml()}
+${runtime?.headHtml || ''}
+</head>
+<body${bodyAttrs}>
+${previewHtml}
+<script data-mf-internal>window.__mfPrepareInspect();<\/script>
+</body>
+</html>`;
+    }
+
+    const bundle = projectPreviewBundle();
+    const userScript = JSON.stringify(bundle.js).replace(/<\/script/gi, '<\\/script');
+    const previewHtml = annotateHtmlForPreview(bundle.html);
+    return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html,body{min-height:100%;}html{background:transparent;}body{background:transparent;}</style>
+${previewBridge(renderId)}
+${addonHeadHtml()}
+${bundle.headHtml || ''}
+<style id="mf-user-style">${bundle.css}</style>
+</head>
+<body>
+${previewHtml}
+<script data-mf-internal>(async()=>{window.__mfPrepareInspect();await Promise.all(window.__mfLibPromises||[]);window.__mfRun(${userScript});})();<\/script>
+</body>
+</html>`;
+  }
+
+  function requestPreviewUpdate(language) {
+    window.clearTimeout(state.previewTimer);
+    setLiveState('UPDATING');
+    state.previewTimer = window.setTimeout(() => {
+      if (state.project?.mode === 'simple' && language === 'css') injectPreviewCss();
+      else renderPreview();
+    }, PREVIEW_DELAY);
+  }
+
+  function createProjectPayload() {
+    if (!state.project || state.project.mode === 'simple') {
+      return { format: PROJECT_FORMAT, version: PROJECT_VERSION, code: { ...state.code }, addons: addonSnapshot() };
+    }
+    return { format: PROJECT_FORMAT, version: 2, project: serializeCurrentProject() };
+  }
+
+  async function ensureFileHandleForPath(path) {
+    if (!state.project?.directoryHandle) return null;
+    const parts = normalizeProjectPath(path).split('/');
+    const filename = parts.pop();
+    let directory = state.project.directoryHandle;
+    for (const folder of parts) directory = await directory.getDirectoryHandle(folder, { create: true });
+    return directory.getFileHandle(filename, { create: true });
+  }
+
+  async function saveFolderProjectToDisk() {
+    if (!state.project || state.project.mode !== 'folder') return false;
+    if (!state.project.directoryHandle) return false;
+    const dirty = [...state.project.files.values()].filter((record) => record.dirty);
+    try {
+      for (const record of dirty) {
+        if (!record.handle) record.handle = await ensureFileHandleForPath(record.path);
+        if (!record.handle) throw new Error('No file handle');
+        const stream = await record.handle.createWritable();
+        await stream.write(record.language ? (record.text || '') : record.file);
+        await stream.close();
+        record.dirty = false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function saveProject() {
+    if (state.project?.mode === 'folder' && await saveFolderProjectToDisk()) {
+      closeProjectMenu();
+      projectFeedback('SAVED');
+      persistDraftNow();
+      return;
+    }
+    const blob = new Blob([JSON.stringify(createProjectPayload(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${(state.project?.name || 'project').replace(/[^a-z0-9_-]+/gi, '-').toLowerCase() || 'project'}.mfcode`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    closeProjectMenu();
+    projectFeedback(state.project?.mode === 'folder' ? 'DOWNLOADED' : 'SAVED');
+  }
+
+  let switchToastTimer = null;
+  function showProjectSwitchToast(message) {
+    if (switchToastTimer) window.clearTimeout(switchToastTimer);
+    switchToast.textContent = message;
+    switchToast.hidden = false;
+    requestAnimationFrame(() => switchToast.classList.add('is-visible'));
+    switchToastTimer = window.setTimeout(() => {
+      switchToast.classList.remove('is-visible');
+      window.setTimeout(() => { switchToast.hidden = true; }, 520);
+    }, 2600);
+  }
+
+  function downloadProjectSnapshot() {
+    const blob = new Blob([JSON.stringify(createProjectPayload(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${(state.project?.name || 'project').replace(/[^a-z0-9_-]+/gi, '-').toLowerCase() || 'project'}.mfcode`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1200);
+    return true;
+  }
+
+  async function saveBeforeProjectSwitch() {
+    persistDraftNow();
+    if (state.project?.mode === 'folder' && state.project.directoryHandle) {
+      try {
+        await saveFolderProjectToDisk();
+        return { saved: true, destination: 'folder' };
+      } catch {
+        downloadProjectSnapshot();
+        return { saved: true, destination: 'download' };
+      }
+    }
+    downloadProjectSnapshot();
+    return { saved: true, destination: 'download' };
+  }
+
+  function startSimpleProject(code = STARTER_CODE, addons = null) {
+    ASSET_URLS.forEach((url) => URL.revokeObjectURL(url));
+    ASSET_URLS.clear();
+    state.code = { ...code };
+    state.project = simpleProjectFromCode();
+    applyAddonSnapshot(addons);
+    state.addonStates.simple = addonSnapshot();
+    state.view = 'html';
+    clearProjectHistory();
+    refreshVisibleEditors();
+    populateAllEditors();
+    renderFileTree();
+    persistDraftNow();
+    renderPreview();
+    applyView('html', true);
+  }
+
+  function recordsFromFiles(files, { rootName = '' } = {}) {
+    const records = [];
+    [...files].forEach((file) => {
+      const relative = file.webkitRelativePath || file.__mfRelativePath || file.name;
+      let path = normalizeProjectPath(relative);
+      if (rootName && path.startsWith(`${rootName}/`)) path = path.slice(rootName.length + 1);
+      const language = projectLanguage(path);
+      records.push({ path, name: path.split('/').pop(), language, text: null, file, handle: file.__mfHandle || null, dirty: false });
+    });
+    return records;
+  }
+
+  async function hydrateTextRecords(records) {
+    await Promise.all(records.map(async (record) => {
+      if (record.language) record.text = await record.file.text();
+    }));
+    return records;
+  }
+
+  async function installFolderProject(name, records, directoryHandle = null) {
+    ASSET_URLS.forEach((url) => URL.revokeObjectURL(url));
+    ASSET_URLS.clear();
+    await hydrateTextRecords(records);
+    const files = new Map(records.filter((record) => record.path).map((record) => [record.path, record]));
+    const firstHtml = [...files.values()].find((item) => item.language === 'html');
+    const firstEditable = firstHtml || [...files.values()].find((item) => item.language);
+    state.code = { html: '', css: '', js: '' };
+    state.project = {
+      mode: 'folder',
+      name: name || 'PROJECT',
+      files,
+      activePath: firstEditable?.path || null,
+      entryHtmlPath: firstHtml?.path || null,
+      lastByLanguage: {},
+      directoryHandle,
+      detached: !directoryHandle
+    };
+    state.collapsedFolders = restoreTreeStateForProject(state.project);
+    restoreAddonsForProject();
+    persistTreeState();
+    if (firstEditable) {
+      state.project.lastByLanguage[firstEditable.language] = firstEditable.path;
+      state.code[firstEditable.language] = firstEditable.text;
+      state.view = firstEditable.language;
+    }
+    ['html','css','js'].forEach((language) => {
+      const record = [...files.values()].find((item) => item.language === language);
+      if (record) {
+        state.project.lastByLanguage[language] ||= record.path;
+        state.code[language] = record.text;
+      }
+    });
+    clearProjectHistory();
+    applyFilesOpen(true);
+    renderFileTree();
+    applyView(state.view, false);
+    if (firstEditable) footerLanguage.textContent = firstEditable.name.toUpperCase();
+    persistPrefs();
+    persistDraftNow();
+    renderPreview();
+    projectFeedback('OPENED');
+  }
+
+  async function enumerateDirectoryHandle(handle, prefix = '') {
+    const records = [];
+    for await (const [name, child] of handle.entries()) {
+      const path = normalizeProjectPath(prefix ? `${prefix}/${name}` : name);
+      if (child.kind === 'directory') records.push(...await enumerateDirectoryHandle(child, path));
+      else {
+        const file = await child.getFile();
+        file.__mfHandle = child;
+        file.__mfRelativePath = path;
+        records.push({ path, name, language: projectLanguage(path), text: null, file, handle: child, dirty: false });
+      }
+    }
+    return records;
+  }
+
+  async function openFolderPicker() {
+    closeProjectMenu();
+    if (window.showDirectoryPicker) {
+      try {
+        const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        const records = await enumerateDirectoryHandle(handle);
+        await installFolderProject(handle.name, records, handle);
+      } catch (error) {
+        if (error?.name !== 'AbortError') projectFeedback('FAILED');
+      }
+      return;
+    }
+    projectFolderInput.click();
+  }
+
+  async function openFolderInput(files) {
+    const selected = [...(files || [])];
+    if (!selected.length) return;
+    const firstPath = selected[0].webkitRelativePath || selected[0].name;
+    const rootName = firstPath.includes('/') ? firstPath.split('/')[0] : 'PROJECT';
+    const records = recordsFromFiles(selected, { rootName });
+    await installFolderProject(rootName, records, null);
+    projectFolderInput.value = '';
+  }
+
+  async function openProjectFiles(files) {
+    const selected = [...(files || [])];
+    if (!selected.length) return;
+    try {
+      if (selected.length === 1 && ['mfcode', 'json'].includes(fileExtension(selected[0]))) {
+        const payload = JSON.parse(await selected[0].text());
+        if (payload?.format !== PROJECT_FORMAT) throw new Error('Invalid project');
+        if (payload.version === PROJECT_VERSION && validCode(payload.code)) {
+          startSimpleProject(payload.code, payload.addons || null);
+        } else if (payload.version === 2 && payload.project) {
+          restoreProjectSnapshot(payload.project);
+          applyFilesOpen(true);
+          renderFileTree();
+          applyView(state.view, false);
+          persistDraftNow();
+          renderPreview();
+        } else throw new Error('Invalid project');
+        projectFeedback('OPENED');
+        return;
+      }
+      const records = recordsFromFiles(selected);
+      await installFolderProject(selected.length === 1 ? selected[0].name.replace(/\.[^.]+$/, '') : 'FILES', records, null);
+    } catch {
+      projectFeedback('INVALID');
+    } finally {
+      projectInput.value = '';
+    }
+  }
+
+  function resetProject() {
+    if (!resetAction.classList.contains('is-armed')) {
+      resetAction.classList.add('is-armed');
+      resetAction.textContent = 'RESET?';
+      state.resetTimer = window.setTimeout(disarmReset, 2200);
+      return;
+    }
+    disarmReset();
+    closeProjectMenu();
+    startSimpleProject(STARTER_CODE);
+    projectFeedback('RESET');
+  }
+
+  function toggleFolder(path) {
+    if (state.collapsedFolders.has(path)) state.collapsedFolders.delete(path);
+    else state.collapsedFolders.add(path);
+    persistTreeState();
+    persistDraftSoon();
+    renderFileTree();
+  }
+
+  function showProjectSwitch({ title, copy, confirmLabel = 'OPEN', action }) {
+    state.pendingProjectSwitch = action;
+    projectSwitchTitle.textContent = title;
+    projectSwitchCopy.textContent = copy;
+    const confirm = projectSwitchActions.find((button) => button.dataset.projectSwitchAction === 'confirm');
+    confirm.textContent = confirmLabel;
+    projectSwitchOverlay.hidden = false;
+    requestAnimationFrame(() => confirm.focus());
+  }
+
+  function closeProjectSwitch() {
+    projectSwitchOverlay.hidden = true;
+    state.pendingProjectSwitch = null;
+  }
+
+  async function addDroppedFiles(files) {
+    if (!state.project || state.project.mode !== 'folder') return;
+    const records = await hydrateTextRecords(recordsFromFiles(files));
+    records.forEach((record) => {
+      let path = record.path;
+      let counter = 2;
+      while (state.project.files.has(path)) {
+        const dot = record.name.lastIndexOf('.');
+        const base = dot > 0 ? record.name.slice(0, dot) : record.name;
+        const ext = dot > 0 ? record.name.slice(dot) : '';
+        path = `${base}-${counter}${ext}`;
+        counter += 1;
+      }
+      record.path = path;
+      record.name = path.split('/').pop();
+      record.dirty = true;
+      state.project.files.set(path, record);
+    });
+    renderFileTree();
+    persistDraftNow();
+    projectFeedback('ADDED');
+  }
+
+  function readEntryFile(entry) {
+    return new Promise((resolve, reject) => entry.file(resolve, reject));
+  }
+
+  function readDirectoryEntries(reader) {
+    return new Promise((resolve, reject) => {
+      const all = [];
+      const next = () => reader.readEntries((batch) => {
+        if (!batch.length) resolve(all);
+        else { all.push(...batch); next(); }
+      }, reject);
+      next();
+    });
+  }
+
+  async function filesFromEntry(entry, prefix = '', isRoot = false) {
+    if (entry.isFile) {
+      const file = await readEntryFile(entry);
+      file.__mfRelativePath = normalizeProjectPath(prefix ? `${prefix}/${entry.name}` : entry.name);
+      return [file];
+    }
+    if (!entry.isDirectory) return [];
+    const nextPrefix = isRoot ? prefix : normalizeProjectPath(prefix ? `${prefix}/${entry.name}` : entry.name);
+    const children = await readDirectoryEntries(entry.createReader());
+    const files = [];
+    for (const child of children) files.push(...await filesFromEntry(child, nextPrefix, false));
+    return files;
+  }
+
+  async function droppedDirectoryHandle(items) {
+    for (const item of items) {
+      if (typeof item.getAsFileSystemHandle !== 'function') continue;
+      try {
+        const handle = await item.getAsFileSystemHandle();
+        if (handle?.kind === 'directory') return handle;
+      } catch { /* fall through to legacy entry API */ }
+    }
+    return null;
+  }
+
+  async function handleDrop(event) {
+    event.preventDefault();
+    app.classList.remove('is-drop-target');
+    const items = [...(event.dataTransfer?.items || [])];
+    const modernFolderHandle = await droppedDirectoryHandle(items);
+    const entries = items.map((item) => item.webkitGetAsEntry?.()).filter(Boolean);
+    const folderEntry = entries.find((entry) => entry.isDirectory);
+
+    if (modernFolderHandle || folderEntry) {
+      const folderName = modernFolderHandle?.name || folderEntry.name;
+      let records = null;
+      let directoryHandle = null;
+      if (modernFolderHandle) {
+        directoryHandle = modernFolderHandle;
+        records = await enumerateDirectoryHandle(modernFolderHandle);
+      } else {
+        const files = await filesFromEntry(folderEntry, '', true);
+        records = recordsFromFiles(files);
+      }
+      showProjectSwitch({
+        title: `OPEN “${folderName.toUpperCase()}” AS PROJECT?`,
+        copy: 'Your current project is protected automatically, then this folder becomes active.',
+        confirmLabel: 'OPEN',
+        action: async () => {
+          const previous = await saveBeforeProjectSwitch();
+          await installFolderProject(folderName, records, directoryHandle);
+          showProjectSwitchToast(previous.destination === 'folder' ? 'PREVIOUS PROJECT SAVED · NEW PROJECT OPENED' : 'PREVIOUS PROJECT SAVED AS .MFCODE · NEW PROJECT OPENED');
+        }
+      });
+      return;
+    }
+
+    const droppedFiles = entries.length
+      ? (await Promise.all(entries.filter((entry) => entry.isFile).map((entry) => readEntryFile(entry))))
+      : [...(event.dataTransfer?.files || [])];
+    if (!droppedFiles.length) return;
+
+    if (state.project?.mode === 'folder') {
+      showProjectSwitch({
+        title: droppedFiles.length === 1 ? `ADD “${droppedFiles[0].name.toUpperCase()}”?` : `ADD ${droppedFiles.length} FILES?`,
+        copy: 'These files will be added to the current project without replacing it.',
+        confirmLabel: 'ADD',
+        action: () => addDroppedFiles(droppedFiles)
+      });
+    } else {
+      showProjectSwitch({
+        title: droppedFiles.length === 1 ? `CREATE PROJECT FROM “${droppedFiles[0].name.toUpperCase()}”?` : `CREATE PROJECT FROM ${droppedFiles.length} FILES?`,
+        copy: 'Your current project is protected automatically, then these files become a new project.',
+        confirmLabel: 'OPEN',
+        action: async () => {
+          const previous = await saveBeforeProjectSwitch();
+          const records = recordsFromFiles(droppedFiles);
+          await installFolderProject(droppedFiles.length === 1 ? droppedFiles[0].name.replace(/\.[^.]+$/, '') : 'FILES', records, null);
+          showProjectSwitchToast(previous.destination === 'folder' ? 'PREVIOUS PROJECT SAVED · NEW PROJECT OPENED' : 'PREVIOUS PROJECT SAVED AS .MFCODE · NEW PROJECT OPENED');
+        }
+      });
+    }
+  }
+
   tabs.forEach((tab) => tab.addEventListener('click', () => switchView(tab.dataset.view)));
   bindEditor(singleEditor, () => (state.view === 'all' ? 'html' : state.view));
   allSections.forEach((section) => bindEditor(section, () => section.dataset.language));
+
+  filesButton.addEventListener('click', toggleFiles);
+  fileTree.addEventListener('click', (event) => {
+    const folder = event.target.closest('[data-folder-path]');
+    if (folder) { toggleFolder(folder.dataset.folderPath); return; }
+    const file = event.target.closest('[data-file-path]');
+    if (file) activateProjectFile(file.dataset.filePath);
+  });
 
   exportButton.addEventListener('click', exportStandaloneHtml);
   helpButton.addEventListener('click', openHelp);
@@ -1665,6 +3666,10 @@ ${safeScript}
   focusPreviewButton.addEventListener('click', () => {
     setPreviewFocus(!state.previewFocus);
   });
+  detachPreviewButton.addEventListener('click', toggleDetachedPreview);
+  detachedPreviewPlaceholder.addEventListener('click', () => returnPreviewToEditor());
+  recoverPreviewButton.addEventListener('click', toggleRecoveryMenu);
+  recoveryActions.forEach((button) => button.addEventListener('click', () => runPreviewRecovery(button.dataset.recoveryAction)));
 
   document.addEventListener('focusin', (event) => {
     if (event.target?.classList?.contains('code-input')) updateDiagnosticHint();
@@ -1672,29 +3677,64 @@ ${safeScript}
 
   projectButton.addEventListener('click', toggleProjectMenu);
   projectActions.forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       const action = button.dataset.projectAction;
-      if (action === 'open') {
-        closeProjectMenu();
-        projectInput.click();
-      }
-      if (action === 'save') saveProject();
+      if (action === 'new') { closeProjectMenu(); startSimpleProject(STARTER_CODE); projectFeedback('NEW'); }
+      if (action === 'open-files') { closeProjectMenu(); projectInput.click(); }
+      if (action === 'open-folder') await openFolderPicker();
+      if (action === 'save') await saveProject();
       if (action === 'reset') resetProject();
     });
   });
   projectInput.addEventListener('change', () => openProjectFiles(projectInput.files));
+  projectFolderInput.addEventListener('change', () => openFolderInput(projectFolderInput.files));
+  projectSwitchActions.forEach((button) => button.addEventListener('click', async () => {
+    if (button.dataset.projectSwitchAction === 'cancel') { closeProjectSwitch(); return; }
+    const action = state.pendingProjectSwitch;
+    closeProjectSwitch();
+    if (action) await action();
+  }));
+  projectSwitchOverlay.addEventListener('pointerdown', (event) => { if (event.target === projectSwitchOverlay) closeProjectSwitch(); });
+  ['dragenter','dragover'].forEach((type) => window.addEventListener(type, (event) => { event.preventDefault(); app.classList.add('is-drop-target'); }));
+  window.addEventListener('dragleave', (event) => { if (!event.relatedTarget) app.classList.remove('is-drop-target'); });
+  window.addEventListener('drop', handleDrop);
   document.addEventListener('pointerdown', (event) => {
     if (!projectMenu.hidden && !event.target.closest('.project-control')) closeProjectMenu();
+    if (!toolsMenu.hidden && !event.target.closest('.tools-control')) closeToolsMenu();
+    if (!previewRecoveryMenu.hidden && !event.target.closest('.preview-recovery-control')) closeRecoveryMenu();
   });
   document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !commandPalette.hidden) { event.preventDefault(); closeCommands(); return; }
+    if (event.key === 'Escape' && !projectSwitchOverlay.hidden) { event.preventDefault(); closeProjectSwitch(); return; }
+    if (event.key === 'Escape' && !libraryOverlay.hidden) { event.preventDefault(); closeLibraries(); return; }
     if (event.key === 'Escape' && !helpOverlay.hidden) { event.preventDefault(); closeHelp(); return; }
-    if (event.key === 'Escape' && !projectMenu.hidden) closeProjectMenu();
+    if (event.key === 'Escape' && !findBar.hidden) { event.preventDefault(); closeFind(); return; }
+    if (event.key === 'Escape' && !previewRecoveryMenu.hidden) { event.preventDefault(); closeRecoveryMenu(); return; }
+    if (event.key === 'Escape' && !toolsMenu.hidden) { event.preventDefault(); closeToolsMenu(); return; }
+    if (event.key === 'Escape' && !projectMenu.hidden) { event.preventDefault(); closeProjectMenu(); }
   });
 
-  formatButton.addEventListener('click', formatCurrent);
-  findInput.addEventListener('input', updateFind);
-  findInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); stepFind(event.shiftKey ? -1 : 1); } if (event.key === 'Escape') closeFind(); });
-  findActions.forEach((button) => button.addEventListener('click', () => { const action = button.dataset.findAction; if (action === 'close') closeFind(); else stepFind(action === 'next' ? 1 : -1); }));
+  toolsButton.addEventListener('click', toggleToolsMenu);
+  toolsActions.forEach((button) => button.addEventListener('click', () => {
+    const action = button.dataset.toolsAction;
+    if (action === 'format') { closeToolsMenu(); formatCurrent(); }
+    if (action === 'libraries') openLibraries();
+  }));
+  libraryClose.addEventListener('click', () => closeLibraries());
+  libraryOverlay.addEventListener('pointerdown', (event) => { if (event.target === libraryOverlay) closeLibraries(); });
+  libraryList.addEventListener('click', (event) => { const row = event.target.closest('[data-library-id]'); if (row) toggleLibrary(row.dataset.libraryId); });
+  fontLibraryList.addEventListener('click', (event) => { const row = event.target.closest('[data-google-font]'); if (row) toggleGoogleFont(row.dataset.googleFont); });
+  fontLibrarySearch.addEventListener('input', renderLibraryPanel);
+  findInput.addEventListener('input', () => { findIndex = 0; updateFind(); });
+  findInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); stepFind(event.shiftKey ? -1 : 1); } if (event.key === 'Escape') { event.preventDefault(); closeFind(); } });
+  replaceInput.addEventListener('keydown', (event) => { if (event.key === 'Enter') { event.preventDefault(); replaceCurrentMatch(); } if (event.key === 'Escape') { event.preventDefault(); closeFind(); } });
+  findActions.forEach((button) => button.addEventListener('click', () => {
+    const action = button.dataset.findAction;
+    if (action === 'close') closeFind();
+    else if (action === 'replace-mode') setReplaceMode(!findBar.classList.contains('is-replace'), !findBar.classList.contains('is-replace'));
+    else stepFind(action === 'next' ? 1 : -1);
+  }));
+  replaceActions.forEach((button) => button.addEventListener('click', () => { if (button.dataset.replaceAction === 'all') replaceAllMatches(); else replaceCurrentMatch(); }));
   autocomplete.addEventListener('pointerdown', (event) => { const button = event.target.closest('.autocomplete-item'); if (!button) return; event.preventDefault(); chooseAutocomplete(Number(button.dataset.index)); });
   commandInput.addEventListener('input', () => { commandIndex = 0; renderCommands(); });
   commandInput.addEventListener('keydown', (event) => {
@@ -1706,34 +3746,131 @@ ${safeScript}
   commandList.addEventListener('click', (event) => { const button = event.target.closest('.command-item'); if (button) runCommand(Number(button.dataset.index)); });
   commandPalette.addEventListener('pointerdown', (event) => { if (event.target === commandPalette) closeCommands(); });
   document.addEventListener('keydown', (event) => {
-    const mod = event.metaKey || event.ctrlKey;
-    if (mod && event.key.toLowerCase() === 'k') { event.preventDefault(); commandPalette.hidden ? openCommands() : closeCommands(); return; }
-    if (mod && event.key.toLowerCase() === 'f' && commandPalette.hidden) { event.preventDefault(); openFind(); return; }
+    if (event.key === 'Escape' && !commandPalette.hidden) { event.preventDefault(); closeCommands(); return; }
+    const primary = primaryModifier(event);
+    if (primary && event.key.toLowerCase() === 'k') { event.preventDefault(); commandPalette.hidden ? openCommands() : closeCommands(); return; }
+    if (primary && event.key.toLowerCase() === 'f' && !event.altKey && commandPalette.hidden) { event.preventDefault(); openFind(false); return; }
+    if (((IS_MAC && primary && event.altKey && event.key.toLowerCase() === 'f') || (!IS_MAC && event.ctrlKey && event.key.toLowerCase() === 'h')) && commandPalette.hidden) { event.preventDefault(); openFind(true); return; }
   });
 
   window.addEventListener('message', (event) => {
-    if (event.source !== preview.contentWindow || event.data?.source !== 'mf-preview') return;
+    const fromEmbedded = event.source === preview.contentWindow;
+    const fromDetached = isDetachedPreviewOpen() && event.source === state.detachedWindow;
+    if ((!fromEmbedded && !fromDetached) || event.data?.source !== 'mf-preview') return;
     if (event.data.renderId !== state.renderId) return;
+    if (event.data.type === 'bridge-ready' && !liveState.classList.contains('is-error')) {
+      state.previewReady = true;
+      setLiveState('LIVE');
+    }
+    if (event.data.type === 'library-error') {
+      state.libraryFailures.add(String(event.data.message || 'library'));
+      setLiveState('LIBRARY ERROR', true);
+      if (!libraryOverlay.hidden) renderLibraryPanel();
+    }
+    if (event.data.type === 'resource-error') {
+      setLiveState(String(event.data.message || 'RESOURCE ERROR'), true);
+      recoverPreviewButton.hidden = false;
+    }
+    if (event.data.type === 'resource-warning' && !liveState.classList.contains('is-error')) {
+      liveState.textContent = String(event.data.message || 'PREVIEW FALLBACK');
+      window.setTimeout(() => { if (!liveState.classList.contains('is-error')) setLiveState('LIVE'); }, 1800);
+    }
     if (event.data.type === 'error') {
       setLiveState('JS ERROR', true);
+      recoverPreviewButton.hidden = false;
+      state.recoveryActive = false;
       if (Number.isFinite(event.data.line)) state.errorLine.js = event.data.line;
       state.diagnostics.js = state.diagnostics.js.filter((item) => item.kind !== 'runtime');
       state.diagnostics.js.unshift({ severity: 'error', line: Number(event.data.line) || 1, message: event.data.message || 'JavaScript error.', kind: 'runtime' });
       updateDiagnosticHint();
       refreshVisibleEditors();
     }
+    if (event.data.type === 'loader-bypassed') {
+      state.recoveryActive = true;
+      setLiveState('JS ERROR · RECOVERY ACTIVE', true);
+    }
+    if (event.data.type === 'recovery-applied') {
+      if (event.data.applied) {
+        state.recoveryActive = true;
+        setLiveState('JS ERROR · RECOVERY ACTIVE', true);
+      } else previewActionFeedback(recoverPreviewButton, 'NO MATCH');
+    }
     if (event.data.type === 'loaded' && !liveState.classList.contains('is-error')) {
       state.previewReady = true;
       state.errorLine.js = null;
       updateDiagnostics('js');
+      recoverPreviewButton.hidden = true;
+      closeRecoveryMenu();
+      state.recoveryActive = false;
       setLiveState('LIVE');
       refreshVisibleEditors();
     }
     if (event.data.type === 'css-applied' && event.data.cssUpdateId === state.cssUpdateId && !liveState.classList.contains('is-error')) {
       setLiveState('LIVE');
     }
+    if (event.data.type === 'navigated' && state.project?.mode === 'folder') {
+      const path = normalizeProjectPath(event.data.runtimePath || '');
+      const record = state.project.files.get(path);
+      if (record?.language === 'html' && typeof record.text === 'string') {
+        state.project.entryHtmlPath = path;
+        state.project.activePath = path;
+        state.code.html = record.text;
+        state.project.lastByLanguage.html = path;
+        state.view = 'html';
+        applyView('html', false);
+        renderFileTree();
+        persistDraftSoon();
+      }
+    }
     if (event.data.type === 'inspect') revealHtmlSource(event.data.sourceStart);
   });
+
+  let treeDragStartX = 0;
+  let treeDragStartWidth = 0;
+
+  function beginTreeDrag(clientX) {
+    if (!state.filesOpen || !fileTreeResizer) return;
+    treeDragStartX = clientX;
+    treeDragStartWidth = fileTree.getBoundingClientRect().width;
+    fileTreeResizer.classList.add('is-dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  function moveTreeDrag(clientX) {
+    if (!fileTreeResizer?.classList.contains('is-dragging')) return;
+    const workspaceWidth = workspace.getBoundingClientRect().width;
+    const editorWidth = editorPane.getBoundingClientRect().width;
+    const maxWidth = Math.max(214, Math.min(480, workspaceWidth - editorWidth - 340));
+    state.filesWidth = clamp(treeDragStartWidth + clientX - treeDragStartX, 164, maxWidth);
+    workspace.style.setProperty('--tree-width', `${state.filesWidth}px`);
+  }
+
+  function endTreeDrag() {
+    if (!fileTreeResizer?.classList.contains('is-dragging')) return;
+    fileTreeResizer.classList.remove('is-dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    persistPrefs();
+  }
+
+  if (fileTreeResizer) {
+    fileTreeResizer.addEventListener('pointerdown', (event) => {
+      fileTreeResizer.setPointerCapture(event.pointerId);
+      beginTreeDrag(event.clientX);
+    });
+    fileTreeResizer.addEventListener('pointermove', (event) => moveTreeDrag(event.clientX));
+    fileTreeResizer.addEventListener('pointerup', endTreeDrag);
+    fileTreeResizer.addEventListener('pointercancel', endTreeDrag);
+    fileTreeResizer.addEventListener('keydown', (event) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      const delta = (event.key === 'ArrowLeft' ? -1 : 1) * (event.shiftKey ? 48 : 18);
+      state.filesWidth = clamp(state.filesWidth + delta, 164, 480);
+      workspace.style.setProperty('--tree-width', `${state.filesWidth}px`);
+      persistPrefs();
+    });
+  }
 
   let dragStartX = 0;
   let dragStartWidth = 0;
@@ -1749,7 +3886,8 @@ ${safeScript}
   function moveDrag(clientX) {
     if (!divider.classList.contains('is-dragging')) return;
     const workspaceWidth = workspace.getBoundingClientRect().width;
-    const nextWidth = clamp(dragStartWidth + clientX - dragStartX, 320, workspaceWidth - 320);
+    const filesWidth = state.filesOpen ? fileTree.getBoundingClientRect().width : 0;
+    const nextWidth = clamp(dragStartWidth + clientX - dragStartX, 320, workspaceWidth - filesWidth - 320);
     workspace.style.setProperty('--editor-width', `${nextWidth}px`);
   }
 
@@ -1772,10 +3910,11 @@ ${safeScript}
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
     const workspaceWidth = workspace.getBoundingClientRect().width;
+    const filesWidth = state.filesOpen ? fileTree.getBoundingClientRect().width : 0;
     const currentWidth = editorPane.getBoundingClientRect().width;
     const step = event.shiftKey ? 48 : 16;
     const direction = event.key === 'ArrowLeft' ? -1 : 1;
-    const nextWidth = clamp(currentWidth + direction * step, 320, workspaceWidth - 320);
+    const nextWidth = clamp(currentWidth + direction * step, 320, workspaceWidth - filesWidth - 320);
     workspace.style.setProperty('--editor-width', `${nextWidth}px`);
     persistPrefs();
   });
@@ -1785,7 +3924,13 @@ ${safeScript}
     updateIndicator(activeTab);
   });
 
-  window.addEventListener('beforeunload', () => { persistDraftNow(); persistHistoryNow(); });
+  window.addEventListener('beforeunload', () => {
+    persistDraftNow();
+    persistHistoryNow();
+    if (isDetachedPreviewOpen()) {
+      try { state.detachedWindow.postMessage({ source: 'mf-editor', type: 'editor-disconnected', renderId: state.renderId }, '*'); } catch {}
+    }
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       persistDraftNow();
@@ -1795,13 +3940,17 @@ ${safeScript}
   });
 
   restoreLocalState();
+  renderFileTree();
   updateDiagnostics();
   applyTheme(state.theme);
   applyFont(state.font);
   applyPreviewSize(state.previewSize);
+  applyFilesOpen(state.filesOpen);
   setPreviewFocus(false);
   applyView(state.view, false);
   populateAllEditors();
   renderPreview();
+  void initHostedRuntime();
+  applyPlatformShortcuts();
   requestAnimationFrame(() => updateIndicator(tabs.find((tab) => tab.dataset.view === state.view)));
 })();

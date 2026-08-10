@@ -33,6 +33,9 @@ button { color: inherit; }
   --atmo-blue: rgba(199, 213, 255, .28);
   --atmo-mint: rgba(188, 233, 223, .24);
   --atmo-white: rgba(255, 255, 255, .72);
+  --menu-glow-blue: rgba(199, 213, 255, .30);
+  --menu-glow-mint: rgba(188, 233, 223, .22);
+  --menu-glow-peach: rgba(255, 210, 188, .20);
   --code-plain: #4b5664;
   --syntax-comment: #99a2ad;
   --syntax-punctuation: #7d8793;
@@ -91,6 +94,9 @@ button { color: inherit; }
   --atmo-blue: rgba(64, 78, 125, .15);
   --atmo-mint: rgba(56, 93, 86, .13);
   --atmo-white: rgba(91, 105, 123, .07);
+  --menu-glow-blue: rgba(91, 109, 170, .18);
+  --menu-glow-mint: rgba(72, 116, 106, .13);
+  --menu-glow-peach: rgba(130, 83, 66, .11);
   --code-plain: #c5ccd4;
   --syntax-comment: #69737f;
   --syntax-punctuation: #98a2ad;
@@ -303,12 +309,73 @@ button { color: inherit; }
 .workspace {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(320px, var(--editor-width, 50%)) 1px minmax(320px, 1fr);
+  --files-width: 0px;
+  grid-template-columns: var(--files-width) minmax(320px, var(--editor-width, 50%)) 1px minmax(320px, 1fr);
   background: rgba(255,255,255,.08);
   backdrop-filter: blur(16px) saturate(105%);
   -webkit-backdrop-filter: blur(16px) saturate(105%);
-  transition: background var(--motion-slow) var(--ease-slow);
+  transition: grid-template-columns 820ms var(--ease-slow), background var(--motion-slow) var(--ease-slow);
 }
+.workspace.has-files { --files-width: 176px; }
+
+.file-tree {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 38px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-right: 1px solid transparent;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-7px);
+  transition: opacity 560ms var(--ease-slow), transform 760ms var(--ease-slow), border-color 760ms var(--ease-slow), background var(--motion-slow) var(--ease-slow);
+}
+.workspace.has-files .file-tree {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  border-right-color: var(--line);
+}
+.file-tree-body {
+  min-width: 176px;
+  overflow: auto;
+  padding: 23px 14px 18px;
+}
+.file-tree-title {
+  padding: 0 10px 15px;
+  color: var(--faint);
+  font: 500 9px/1 "Geist", sans-serif;
+  letter-spacing: .08em;
+}
+.file-tree-item {
+  width: 100%;
+  height: 31px;
+  display: flex;
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  font: 400 11px/1 var(--code-font, "Geist Mono"), ui-monospace, monospace;
+  transition: color 560ms var(--ease-slow), background 760ms var(--ease-slow), padding-left 760ms var(--ease-slow);
+}
+.file-tree-item:hover { color: var(--ink); background: var(--hover); padding-left: 13px; }
+.file-tree-item.is-active { color: var(--ink); background: var(--hover); }
+.file-tree-footer {
+  min-width: 176px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font: 500 9px/1 "Geist", sans-serif;
+  letter-spacing: .08em;
+}
+.files-button.is-active { color: var(--ink); background: var(--hover); }
 
 .editor-pane, .preview-pane { min-width: 0; min-height: 0; position: relative; display: grid; grid-template-rows: minmax(0, 1fr) 38px; }
 .editor-pane { background: var(--surface); transition: background var(--motion-slow) var(--ease-slow); }
@@ -591,10 +658,11 @@ button { color: inherit; }
 .live-state.is-error .live-dot { background: #a96f6f; opacity: .72; }
 
 .workspace.is-preview-focus {
-  grid-template-columns: 0 0 minmax(0, 1fr);
+  grid-template-columns: 0 0 0 minmax(0, 1fr);
   transition: grid-template-columns 820ms var(--ease-slow), background var(--motion-slow) var(--ease-slow);
 }
 
+.workspace.is-preview-focus .file-tree,
 .workspace.is-preview-focus .editor-pane,
 .workspace.is-preview-focus .workspace-divider {
   opacity: 0;
@@ -636,23 +704,35 @@ button { color: inherit; }
   z-index: 80;
   top: 78px;
   left: 26px;
-  width: min(360px, calc(var(--editor-width, 50vw) - 52px));
+  width: min(430px, calc(var(--editor-width, 50vw) - 52px));
   height: 42px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  display: grid;
+  grid-template-rows: 32px 0px;
+  gap: 0;
   padding: 5px 6px 5px 12px;
   border: 1px solid var(--line);
   border-radius: 13px;
   background: var(--surface-solid);
   backdrop-filter: blur(24px) saturate(112%);
   -webkit-backdrop-filter: blur(24px) saturate(112%);
+  overflow: hidden;
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 420ms var(--ease-slow), transform 520ms var(--ease-slow), background 760ms var(--ease-slow), border-color 760ms var(--ease-slow);
+  transition: height 620ms var(--ease-slow), grid-template-rows 620ms var(--ease-slow), opacity 420ms var(--ease-slow), transform 520ms var(--ease-slow), background 760ms var(--ease-slow), border-color 760ms var(--ease-slow);
 }
+.find-bar.is-replace { height: 80px; grid-template-rows: 32px 32px; }
 .find-bar[hidden] { display: none; }
-.find-input {
+.find-row,
+.find-replace-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.find-replace-row {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 420ms var(--ease-slow), transform 540ms var(--ease-slow);
+}
+.find-bar.is-replace .find-replace-row { opacity: 1; transform: none; pointer-events: auto; }
+.find-input,
+.replace-input {
   flex: 1;
   min-width: 0;
   border: 0;
@@ -661,10 +741,25 @@ button { color: inherit; }
   color: var(--ink);
   font: 400 12px/1.2 var(--code-font, "Geist Mono"), ui-monospace, monospace;
 }
-.find-input::placeholder { color: var(--faint); }
+.find-input::placeholder,
+.replace-input::placeholder { color: var(--faint); }
 .find-count { min-width: 42px; text-align: right; color: var(--faint); font: 500 9px/1 "Geist", sans-serif; letter-spacing: .04em; }
-.find-action { height: 30px; min-width: 30px; padding: 0 7px; border-radius: 8px; color: var(--faint); font: 500 9px/1 "Geist", sans-serif; transition: color 560ms var(--ease-slow), background 700ms var(--ease-slow); }
-.find-action:hover { color: var(--ink); background: var(--hover); }
+.find-action {
+  height: 30px;
+  min-width: 30px;
+  padding: 0 7px;
+  border-radius: 8px;
+  color: var(--faint);
+  font: 500 9px/1 "Geist", sans-serif;
+  letter-spacing: .035em;
+  transition: color 560ms var(--ease-slow), background 700ms var(--ease-slow), opacity 560ms var(--ease-slow);
+}
+.find-action:hover,
+.find-action:focus-visible,
+.find-replace-toggle.is-active { color: var(--ink); background: var(--hover); }
+.find-replace-toggle { min-width: 58px; }
+.replace-action { min-width: 52px; }
+
 
 .command-palette {
   position: absolute;
@@ -680,28 +775,28 @@ button { color: inherit; }
 .app[data-theme="dark"] .command-palette { background: rgba(9, 12, 16, .20); }
 .command-palette[hidden] { display: none; }
 .command-panel {
-  width: min(520px, calc(100vw - 40px));
+  width: min(540px, calc(100vw - 40px));
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 18px;
-  background: var(--surface-solid);
-  box-shadow: 0 24px 80px rgba(59, 77, 100, .08);
+  background: color-mix(in srgb, var(--surface-solid) 99%, var(--ink) 1%);
+  box-shadow: 0 26px 86px rgba(59, 77, 100, .09);
   animation: command-in 520ms var(--ease-slow) both;
 }
 @keyframes command-in { from { opacity: 0; transform: translateY(-8px) scale(.994); } to { opacity: 1; transform: none; } }
 .command-input {
   width: 100%;
-  height: 52px;
+  height: 58px;
   border: 0;
-  border-bottom: 1px solid var(--line);
   outline: 0;
-  padding: 0 18px;
+  padding: 0 20px;
+  margin-bottom: 4px;
   background: transparent;
   color: var(--ink);
   font: 400 13px/1 var(--code-font, "Geist Mono"), ui-monospace, monospace;
 }
 .command-input::placeholder { color: var(--faint); }
-.command-list { max-height: 300px; overflow: auto; padding: 7px; }
+.command-list { max-height: 320px; overflow: auto; padding: 10px 9px 8px; }
 .command-item {
   width: 100%;
   height: 38px;
@@ -719,9 +814,15 @@ button { color: inherit; }
   transition: color 420ms var(--ease-slow), background 520ms var(--ease-slow);
 }
 .command-item:hover,
-.command-item.is-active { color: var(--ink); background: var(--hover); }
+.command-item.is-active {
+  color: var(--ink);
+  background:
+    radial-gradient(90% 150% at 9% 44%, var(--menu-glow-blue), transparent 58%),
+    radial-gradient(70% 130% at 68% 110%, var(--menu-glow-mint), transparent 62%),
+    radial-gradient(66% 125% at 102% -8%, var(--menu-glow-peach), transparent 64%);
+}
 .command-shortcut { color: var(--faint); font-weight: 400; }
-.command-footer { height: 34px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 15px; padding: 0 18px; color: var(--faint); font: 500 8px/1 "Geist", sans-serif; letter-spacing: .06em; }
+.command-footer { height: 38px; display: flex; align-items: center; gap: 15px; padding: 0 20px 2px; color: var(--faint); font: 500 8px/1 "Geist", sans-serif; letter-spacing: .06em; }
 
 .autocomplete {
   position: absolute;
@@ -949,3 +1050,1216 @@ button:focus-visible,
   transition: opacity 620ms cubic-bezier(.18,.78,.18,1), color 620ms cubic-bezier(.18,.78,.18,1);
 }
 .footer-hint:not(:empty) { opacity: .9; }
+
+/* Build 17.1 — real project tree */
+.workspace.has-files { --files-width: 214px; }
+.file-tree-body,
+.file-tree-footer { min-width: 214px; }
+.file-tree-list { display: grid; gap: 1px; }
+.file-tree-row {
+  width: 100%;
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: default;
+  text-align: left;
+  font: 400 10.5px/1 var(--code-font, "Geist Mono"), ui-monospace, monospace;
+  transition: color 560ms var(--ease-slow), background 760ms var(--ease-slow), padding-left 760ms var(--ease-slow), opacity 560ms var(--ease-slow);
+}
+button.file-tree-row { cursor: pointer; }
+button.file-tree-row:hover,
+button.file-tree-row:focus-visible { color: var(--ink); background: var(--hover); }
+.file-tree-row.is-active { color: var(--ink); background: var(--hover); }
+.file-tree-row.is-folder { color: color-mix(in srgb, var(--muted) 86%, var(--ink)); font-family: "Geist", sans-serif; font-weight: 500; letter-spacing: .015em; }
+.file-tree-row.is-muted { opacity: .52; }
+.file-tree-caret { width: 8px; flex: 0 0 8px; color: var(--faint); transform: rotate(90deg); transition: transform 520ms var(--ease-slow); }
+.file-tree-row.is-collapsed .file-tree-caret { transform: rotate(0deg); }
+.file-tree-spacer { width: 8px; flex: 0 0 8px; }
+.file-tree-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-tree-path-note { margin-left: auto; color: var(--faint); font: 500 8px/1 "Geist", sans-serif; letter-spacing: .055em; }
+
+.project-switch-overlay {
+  position: absolute;
+  z-index: 190;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(238, 244, 248, .18);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+.app[data-theme="dark"] .project-switch-overlay { background: rgba(9, 12, 16, .22); }
+.project-switch-overlay[hidden] { display: none; }
+.project-switch-card {
+  width: min(430px, calc(100vw - 40px));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px;
+  background: var(--surface-solid);
+  box-shadow: 0 24px 80px rgba(59, 77, 100, .07);
+  animation: command-in 520ms var(--ease-slow) both;
+}
+.project-switch-kicker { margin: 0 0 18px; color: var(--faint); font: 500 9px/1 "Geist", sans-serif; letter-spacing: .08em; }
+.project-switch-card h2 { margin: 0; color: var(--ink); font: 500 15px/1.1 "Geist", sans-serif; letter-spacing: .04em; }
+.project-switch-copy { margin: 10px 0 24px; color: var(--muted); font: 400 11px/1.55 "Geist", sans-serif; }
+.project-switch-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.project-switch-actions button { height: 32px; border: 0; border-radius: 9px; padding: 0 10px; background: transparent; color: var(--faint); cursor: pointer; font: 500 9px/1 "Geist", sans-serif; letter-spacing: .07em; transition: color 560ms var(--ease-slow), background 720ms var(--ease-slow); }
+.project-switch-actions button:hover,
+.project-switch-actions button:focus-visible { color: var(--ink); background: var(--hover); }
+
+.app.is-drop-target::after {
+  content: "DROP TO OPEN";
+  position: absolute;
+  z-index: 175;
+  inset: 12px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  border-radius: 18px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface-solid) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+  font: 500 10px/1 "Geist", sans-serif;
+  letter-spacing: .08em;
+}
+
+@media (max-width: 760px) {
+  .workspace.has-files { --files-width: 164px; }
+  .file-tree-body, .file-tree-footer { min-width: 164px; }
+}
+
+/* Project switch confirmation feedback */
+.project-switch-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 1200;
+  transform: translate(-50%, 8px);
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  color: var(--muted);
+  font-family: var(--ui-font);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 520ms cubic-bezier(.18,.78,.18,1), transform 720ms cubic-bezier(.18,.78,.18,1);
+}
+.project-switch-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+
+/* Build 17.3 — real-project polish */
+.workspace { --tree-width: 214px; }
+.workspace.has-files { --files-width: var(--tree-width); }
+.file-tree {
+  position: relative;
+  border-right: 0;
+  overflow: visible;
+}
+.workspace.has-files .file-tree { border-right-color: transparent; }
+.file-tree-body {
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 16%, transparent) transparent;
+}
+.file-tree-footer { min-width: 0; }
+.file-tree-row {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    color 620ms var(--ease-slow),
+    background 760ms var(--ease-slow),
+    opacity 620ms var(--ease-slow),
+    transform 760ms var(--ease-slow);
+}
+.file-tree-row::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 2px 4px;
+  border-radius: 8px;
+  background: radial-gradient(circle at 24% 50%, color-mix(in srgb, var(--ink) 7%, transparent), transparent 74%);
+  opacity: 0;
+  filter: blur(8px);
+  transform: scale(.985);
+  transition: opacity 760ms var(--ease-slow), filter 760ms var(--ease-slow), transform 820ms var(--ease-slow);
+}
+button.file-tree-row:hover,
+button.file-tree-row:focus-visible {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--hover) 76%, transparent);
+  transform: translateX(1px);
+}
+button.file-tree-row:hover::before,
+button.file-tree-row:focus-visible::before,
+.file-tree-row.is-active::before {
+  opacity: 1;
+  filter: blur(4px);
+  transform: scale(1);
+}
+.file-tree-row.is-active {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--active) 72%, transparent);
+}
+.file-tree-caret { transition: transform 620ms var(--ease-slow), color 620ms var(--ease-slow); }
+button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
+
+.file-tree-resizer {
+  position: absolute;
+  z-index: 12;
+  top: 0;
+  right: -7px;
+  bottom: 0;
+  width: 14px;
+  cursor: col-resize;
+  outline: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 620ms var(--ease-slow);
+}
+.workspace.has-files .file-tree-resizer { opacity: 1; pointer-events: auto; }
+.file-tree-resizer-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: var(--line);
+  transition: background 760ms var(--ease-slow), box-shadow 760ms var(--ease-slow);
+}
+.file-tree-resizer::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  width: 3px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--ink);
+  opacity: 0;
+  transform: translateY(-50%) scaleY(.72);
+  transition: opacity 760ms var(--ease-slow), transform 820ms var(--ease-slow);
+}
+.file-tree-resizer:hover .file-tree-resizer-line,
+.file-tree-resizer:focus-visible .file-tree-resizer-line,
+.file-tree-resizer.is-dragging .file-tree-resizer-line {
+  background: var(--line-hover);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.file-tree-resizer:hover::after,
+.file-tree-resizer:focus-visible::after,
+.file-tree-resizer.is-dragging::after {
+  opacity: .25;
+  transform: translateY(-50%) scaleY(1);
+}
+
+/* No focus frame around the editing canvas. */
+.code-input:focus-visible { outline: 0; outline-offset: 0; }
+
+/* Quiet, branded scrollbars. */
+.code-input,
+.file-tree-body,
+.command-list,
+.help-panel,
+.autocomplete {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 15%, transparent) transparent;
+}
+.code-input::-webkit-scrollbar,
+.file-tree-body::-webkit-scrollbar,
+.command-list::-webkit-scrollbar,
+.help-panel::-webkit-scrollbar,
+.autocomplete::-webkit-scrollbar { width: 9px; height: 9px; }
+.code-input::-webkit-scrollbar-track,
+.file-tree-body::-webkit-scrollbar-track,
+.command-list::-webkit-scrollbar-track,
+.help-panel::-webkit-scrollbar-track,
+.autocomplete::-webkit-scrollbar-track { background: transparent; }
+.code-input::-webkit-scrollbar-thumb,
+.file-tree-body::-webkit-scrollbar-thumb,
+.command-list::-webkit-scrollbar-thumb,
+.help-panel::-webkit-scrollbar-thumb,
+.autocomplete::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  background-clip: padding-box;
+  transition: background 760ms var(--ease-slow);
+}
+.code-input:hover::-webkit-scrollbar-thumb,
+.file-tree-body:hover::-webkit-scrollbar-thumb,
+.command-list:hover::-webkit-scrollbar-thumb,
+.help-panel:hover::-webkit-scrollbar-thumb,
+.autocomplete:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 27%, transparent);
+  background-clip: padding-box;
+}
+
+/* Project-open confirmation: same quiet instrument language as the editor. */
+.project-switch-overlay {
+  background: color-mix(in srgb, var(--surface-solid) 20%, transparent);
+  backdrop-filter: blur(18px) saturate(112%);
+  -webkit-backdrop-filter: blur(18px) saturate(112%);
+}
+.project-switch-card {
+  width: min(450px, calc(100vw - 40px));
+  border-color: color-mix(in srgb, var(--line-hover) 48%, var(--line));
+  border-radius: 20px;
+  padding: 26px;
+  background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+  box-shadow: 0 30px 100px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+.project-switch-kicker { margin-bottom: 20px; }
+.project-switch-copy { margin: 11px 0 27px; max-width: 360px; }
+.project-switch-actions { gap: 8px; align-items: center; }
+.project-switch-actions button {
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0 11px;
+  background: transparent;
+  transition:
+    color 620ms var(--ease-slow),
+    background 760ms var(--ease-slow),
+    border-color 760ms var(--ease-slow),
+    box-shadow 820ms var(--ease-slow),
+    transform 760ms var(--ease-slow);
+}
+.project-switch-actions [data-project-switch-action="cancel"] { color: var(--faint); }
+.project-switch-actions [data-project-switch-action="confirm"] {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--line-hover) 54%, transparent);
+  background: color-mix(in srgb, var(--ink) 4.5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface-solid) 45%, transparent);
+}
+.project-switch-actions button:hover,
+.project-switch-actions button:focus-visible {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--hover) 78%, transparent);
+  transform: translateY(-1px);
+}
+.project-switch-actions [data-project-switch-action="confirm"]:hover,
+.project-switch-actions [data-project-switch-action="confirm"]:focus-visible {
+  border-color: var(--line-hover);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--ink) 6%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--surface-solid) 55%, transparent);
+}
+
+@media (max-width: 760px) {
+  .workspace.has-files { --files-width: min(var(--tree-width), 190px); }
+  .file-tree-resizer { display: none; }
+}
+
+/* Build 18.1 resilience: never double-render source if Prism is unavailable. */
+.app:not(.has-highlighting) .code-highlight { display: none; }
+.app:not(.has-highlighting) .code-input {
+  color: var(--code-plain);
+  -webkit-text-fill-color: currentColor;
+}
+
+/* Help scroll belongs to the scrolling content surface, not the static panel. */
+.help-content,
+.help-overlay {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 15%, transparent) transparent;
+}
+.help-content::-webkit-scrollbar,
+.help-overlay::-webkit-scrollbar { width: 9px; height: 9px; }
+.help-content::-webkit-scrollbar-track,
+.help-overlay::-webkit-scrollbar-track { background: transparent; }
+.help-content::-webkit-scrollbar-thumb,
+.help-overlay::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  background-clip: padding-box;
+}
+.help-content:hover::-webkit-scrollbar-thumb,
+.help-overlay:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 27%, transparent);
+  background-clip: padding-box;
+}
+
+/* Build 19 — one canonical seam between chrome and workspace. */
+.topbar { border-bottom: 0; box-shadow: none; }
+.workspace { position: relative; }
+.workspace::before {
+  content: "";
+  position: absolute;
+  z-index: 30;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  pointer-events: none;
+  background: var(--line);
+  transition: background 760ms var(--ease-slow);
+}
+
+/* Detached live preview. */
+.preview-stage { position: relative; }
+.preview-document {
+  transition: opacity 620ms var(--ease-slow), filter 620ms var(--ease-slow), transform 760ms var(--ease-slow);
+}
+.detached-preview-placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  opacity: 0;
+  filter: blur(5px);
+  font: 500 9px/1 "Geist", sans-serif;
+  letter-spacing: .08em;
+  transition: opacity 620ms var(--ease-slow), filter 760ms var(--ease-slow), color 560ms var(--ease-slow), background 760ms var(--ease-slow);
+}
+.detached-preview-placeholder:hover,
+.detached-preview-placeholder:focus-visible { color: var(--ink); background: color-mix(in srgb, var(--surface-solid) 18%, transparent); }
+.preview-pane.is-detached .preview-document { opacity: 0; filter: blur(7px); pointer-events: none; }
+.preview-pane.is-detached .detached-preview-placeholder { display: block; opacity: 1; filter: blur(0); }
+.preview-detach { min-width: 28px; }
+.preview-detach.is-active { color: var(--ink); background: var(--hover); padding-inline: 8px; }
+
+/* Contextual preview recovery — invisible unless an error needs it. */
+.preview-recovery-control { position: relative; display: flex; align-items: center; }
+.preview-recover[hidden] { display: none !important; }
+.preview-recover.is-active { color: var(--ink); background: var(--hover); }
+.preview-recovery-menu {
+  position: absolute;
+  z-index: 90;
+  right: 0;
+  bottom: calc(100% + 9px);
+  width: 156px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
+  box-shadow: 0 14px 38px rgba(21, 28, 38, .08);
+  backdrop-filter: blur(24px) saturate(112%);
+  -webkit-backdrop-filter: blur(24px) saturate(112%);
+  opacity: 0;
+  transform: translateY(5px);
+  pointer-events: none;
+  transition: opacity 420ms var(--ease-slow), transform 520ms var(--ease-slow), background 760ms var(--ease-slow), border-color 760ms var(--ease-slow);
+}
+.preview-recovery-menu.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.preview-recovery-menu button {
+  width: 100%;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 9px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  text-align: left;
+  font: 500 8px/1 "Geist", sans-serif;
+  letter-spacing: .07em;
+  transition: color 560ms var(--ease-slow), background 700ms var(--ease-slow), padding-left 700ms var(--ease-slow);
+}
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible { color: var(--ink); background: var(--hover); padding-left: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .detached-preview-placeholder,
+  .preview-document,
+  .preview-recovery-menu,
+  .preview-recovery-menu button { transition-duration: 1ms !important; }
+}
+
+/* Build 20 — optional tools + curated libraries. */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.tools-control { position: relative; }
+.tools-button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  font: 500 8px/1 "Geist", sans-serif;
+  letter-spacing: .07em;
+  transition: color 560ms var(--ease-slow), background 700ms var(--ease-slow);
+}
+.tools-button:hover,
+.tools-button:focus-visible,
+.tools-button[aria-expanded="true"] { color: var(--ink); background: var(--hover); }
+
+.tools-menu {
+  position: absolute;
+  z-index: 95;
+  top: calc(100% + 9px);
+  right: 0;
+  width: 126px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-solid) 88%, transparent);
+  box-shadow: 0 14px 38px rgba(21,28,38,.07);
+  backdrop-filter: blur(24px) saturate(112%);
+  -webkit-backdrop-filter: blur(24px) saturate(112%);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 420ms var(--ease-slow), transform 560ms var(--ease-slow), background 760ms var(--ease-slow), border-color 760ms var(--ease-slow);
+}
+.tools-menu.is-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.tools-menu button {
+  width: 100%;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 9px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  text-align: left;
+  font: 500 8px/1 "Geist", sans-serif;
+  letter-spacing: .07em;
+  transition: color 560ms var(--ease-slow), background 700ms var(--ease-slow), padding-left 700ms var(--ease-slow);
+}
+.tools-menu button:hover,
+.tools-menu button:focus-visible { color: var(--ink); background: var(--hover); padding-left: 12px; }
+
+.library-overlay {
+  position: fixed;
+  z-index: 240;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 26px;
+  background: color-mix(in srgb, var(--bg) 46%, transparent);
+  backdrop-filter: blur(13px) saturate(108%);
+  -webkit-backdrop-filter: blur(13px) saturate(108%);
+  opacity: 0;
+  transition: opacity 520ms var(--ease-slow), background 900ms var(--ease-slow);
+}
+.library-overlay[hidden] { display: none; }
+.library-overlay.is-open { opacity: 1; }
+.library-panel {
+  width: min(900px, calc(100vw - 52px));
+  max-height: min(720px, calc(100vh - 52px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface-solid) 91%, transparent);
+  box-shadow: 0 26px 80px rgba(21,28,38,.09);
+  backdrop-filter: blur(34px) saturate(112%);
+  -webkit-backdrop-filter: blur(34px) saturate(112%);
+  opacity: 0;
+  transform: translateY(9px) scale(.995);
+  filter: blur(3px);
+  transition: opacity 520ms var(--ease-slow), transform 760ms var(--ease-slow), filter 620ms var(--ease-slow), background 900ms var(--ease-slow), border-color 900ms var(--ease-slow);
+}
+.library-overlay.is-open .library-panel { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+.library-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 26px 28px 18px;
+}
+.library-kicker,
+.library-label {
+  margin: 0;
+  color: var(--faint);
+  font: 500 8px/1 "Geist", sans-serif;
+  letter-spacing: .09em;
+}
+.library-header h2 {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font: 400 24px/1.08 "Geist", sans-serif;
+  letter-spacing: -.035em;
+}
+.library-close {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  font: 500 8px/1 "Geist", sans-serif;
+  letter-spacing: .07em;
+  transition: color 560ms var(--ease-slow), background 700ms var(--ease-slow);
+}
+.library-close:hover,
+.library-close:focus-visible { color: var(--ink); background: var(--hover); }
+.library-intro {
+  max-width: 650px;
+  margin: 0;
+  padding: 0 28px 24px;
+  color: var(--muted);
+  font: 400 12px/1.55 "Geist", sans-serif;
+  letter-spacing: -.01em;
+}
+.library-columns {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.library-section { min-width: 0; padding: 20px 20px 22px; }
+.library-section + .library-section { border-left: 1px solid var(--line); }
+.library-section-head {
+  height: 26px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+.library-section-head > span {
+  color: var(--faint);
+  font: 500 7px/1 "Geist", sans-serif;
+  letter-spacing: .08em;
+}
+.library-list,
+.font-library-list {
+  display: grid;
+  gap: 2px;
+  max-height: 380px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 16%, transparent) transparent;
+}
+.library-list::-webkit-scrollbar,
+.font-library-list::-webkit-scrollbar { width: 8px; }
+.library-list::-webkit-scrollbar-track,
+.font-library-list::-webkit-scrollbar-track { background: transparent; }
+.library-list::-webkit-scrollbar-thumb,
+.font-library-list::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 17%, transparent);
+  background-clip: padding-box;
+}
+.library-row,
+.font-library-row {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color 600ms var(--ease-slow), background 760ms var(--ease-slow), padding-left 760ms var(--ease-slow), filter 760ms var(--ease-slow);
+}
+.library-row:hover,
+.library-row:focus-visible,
+.font-library-row:hover,
+.font-library-row:focus-visible { color: var(--ink); background: var(--hover); padding-left: 13px; }
+.library-row.is-active,
+.font-library-row.is-active { color: var(--ink); background: color-mix(in srgb, var(--hover) 64%, transparent); }
+.library-row.is-project { cursor: default; opacity: .72; }
+.library-row.is-project:hover { padding-left: 10px; background: transparent; }
+.library-row-main,
+.font-library-row > span:first-child { min-width: 0; display: grid; gap: 5px; }
+.library-row strong,
+.font-library-row strong {
+  color: currentColor;
+  font: 500 9px/1 "Geist", sans-serif;
+  letter-spacing: .06em;
+}
+.library-row small,
+.font-library-row small {
+  overflow: hidden;
+  color: var(--faint);
+  font: 400 9px/1.15 "Geist", sans-serif;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.library-row-status {
+  flex: 0 0 auto;
+  color: var(--faint);
+  font: 500 8px/1 "Geist", sans-serif;
+  letter-spacing: .07em;
+  transition: color 600ms var(--ease-slow), transform 760ms var(--ease-slow);
+}
+.library-row:hover .library-row-status,
+.font-library-row:hover .library-row-status,
+.library-row.is-active .library-row-status,
+.font-library-row.is-active .library-row-status { color: var(--ink); transform: translateX(-2px); }
+.library-row.is-project .library-row-status { transform: none; }
+.font-search-wrap { display: block; margin: 0 6px 8px; }
+.font-library-search {
+  width: 100%;
+  height: 34px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  outline: none;
+  padding: 0 2px;
+  background: transparent;
+  color: var(--ink);
+  font: 400 11px/1 "Geist", sans-serif;
+  transition: border-color 680ms var(--ease-slow), color 680ms var(--ease-slow);
+}
+.font-library-search::placeholder { color: var(--faint); }
+.font-library-search:focus { border-bottom-color: color-mix(in srgb, var(--ink) 30%, transparent); }
+.library-empty { margin: 18px 10px; color: var(--faint); font: 500 8px/1 "Geist", sans-serif; letter-spacing: .08em; }
+.library-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 28px 16px;
+  color: var(--faint);
+  font: 500 7px/1 "Geist", sans-serif;
+  letter-spacing: .08em;
+}
+
+@media (max-width: 720px) {
+  .library-overlay { padding: 12px; }
+  .library-panel { width: calc(100vw - 24px); max-height: calc(100vh - 24px); border-radius: 16px; }
+  .library-columns { grid-template-columns: 1fr; overflow-y: auto; }
+  .library-section + .library-section { border-left: 0; border-top: 1px solid var(--line); }
+  .library-list, .font-library-list { max-height: none; overflow: visible; }
+  .library-footer { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tools-button, .tools-menu, .tools-menu button,
+  .library-overlay, .library-panel, .library-close,
+  .library-row, .font-library-row, .library-row-status { transition-duration: 1ms !important; }
+}
+
+/* Build 21 — context-aware help state */
+.help-state-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.help-state-list > div { min-height: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); align-items: center; gap: 18px; border-bottom: 1px solid var(--line); }
+.help-state-list span, .help-state-list strong { font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 10px; line-height: 1; letter-spacing: .105em; text-transform: uppercase; font-weight: 500; }
+.help-state-list span { color: var(--faint); }
+.help-state-list strong { color: var(--ink); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 760px) { .help-state-list > div { grid-template-columns: 1fr auto; gap: 12px; } }
+
+/* Build 21.1 — flatter, airier menus and tool surfaces. */
+.project-button,
+.export-button,
+.tools-button {
+  height: 32px;
+  min-width: auto;
+  padding: 0 10px;
+  border-radius: 9px;
+  font: 500 10px/1 "Geist", sans-serif;
+  letter-spacing: .07em;
+  white-space: nowrap;
+}
+
+/* Keep all top actions optically equal. */
+.tools-control { display: flex; align-items: center; }
+.tools-button { display: inline-flex; align-items: center; justify-content: center; }
+
+/* Dropdowns become quiet floating sheets rather than tiny boxes. */
+.project-menu,
+.tools-menu,
+.preview-recovery-menu {
+  width: max-content;
+  min-width: 196px;
+  padding: 14px 10px;
+  border: 0;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface-solid) 99%, var(--ink) 1%);
+  box-shadow: 0 22px 64px rgba(21, 28, 38, .085);
+  backdrop-filter: blur(34px) saturate(104%);
+  -webkit-backdrop-filter: blur(34px) saturate(104%);
+}
+
+.project-menu button,
+.tools-menu button,
+.preview-recovery-menu button {
+  min-width: 0;
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font: 500 9px/1 "Geist", sans-serif;
+  letter-spacing: .075em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 620ms var(--ease-slow), background 820ms var(--ease-slow), filter 820ms var(--ease-slow);
+}
+
+.project-menu button:hover,
+.project-menu button:focus-visible,
+.tools-menu button:hover,
+.tools-menu button:focus-visible,
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible {
+  color: var(--ink);
+  padding-left: 16px;
+  background:
+    radial-gradient(90% 150% at 9% 44%, var(--menu-glow-blue), transparent 58%),
+    radial-gradient(70% 130% at 68% 110%, var(--menu-glow-mint), transparent 62%),
+    radial-gradient(66% 125% at 102% -8%, var(--menu-glow-peach), transparent 64%);
+  filter: saturate(.92);
+}
+
+/* Libraries: one generous editorial surface, no card-inside-card feeling. */
+.library-panel {
+  width: min(1020px, calc(100vw - 64px));
+  max-height: min(760px, calc(100vh - 64px));
+  border: 0;
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--surface-solid) 99%, var(--ink) 1%);
+  box-shadow: 0 34px 100px rgba(21, 28, 38, .09);
+}
+
+.library-header {
+  padding: 34px 38px 22px;
+}
+
+.library-header h2 { margin-top: 10px; }
+
+.library-intro {
+  max-width: 720px;
+  padding: 0 38px 30px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.library-columns {
+  grid-template-columns: 1fr 1fr;
+  gap: 54px;
+  padding: 10px 38px 28px;
+  border: 0;
+}
+
+.library-section {
+  min-width: 0;
+  padding: 0;
+}
+
+.library-section + .library-section {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.library-section-head {
+  height: 34px;
+  padding: 0 2px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.library-section-head > span {
+  font-size: 8px;
+  letter-spacing: .1em;
+}
+
+.library-list,
+.font-library-list {
+  gap: 0;
+  max-height: 400px;
+  padding: 6px 0 0;
+}
+
+.library-row,
+.font-library-row {
+  min-height: 56px;
+  padding: 10px 2px;
+  border-radius: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+  transition: color 620ms var(--ease-slow), background 760ms var(--ease-slow), padding-left 760ms var(--ease-slow), opacity 760ms var(--ease-slow);
+}
+
+.library-row:hover,
+.library-row:focus-visible,
+.font-library-row:hover,
+.font-library-row:focus-visible {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--hover) 38%, transparent);
+  padding-left: 8px;
+}
+
+.library-row.is-active,
+.font-library-row.is-active {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--hover) 32%, transparent);
+}
+
+.library-row.is-project:hover {
+  padding-left: 2px;
+  background: transparent;
+}
+
+.library-row strong,
+.font-library-row strong { font-size: 10px; }
+.library-row small,
+.font-library-row small { font-size: 9px; }
+.library-row-status { font-size: 8px; }
+
+.font-search-wrap { margin: 0 0 12px; }
+.font-library-search {
+  height: 42px;
+  padding: 0 2px;
+  font-size: 12px;
+}
+
+.library-footer {
+  padding: 18px 38px 22px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 720px) {
+  .library-panel { width: calc(100vw - 24px); max-height: calc(100vh - 24px); border-radius: 18px; }
+  .library-header { padding: 26px 24px 18px; }
+  .library-intro { padding: 0 24px 24px; }
+  .library-columns { grid-template-columns: 1fr; gap: 32px; padding: 8px 24px 26px; overflow-y: auto; }
+  .library-section + .library-section { padding-top: 4px; }
+}
+
+/* Build 22.1 — transient surface opacity refinement.
+   Keep the atmosphere in the background, but do not let it compete with UI content. */
+.app {
+  --panel-surface: rgba(250, 252, 253, .965);
+  --panel-surface-strong: rgba(250, 252, 253, .985);
+  --overlay-wash: rgba(238, 244, 248, .54);
+}
+.app[data-theme="dark"] {
+  --panel-surface: rgba(25, 30, 37, .965);
+  --panel-surface-strong: rgba(22, 27, 33, .985);
+  --overlay-wash: rgba(8, 11, 15, .58);
+}
+
+/* Small transient menus */
+.project-menu,
+.tools-menu,
+.preview-recovery-menu,
+.autocomplete,
+.find-bar {
+  background: var(--panel-surface-strong);
+  backdrop-filter: blur(18px) saturate(104%);
+  -webkit-backdrop-filter: blur(18px) saturate(104%);
+}
+
+/* Large overlays — enough wash to clearly separate the foreground surface. */
+.command-palette,
+.help-overlay,
+.project-switch-overlay,
+.library-overlay {
+  background: var(--overlay-wash);
+  backdrop-filter: blur(12px) saturate(104%);
+  -webkit-backdrop-filter: blur(12px) saturate(104%);
+}
+.app[data-theme="dark"] .command-palette,
+.app[data-theme="dark"] .help-overlay,
+.app[data-theme="dark"] .project-switch-overlay {
+  background: var(--overlay-wash);
+}
+
+/* Foreground panels should read as calm paper/glass, not translucent cards. */
+.command-panel,
+.help-panel,
+.project-switch-card,
+.library-panel {
+  background: var(--panel-surface-strong);
+  backdrop-filter: blur(20px) saturate(104%);
+  -webkit-backdrop-filter: blur(20px) saturate(104%);
+}
+
+/* Preserve the soft atmosphere only in hover feedback, not through the base panel. */
+.library-row.is-active,
+.font-library-row.is-active {
+  background: color-mix(in srgb, var(--hover) 82%, transparent);
+}
+
+
+/* Build 22.2 — transient menu hover refinement.
+   Hover is tonal only: no padding shift, no expanding inner box. */
+.project-menu button,
+.tools-menu button,
+.preview-recovery-menu button {
+  padding-left: 16px;
+  transform: none;
+}
+.project-menu button:hover,
+.project-menu button:focus-visible,
+.tools-menu button:hover,
+.tools-menu button:focus-visible,
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible {
+  padding-left: 16px;
+  transform: none;
+  background: color-mix(in srgb, var(--ink) 7%, var(--panel-surface-strong));
+}
+.app[data-theme="dark"] .project-menu button:hover,
+.app[data-theme="dark"] .project-menu button:focus-visible,
+.app[data-theme="dark"] .tools-menu button:hover,
+.app[data-theme="dark"] .tools-menu button:focus-visible,
+.app[data-theme="dark"] .preview-recovery-menu button:hover,
+.app[data-theme="dark"] .preview-recovery-menu button:focus-visible {
+  background: color-mix(in srgb, var(--paper) 8%, var(--panel-surface-strong));
+}
+
+/* Build 24 — canonical transient surface rendering.
+   Solid-enough layers avoid Chromium backdrop-filter text re-rasterization. */
+.app {
+  --panel-surface: rgba(250, 252, 253, .992);
+  --panel-surface-strong: rgba(250, 252, 253, .998);
+  --overlay-wash: rgba(238, 244, 248, .91);
+}
+.app[data-theme="dark"] {
+  --panel-surface: rgba(24, 29, 36, .992);
+  --panel-surface-strong: rgba(21, 26, 32, .998);
+  --overlay-wash: rgba(8, 11, 15, .91);
+}
+.project-menu,
+.tools-menu,
+.preview-recovery-menu,
+.autocomplete,
+.find-bar,
+.command-panel,
+.help-panel,
+.project-switch-card,
+.library-panel {
+  background: var(--panel-surface-strong);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.command-palette,
+.help-overlay,
+.project-switch-overlay,
+.library-overlay {
+  background: var(--overlay-wash);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+@keyframes mf-surface-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.command-panel,
+.help-panel,
+.project-switch-card {
+  animation: mf-surface-in 560ms var(--ease-slow) both !important;
+  filter: none !important;
+}
+.library-panel {
+  filter: none !important;
+  transform: translateY(7px) !important;
+  transition: opacity 520ms var(--ease-slow), transform 720ms var(--ease-slow), background 900ms var(--ease-slow), border-color 900ms var(--ease-slow) !important;
+}
+.library-overlay.is-open .library-panel { transform: translateY(0) !important; }
+.project-menu button,
+.tools-menu button,
+.preview-recovery-menu button,
+.project-menu button:hover,
+.project-menu button:focus-visible,
+.tools-menu button:hover,
+.tools-menu button:focus-visible,
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible {
+  padding-left: 16px !important;
+  transform: none !important;
+}
+
+/* Build 24 — canonical transient surface rendering.
+   Solid-enough layers avoid Chromium backdrop-filter text re-rasterization. */
+.app {
+  --panel-surface: rgba(250, 252, 253, .992);
+  --panel-surface-strong: rgba(250, 252, 253, .998);
+  --overlay-wash: rgba(238, 244, 248, .91);
+}
+.app[data-theme="dark"] {
+  --panel-surface: rgba(24, 29, 36, .992);
+  --panel-surface-strong: rgba(21, 26, 32, .998);
+  --overlay-wash: rgba(8, 11, 15, .91);
+}
+.project-menu,
+.tools-menu,
+.preview-recovery-menu,
+.autocomplete,
+.find-bar,
+.command-panel,
+.help-panel,
+.project-switch-card,
+.library-panel {
+  background: var(--panel-surface-strong);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.command-palette,
+.help-overlay,
+.project-switch-overlay,
+.library-overlay {
+  background: var(--overlay-wash);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+@keyframes mf-surface-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.command-panel,
+.help-panel,
+.project-switch-card {
+  animation: mf-surface-in 560ms var(--ease-slow) both !important;
+  filter: none !important;
+}
+.library-panel {
+  filter: none !important;
+  transform: translateY(7px) !important;
+  transition: opacity 520ms var(--ease-slow), transform 720ms var(--ease-slow), background 900ms var(--ease-slow), border-color 900ms var(--ease-slow) !important;
+}
+.library-overlay.is-open .library-panel { transform: translateY(0) !important; }
+.project-menu button,
+.tools-menu button,
+.preview-recovery-menu button,
+.project-menu button:hover,
+.project-menu button:focus-visible,
+.tools-menu button:hover,
+.tools-menu button:focus-visible,
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible {
+  padding-left: 16px !important;
+  transform: none !important;
+}
+
+
+/* Build 25 — one visible editor glyph layer. */
+.code-input,.code-highlight,.code-highlight code{font-kerning:none;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-synthesis:none;}
+.app.has-highlighting .code-input,.app.has-highlighting .code-input:hover,.app.has-highlighting .code-input:focus,.app.has-highlighting .code-input:focus-visible{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;transition:caret-color var(--motion-slow) var(--ease-slow)!important;}
+.app.has-highlighting .code-input::selection{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;}
+.code-highlight{contain:paint;}
+
+/* Build 25.2 — canonical branded transient-menu hover.
+   This MUST remain the final hover layer: atmospheric color, zero geometry change. */
+.project-menu button,
+.tools-menu button,
+.preview-recovery-menu button,
+.command-item {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: transparent !important;
+  transform: none !important;
+}
+
+.project-menu button::before,
+.tools-menu button::before,
+.preview-recovery-menu button::before,
+.command-item::before {
+  content: "";
+  position: absolute;
+  inset: 5px 4px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9px;
+  opacity: 0;
+  transform: scale(.985);
+  background:
+    radial-gradient(75% 155% at 6% 48%, color-mix(in srgb, var(--menu-glow-blue) 150%, transparent), transparent 62%),
+    radial-gradient(70% 145% at 60% 110%, color-mix(in srgb, var(--menu-glow-mint) 145%, transparent), transparent 66%),
+    radial-gradient(62% 135% at 102% -4%, color-mix(in srgb, var(--menu-glow-peach) 150%, transparent), transparent 68%);
+  filter: blur(7px) saturate(1.06);
+  transition:
+    opacity 760ms var(--ease-slow),
+    transform 920ms var(--ease-slow),
+    filter 920ms var(--ease-slow);
+}
+
+.project-menu button:hover::before,
+.project-menu button:focus-visible::before,
+.tools-menu button:hover::before,
+.tools-menu button:focus-visible::before,
+.preview-recovery-menu button:hover::before,
+.preview-recovery-menu button:focus-visible::before,
+.command-item:hover::before,
+.command-item.is-active::before {
+  opacity: .96;
+  transform: scale(1);
+  filter: blur(5px) saturate(1.12);
+}
+
+.project-menu button:hover,
+.project-menu button:focus-visible,
+.tools-menu button:hover,
+.tools-menu button:focus-visible,
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible,
+.command-item:hover,
+.command-item.is-active {
+  color: var(--ink) !important;
+  background: transparent !important;
+  padding-left: 16px !important;
+  transform: none !important;
+}
+
+.command-item:hover,
+.command-item.is-active {
+  padding-left: 20px !important;
+}
+
+.app[data-theme="dark"] .project-menu button::before,
+.app[data-theme="dark"] .tools-menu button::before,
+.app[data-theme="dark"] .preview-recovery-menu button::before,
+.app[data-theme="dark"] .command-item::before {
+  opacity: 0;
+  filter: blur(8px) saturate(.95);
+}
+
+.app[data-theme="dark"] .project-menu button:hover::before,
+.app[data-theme="dark"] .project-menu button:focus-visible::before,
+.app[data-theme="dark"] .tools-menu button:hover::before,
+.app[data-theme="dark"] .tools-menu button:focus-visible::before,
+.app[data-theme="dark"] .preview-recovery-menu button:hover::before,
+.app[data-theme="dark"] .preview-recovery-menu button:focus-visible::before,
+.app[data-theme="dark"] .command-item:hover::before,
+.app[data-theme="dark"] .command-item.is-active::before {
+  opacity: .82;
+  filter: blur(6px) saturate(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-menu button::before,
+  .tools-menu button::before,
+  .preview-recovery-menu button::before,
+  .command-item::before {
+    transition-duration: 1ms !important;
+  }
+}

@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MF Code</title>
+  <title>N7-Code</title>
+  <meta name="application-name" content="N7-Code" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -33,9 +34,10 @@
             <button type="button" role="menuitem" data-project-action="open-files">OPEN FILES</button>
             <button type="button" role="menuitem" data-project-action="open-folder">OPEN FOLDER</button>
             <button type="button" role="menuitem" data-project-action="save">SAVE</button>
+            <button type="button" role="menuitem" data-project-action="recover-previous" hidden>RECOVER PREVIOUS</button>
             <button type="button" role="menuitem" data-project-action="reset">RESET</button>
           </div>
-          <input class="project-file-input" type="file" accept=".mfcode,.json,.html,.htm,.css,.js,application/json,text/html,text/css,text/javascript,application/javascript" multiple hidden />
+          <input class="project-file-input" type="file" accept=".n7-code,.mfcode,.json,.html,.htm,.css,.js,application/json,text/html,text/css,text/javascript,application/javascript" multiple hidden />
           <input class="project-folder-input" type="file" webkitdirectory directory multiple hidden />
         </div>
         <button class="export-button" type="button" aria-label="Export as standalone HTML">EXPORT</button>
@@ -173,7 +175,7 @@
       <section class="project-switch-card" role="dialog" aria-modal="true" aria-labelledby="project-switch-title">
         <p class="project-switch-kicker">PROJECT</p>
         <h2 id="project-switch-title">OPEN AS PROJECT?</h2>
-        <p class="project-switch-copy">Your current project will remain saved locally.</p>
+        <p class="project-switch-copy">Your current changes will be protected before the new project opens.</p>
         <div class="project-switch-actions">
           <button type="button" data-project-switch-action="cancel">CANCEL</button>
           <button type="button" data-project-switch-action="confirm">OPEN</button>
@@ -219,7 +221,7 @@
       <section class="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
         <header class="help-header">
           <div>
-            <p class="help-kicker">MF CODE</p>
+            <p class="help-kicker">N7-CODE</p>
             <h2 id="help-title">A quiet guide.</h2>
           </div>
           <button class="help-close" type="button" aria-label="Close help">ESC</button>
@@ -284,7 +286,8 @@
                 <p class="help-label">PROJECT + OUTPUT</p>
                 <div class="help-feature-list">
                   <div class="help-feature"><span>FILES</span><p>Toggle the real project tree when you need it. Open folders keep their actual hierarchy; hide it again to return to the clean workspace.</p></div>
-                  <div class="help-feature"><span>PROJECT</span><p>Start fresh, open files, or open a real folder project. Folder projects keep their hierarchy and can be saved back to disk when the browser grants access.</p></div>
+                  <div class="help-feature"><span>PROJECT</span><p>Start fresh, open files, or open a real folder project. Folder projects keep their hierarchy and can be saved back to disk when the browser grants access. When switching projects, N7-Code protects the previous changes locally if direct folder saving is unavailable. PROJECT → RECOVER PREVIOUS appears whenever that recovery is available.</p></div>
+                  <div class="help-feature"><span>N7-CODE BACKUP</span><p>PROJECT → SAVE writes back to an opened writable folder. Otherwise it downloads a portable <code>.n7-code</code> backup. Older <code>.mfcode</code> backups still open.</p></div>
                   <div class="help-feature"><span>EXPORT</span><p>Creates one standalone <code>index.html</code> containing your current HTML, CSS and JavaScript.</p></div>
                   <div class="help-feature"><span>PREVIEW</span><p>Switch desktop, tablet and mobile widths, refresh manually, use Focus, or detach the live preview into its own browser window.</p></div>
                   <div class="help-feature"><span>RECOVERY</span><p>If preview JavaScript breaks and blocks the page, RECOVER offers temporary preview-only actions such as hiding a loader or restoring scroll. Your project files are never changed.</p></div>

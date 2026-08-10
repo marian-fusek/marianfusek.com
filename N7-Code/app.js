@@ -7,14 +7,16 @@
   const HISTORY_COALESCE_MS = 650;
   const HISTORY_STORAGE_BUDGET = 1500000;
   const INDENT = '  ';
-  const PROJECT_FORMAT = 'mf-code-project';
+  const PROJECT_FORMAT = 'n7-code-project';
+  const LEGACY_PROJECT_FORMAT = 'mf-code-project';
   const PROJECT_VERSION = 1;
   const STORAGE = {
     draft: 'mf-code-draft-v1',
     prefs: 'mf-code-prefs-v1',
     history: 'mf-code-history-v1',
     tree: 'mf-code-tree-v1',
-    addons: 'mf-code-addons-v1'
+    addons: 'mf-code-addons-v1',
+    recovery: 'n7-code-recovery-v1'
   };
   const LANGUAGE_MAP = { html: 'markup', css: 'css', js: 'javascript' };
   const PAIRS = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
@@ -70,6 +72,7 @@
   const projectInput = document.querySelector('.project-file-input');
   const projectActions = [...document.querySelectorAll('[data-project-action]')];
   const resetAction = document.querySelector('[data-project-action="reset"]');
+  const recoverPreviousAction = document.querySelector('[data-project-action="recover-previous"]');
   const toolsButton = document.querySelector('.tools-button');
   const toolsMenu = document.querySelector('.tools-menu');
   const toolsActions = [...document.querySelectorAll('[data-tools-action]')];
@@ -192,6 +195,24 @@
 
   function safeJsonParse(value) {
     try { return JSON.parse(value); } catch { return null; }
+  }
+
+  function isProjectFormat(format) {
+    return format === PROJECT_FORMAT || format === LEGACY_PROJECT_FORMAT;
+  }
+
+  function saveRecoverySnapshot() {
+    try {
+      window.localStorage.setItem(STORAGE.recovery, JSON.stringify({ savedAt: Date.now(), payload: createProjectPayload() }));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function recoverySnapshot() {
+    const stored = safeJsonParse(safeStorageGet(STORAGE.recovery));
+    return stored?.payload && isProjectFormat(stored.payload.format) ? stored : null;
   }
 
   function projectTreeKey(project = state.project) {
@@ -1271,7 +1292,7 @@
       doc.open();
       doc.write(buildPreviewDocument(state.renderId));
       doc.close();
-      state.detachedWindow.document.title = `${state.project?.name || 'MF Code'} · Preview`;
+      state.detachedWindow.document.title = `${state.project?.name || 'N7-Code'} · Preview`;
     } catch { returnPreviewToEditor({ closeWindow: false }); }
   }
 
@@ -2098,6 +2119,7 @@
     ['Open files', '', () => projectInput.click()],
     ['Open folder', '', () => openFolderPicker()],
     ['Save project', '', () => saveProject()],
+    ['Recover previous project', '', () => recoverPreviousProject(), () => Boolean(recoverySnapshot())],
     ['Light theme', '', () => { applyTheme('light'); persistPrefs(); }, () => state.theme !== 'light'],
     ['Night theme', '', () => { applyTheme('dark'); persistPrefs(); }, () => state.theme !== 'dark'],
     ['Help', '', () => openHelp()]
@@ -2224,7 +2246,7 @@
       state.detachedWindow.focus();
       return;
     }
-    const win = window.open('', 'mf-code-live-preview', 'popup=yes,width=1180,height=820');
+    const win = window.open('', 'n7-code-live-preview', 'popup=yes,width=1180,height=820');
     if (!win) {
       previewActionFeedback(detachPreviewButton, 'BLOCKED');
       return;
@@ -2278,6 +2300,7 @@
 
   function openProjectMenu() {
     window.clearTimeout(state.menuTimer);
+    if (recoverPreviousAction) recoverPreviousAction.hidden = !recoverySnapshot();
     projectMenu.hidden = false;
     projectButton.setAttribute('aria-expanded', 'true');
     requestAnimationFrame(() => projectMenu.classList.add('is-open'));
@@ -2310,7 +2333,7 @@
     if (!libraryOverlay.hidden) closeLibraries({ restoreFocus: false });
     if (!helpOverlay) return;
     // Help must always open, even if a nonessential current-state field ever regresses.
-    try { updateHelpCurrentState(); } catch (error) { console.warn('MF Code help state unavailable', error); }
+    try { updateHelpCurrentState(); } catch (error) { console.warn('N7-Code help state unavailable', error); }
     closeCommands();
     closeFind();
     closeProjectMenu();
@@ -2335,29 +2358,6 @@
       projectButton.classList.remove('is-feedback');
     }, 1200);
   }
-
-  function createProjectPayload() {
-    return {
-      format: PROJECT_FORMAT,
-      version: PROJECT_VERSION,
-      code: { ...state.code }
-    };
-  }
-
-  function saveProject() {
-    const blob = new Blob([JSON.stringify(createProjectPayload(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'project.mfcode';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-    closeProjectMenu();
-    projectFeedback('SAVED');
-  }
-
 
   function projectRuntimeBundle() {
     if (!state.project || state.project.mode === 'simple') return null;
@@ -2480,7 +2480,7 @@
       return url;
     };
 
-    // Preview must not inherit a project's CSP because MF Code injects its own
+    // Preview must not inherit a project's CSP because N7-Code injects its own
     // diagnostics/inspection bridge and in-memory data/blob resources.
     doc.querySelectorAll('meta[http-equiv]').forEach((meta) => {
       if ((meta.getAttribute('http-equiv') || '').toLowerCase() === 'content-security-policy') meta.remove();
@@ -2725,70 +2725,10 @@
     return { html, css, js };
   }
 
-  async function openProjectFiles(files) {
-    const selected = [...(files || [])];
-    if (!selected.length) return;
-
-    try {
-      if (selected.length === 1 && ['mfcode', 'json'].includes(fileExtension(selected[0]))) {
-        const payload = JSON.parse(await selected[0].text());
-        if (payload?.format !== PROJECT_FORMAT || payload?.version !== PROJECT_VERSION || !validCode(payload.code)) {
-          throw new Error('Invalid project');
-        }
-        applyProjectCode(payload.code);
-        projectFeedback('OPENED');
-        return;
-      }
-
-      const nextCode = { ...state.code };
-      let imported = false;
-
-      for (const file of selected) {
-        const extension = fileExtension(file);
-        const source = await file.text();
-
-        if (extension === 'html' || extension === 'htm') {
-          const extracted = extractStandaloneHtml(source);
-          nextCode.html = extracted.html;
-          if (extracted.css) nextCode.css = extracted.css;
-          if (extracted.js) nextCode.js = extracted.js;
-          imported = true;
-        } else if (extension === 'css') {
-          nextCode.css = source;
-          imported = true;
-        } else if (extension === 'js') {
-          nextCode.js = source;
-          imported = true;
-        }
-      }
-
-      if (!imported) throw new Error('Unsupported file');
-      applyProjectCode(nextCode);
-      projectFeedback('OPENED');
-    } catch {
-      projectFeedback('INVALID');
-    } finally {
-      projectInput.value = '';
-    }
-  }
-
   function disarmReset() {
     window.clearTimeout(state.resetTimer);
     resetAction.classList.remove('is-armed');
     resetAction.textContent = 'RESET';
-  }
-
-  function resetProject() {
-    if (!resetAction.classList.contains('is-armed')) {
-      resetAction.classList.add('is-armed');
-      resetAction.textContent = 'RESET?';
-      state.resetTimer = window.setTimeout(disarmReset, 2200);
-      return;
-    }
-    disarmReset();
-    applyProjectCode(STARTER_CODE);
-    closeProjectMenu();
-    projectFeedback('RESET');
   }
 
 
@@ -3336,20 +3276,14 @@ ${previewHtml}
     if (state.project?.mode === 'folder' && await saveFolderProjectToDisk()) {
       closeProjectMenu();
       projectFeedback('SAVED');
+      showProjectSwitchToast('PROJECT SAVED TO FOLDER');
       persistDraftNow();
       return;
     }
-    const blob = new Blob([JSON.stringify(createProjectPayload(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${(state.project?.name || 'project').replace(/[^a-z0-9_-]+/gi, '-').toLowerCase() || 'project'}.mfcode`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+    downloadProjectSnapshot();
     closeProjectMenu();
-    projectFeedback(state.project?.mode === 'folder' ? 'DOWNLOADED' : 'SAVED');
+    projectFeedback('BACKUP');
+    showProjectSwitchToast('N7-CODE BACKUP DOWNLOADED');
   }
 
   let switchToastTimer = null;
@@ -3369,7 +3303,7 @@ ${previewHtml}
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${(state.project?.name || 'project').replace(/[^a-z0-9_-]+/gi, '-').toLowerCase() || 'project'}.mfcode`;
+    link.download = `${(state.project?.name || 'project').replace(/[^a-z0-9_-]+/gi, '-').toLowerCase() || 'project'}.n7-code`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -3380,16 +3314,17 @@ ${previewHtml}
   async function saveBeforeProjectSwitch() {
     persistDraftNow();
     if (state.project?.mode === 'folder' && state.project.directoryHandle) {
-      try {
-        await saveFolderProjectToDisk();
-        return { saved: true, destination: 'folder' };
-      } catch {
-        downloadProjectSnapshot();
-        return { saved: true, destination: 'download' };
-      }
+      const savedToFolder = await saveFolderProjectToDisk();
+      if (savedToFolder) return { saved: true, destination: 'folder' };
     }
-    downloadProjectSnapshot();
-    return { saved: true, destination: 'download' };
+    const kept = saveRecoverySnapshot();
+    return { saved: kept, destination: kept ? 'local' : 'failed' };
+  }
+
+  function projectSwitchMessage(previous) {
+    if (previous?.destination === 'folder') return 'PREVIOUS PROJECT SAVED · NEW PROJECT OPENED';
+    if (previous?.destination === 'local') return 'PREVIOUS CHANGES KEPT LOCALLY · NEW PROJECT OPENED';
+    return 'COULDN’T SAVE PREVIOUS CHANGES · NEW PROJECT OPENED';
   }
 
   function startSimpleProject(code = STARTER_CODE, addons = null) {
@@ -3496,7 +3431,9 @@ ${previewHtml}
       try {
         const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
         const records = await enumerateDirectoryHandle(handle);
+        const previous = await saveBeforeProjectSwitch();
         await installFolderProject(handle.name, records, handle);
+        showProjectSwitchToast(projectSwitchMessage(previous));
       } catch (error) {
         if (error?.name !== 'AbortError') projectFeedback('FAILED');
       }
@@ -3511,32 +3448,59 @@ ${previewHtml}
     const firstPath = selected[0].webkitRelativePath || selected[0].name;
     const rootName = firstPath.includes('/') ? firstPath.split('/')[0] : 'PROJECT';
     const records = recordsFromFiles(selected, { rootName });
+    const previous = await saveBeforeProjectSwitch();
     await installFolderProject(rootName, records, null);
     projectFolderInput.value = '';
+    showProjectSwitchToast(projectSwitchMessage(previous));
+  }
+
+  function restoreProjectPayload(payload) {
+    if (!isProjectFormat(payload?.format)) throw new Error('Invalid project');
+    if (payload.version === PROJECT_VERSION && validCode(payload.code)) {
+      startSimpleProject(payload.code, payload.addons || null);
+      return;
+    }
+    if (payload.version === 2 && payload.project) {
+      restoreProjectSnapshot(payload.project);
+      applyFilesOpen(true);
+      renderFileTree();
+      applyView(state.view, false);
+      persistDraftNow();
+      renderPreview();
+      return;
+    }
+    throw new Error('Invalid project');
+  }
+
+  async function recoverPreviousProject() {
+    const stored = recoverySnapshot();
+    if (!stored) { projectFeedback('NONE'); return; }
+    const payload = stored.payload;
+    const currentProtected = await saveBeforeProjectSwitch();
+    restoreProjectPayload(payload);
+    closeProjectMenu();
+    projectFeedback('RECOVERED');
+    showProjectSwitchToast(currentProtected.destination === 'folder' ? 'PREVIOUS PROJECT RECOVERED · CURRENT PROJECT SAVED' : currentProtected.destination === 'local' ? 'PREVIOUS PROJECT RECOVERED · CURRENT CHANGES KEPT LOCALLY' : 'PREVIOUS PROJECT RECOVERED');
   }
 
   async function openProjectFiles(files) {
     const selected = [...(files || [])];
     if (!selected.length) return;
     try {
-      if (selected.length === 1 && ['mfcode', 'json'].includes(fileExtension(selected[0]))) {
+      if (selected.length === 1 && ['n7-code', 'mfcode', 'json'].includes(fileExtension(selected[0]))) {
         const payload = JSON.parse(await selected[0].text());
-        if (payload?.format !== PROJECT_FORMAT) throw new Error('Invalid project');
-        if (payload.version === PROJECT_VERSION && validCode(payload.code)) {
-          startSimpleProject(payload.code, payload.addons || null);
-        } else if (payload.version === 2 && payload.project) {
-          restoreProjectSnapshot(payload.project);
-          applyFilesOpen(true);
-          renderFileTree();
-          applyView(state.view, false);
-          persistDraftNow();
-          renderPreview();
-        } else throw new Error('Invalid project');
+        if (!isProjectFormat(payload?.format)) throw new Error('Invalid project');
+        if (!((payload.version === PROJECT_VERSION && validCode(payload.code)) || (payload.version === 2 && payload.project))) throw new Error('Invalid project');
+        const previous = await saveBeforeProjectSwitch();
+        restoreProjectPayload(payload);
         projectFeedback('OPENED');
+        showProjectSwitchToast(projectSwitchMessage(previous));
         return;
       }
       const records = recordsFromFiles(selected);
+      const previous = await saveBeforeProjectSwitch();
       await installFolderProject(selected.length === 1 ? selected[0].name.replace(/\.[^.]+$/, '') : 'FILES', records, null);
+      showProjectSwitchToast(projectSwitchMessage(previous));
     } catch {
       projectFeedback('INVALID');
     } finally {
@@ -3669,7 +3633,7 @@ ${previewHtml}
         action: async () => {
           const previous = await saveBeforeProjectSwitch();
           await installFolderProject(folderName, records, directoryHandle);
-          showProjectSwitchToast(previous.destination === 'folder' ? 'PREVIOUS PROJECT SAVED · NEW PROJECT OPENED' : 'PREVIOUS PROJECT SAVED AS .MFCODE · NEW PROJECT OPENED');
+          showProjectSwitchToast(projectSwitchMessage(previous));
         }
       });
       return;
@@ -3696,7 +3660,7 @@ ${previewHtml}
           const previous = await saveBeforeProjectSwitch();
           const records = recordsFromFiles(droppedFiles);
           await installFolderProject(droppedFiles.length === 1 ? droppedFiles[0].name.replace(/\.[^.]+$/, '') : 'FILES', records, null);
-          showProjectSwitchToast(previous.destination === 'folder' ? 'PREVIOUS PROJECT SAVED · NEW PROJECT OPENED' : 'PREVIOUS PROJECT SAVED AS .MFCODE · NEW PROJECT OPENED');
+          showProjectSwitchToast(projectSwitchMessage(previous));
         }
       });
     }
@@ -3760,10 +3724,11 @@ ${previewHtml}
   projectActions.forEach((button) => {
     button.addEventListener('click', async () => {
       const action = button.dataset.projectAction;
-      if (action === 'new') { closeProjectMenu(); startSimpleProject(STARTER_CODE); projectFeedback('NEW'); }
+      if (action === 'new') { closeProjectMenu(); const previous = await saveBeforeProjectSwitch(); startSimpleProject(STARTER_CODE); projectFeedback('NEW'); showProjectSwitchToast(projectSwitchMessage(previous)); }
       if (action === 'open-files') { closeProjectMenu(); projectInput.click(); }
       if (action === 'open-folder') await openFolderPicker();
       if (action === 'save') await saveProject();
+      if (action === 'recover-previous') await recoverPreviousProject();
       if (action === 'reset') resetProject();
     });
   });

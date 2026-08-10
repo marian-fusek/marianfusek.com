@@ -34,7 +34,7 @@ async function runtimeResponse(request) {
 
   if (response) return response.clone();
 
-  return new Response('MF Code runtime file not found', {
+  return new Response('N7-Code runtime file not found', {
     status: 404,
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',

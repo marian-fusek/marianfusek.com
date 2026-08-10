@@ -198,6 +198,8 @@
   let caseOverlayScrollY=0;
   let projectDetailOpen=false;
   let overlayInfoClone=null;
+  let caseOverlayProjectIndex=-1;
+  let restoreProjectVisuals=()=>{};
   const closeCaseOverlay=()=>{
     if(!caseOverlay?.classList.contains('is-open'))return;
     caseOverlay.classList.remove('is-open');caseOverlay.setAttribute('aria-hidden','true');
@@ -205,7 +207,7 @@
     document.getElementById('projectsInfo')?.style.removeProperty('visibility');
     masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.visibility='visible';mask.style.removeProperty('transition');});
     images.forEach(image=>{image.style.removeProperty('transition');image.style.removeProperty('clip-path');});
-    document.body.classList.remove('case-overlay-open');projectDetailOpen=false;smooth.goTo(caseOverlayScrollY);
+    document.body.classList.remove('case-overlay-open');projectDetailOpen=false;restoreProjectVisuals();
   };
   caseOverlayClose?.addEventListener('click',closeCaseOverlay);
   addEventListener('keydown',event=>{if(event.key==='Escape')closeCaseOverlay();});
@@ -232,6 +234,7 @@
       const index=masks.indexOf(mask),detail=projectDetails[index];
       if(!detail)return;
       projectDetailOpen=true;
+      caseOverlayProjectIndex=index;
       const liveInfo=document.getElementById('projectsInfo');
       if(liveInfo){
         const infoRect=liveInfo.getBoundingClientRect();
@@ -343,8 +346,7 @@
         const active=i===activeIndex;
         const next=i===activeIndex+1;
         const settle=before?1:active?open:0;
-        const holdP=active?clamp((within-openRatio)/holdRatio,0,1):0;
-        const zoom=before?1:active?lerp(1.05,1,holdP):1.05;
+        const zoom=before?1:active?lerp(1.05,1,settle):1.05;
         const revealY=before?0:active?lerp(75,0,smoothstep(0,.96,settle)):75;
         const revealLeft=before?0:25;
         const galleryVisible=p>=galleryStart;
@@ -377,6 +379,14 @@
       stage.classList.toggle('is-released',p>=.999);
     };
     const projectRange=()=>Math.max(1,projects.scrollHeight-innerHeight);
+    restoreProjectVisuals=()=>{
+      if(caseOverlayProjectIndex<0)return;
+      const completedProgress=.08+(1-.08)*((caseOverlayProjectIndex+1)/images.length);
+      projectProgress=completedProgress;
+      renderSequence(completedProgress);
+      smooth.goTo(projectsTop+completedProgress*projectRange());
+      caseOverlayProjectIndex=-1;
+    };
     const renderFromScroll=()=>{
       const projStart=projectsTop;
       const raw=clamp((scrollY-projStart)/projectRange(),0,1);

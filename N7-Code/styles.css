@@ -2401,3 +2401,35 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   .preview-recovery-menu button,
   .command-item { transition-duration: 1ms !important; }
 }
+
+/* Build 29.1 — project-switch action aura refinement: broader, softer, fixed geometry. */
+.project-switch-actions button {
+  min-width: 58px !important;
+  height: 38px !important;
+  padding: 0 8px !important;
+}
+.project-switch-actions button::before {
+  left: -30px !important;
+  right: -30px !important;
+  height: 52px !important;
+  border-radius: 999px !important;
+  opacity: 0 !important;
+  filter: blur(22px) !important;
+  transform: translateY(-50%) scale(.92) !important;
+  background: linear-gradient(90deg,
+    rgba(170, 211, 238, .24),
+    rgba(207, 228, 207, .19) 52%,
+    rgba(238, 204, 193, .17)) !important;
+  transition: opacity 760ms var(--ease-slow), transform 960ms var(--ease-slow) !important;
+}
+.app[data-theme="dark"] .project-switch-actions button::before {
+  background: linear-gradient(90deg,
+    rgba(92, 133, 164, .22),
+    rgba(108, 145, 115, .16) 52%,
+    rgba(160, 112, 103, .14)) !important;
+}
+.project-switch-actions button:hover::before,
+.project-switch-actions button:focus-visible::before {
+  opacity: .95 !important;
+  transform: translateY(-50%) scale(1) !important;
+}

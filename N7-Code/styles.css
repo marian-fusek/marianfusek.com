@@ -2263,3 +2263,141 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
     transition-duration: 1ms !important;
   }
 }
+
+/* Build 27.1 — flat project-switch surface; no box-in-box chrome */
+.project-switch-overlay {
+  background:
+    radial-gradient(720px 360px at 44% 42%, rgba(177, 211, 232, .18), transparent 68%),
+    radial-gradient(560px 320px at 58% 57%, rgba(207, 225, 204, .14), transparent 70%),
+    color-mix(in srgb, var(--surface-solid) 91%, transparent) !important;
+  backdrop-filter: blur(26px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(108%) !important;
+}
+.app[data-theme="dark"] .project-switch-overlay {
+  background:
+    radial-gradient(720px 360px at 44% 42%, rgba(104, 143, 171, .13), transparent 68%),
+    radial-gradient(560px 320px at 58% 57%, rgba(118, 151, 126, .10), transparent 70%),
+    color-mix(in srgb, var(--surface-solid) 94%, transparent) !important;
+}
+.project-switch-card {
+  width: min(510px, calc(100vw - 48px)) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 34px 36px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.project-switch-kicker { margin-bottom: 22px !important; }
+.project-switch-copy { max-width: 390px; margin: 12px 0 30px !important; }
+.project-switch-actions { gap: 18px !important; }
+.project-switch-actions button {
+  position: relative;
+  isolation: isolate;
+  height: 34px !important;
+  padding: 0 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  overflow: visible;
+  transition: color 620ms var(--ease-slow), opacity 620ms var(--ease-slow) !important;
+}
+.project-switch-actions button::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -18px;
+  right: -18px;
+  top: 50%;
+  height: 34px;
+  transform: translateY(-50%) scale(.94);
+  border-radius: 999px;
+  opacity: 0;
+  filter: blur(15px);
+  background: linear-gradient(90deg,
+    rgba(170, 211, 238, .28),
+    rgba(207, 228, 207, .22) 52%,
+    rgba(238, 204, 193, .20));
+  transition: opacity 720ms var(--ease-slow), transform 920ms var(--ease-slow);
+  pointer-events: none;
+}
+.app[data-theme="dark"] .project-switch-actions button::before {
+  background: linear-gradient(90deg,
+    rgba(92, 133, 164, .24),
+    rgba(108, 145, 115, .18) 52%,
+    rgba(160, 112, 103, .16));
+}
+.project-switch-actions button:hover,
+.project-switch-actions button:focus-visible {
+  color: var(--ink) !important;
+  background: transparent !important;
+}
+.project-switch-actions button:hover::before,
+.project-switch-actions button:focus-visible::before {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+/* Build 27.2 — canonical light atmospheric hover; direct background, zero geometry change. */
+.project-menu button,
+.tools-menu button,
+.preview-recovery-menu button,
+.command-item {
+  transform: none !important;
+  transition:
+    color 520ms var(--ease-slow),
+    background 760ms var(--ease-slow),
+    box-shadow 760ms var(--ease-slow) !important;
+}
+
+.project-menu button::before,
+.tools-menu button::before,
+.preview-recovery-menu button::before,
+.command-item::before {
+  display: none !important;
+}
+
+.project-menu button:hover,
+.project-menu button:focus-visible,
+.tools-menu button:hover,
+.tools-menu button:focus-visible,
+.preview-recovery-menu button:hover,
+.preview-recovery-menu button:focus-visible {
+  color: var(--ink) !important;
+  padding-left: 16px !important;
+  transform: none !important;
+  background:
+    radial-gradient(110% 190% at 4% 50%, color-mix(in srgb, var(--menu-glow-blue) 62%, transparent), transparent 58%),
+    radial-gradient(90% 170% at 64% 112%, color-mix(in srgb, var(--menu-glow-mint) 48%, transparent), transparent 64%),
+    radial-gradient(76% 160% at 104% -10%, color-mix(in srgb, var(--menu-glow-peach) 44%, transparent), transparent 66%) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 24%, transparent) !important;
+}
+
+.command-item:hover,
+.command-item.is-active {
+  color: var(--ink) !important;
+  padding-left: 20px !important;
+  transform: none !important;
+  background:
+    radial-gradient(105% 185% at 3% 50%, color-mix(in srgb, var(--menu-glow-blue) 58%, transparent), transparent 58%),
+    radial-gradient(90% 165% at 66% 112%, color-mix(in srgb, var(--menu-glow-mint) 44%, transparent), transparent 64%),
+    radial-gradient(72% 155% at 102% -8%, color-mix(in srgb, var(--menu-glow-peach) 40%, transparent), transparent 66%) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 20%, transparent) !important;
+}
+
+.app[data-theme="dark"] .project-menu button:hover,
+.app[data-theme="dark"] .project-menu button:focus-visible,
+.app[data-theme="dark"] .tools-menu button:hover,
+.app[data-theme="dark"] .tools-menu button:focus-visible,
+.app[data-theme="dark"] .preview-recovery-menu button:hover,
+.app[data-theme="dark"] .preview-recovery-menu button:focus-visible,
+.app[data-theme="dark"] .command-item:hover,
+.app[data-theme="dark"] .command-item.is-active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 18%, transparent) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-menu button,
+  .tools-menu button,
+  .preview-recovery-menu button,
+  .command-item { transition-duration: 1ms !important; }
+}

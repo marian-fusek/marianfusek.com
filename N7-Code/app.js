@@ -147,7 +147,7 @@
     fonts: new Set(),
     addonStates: {},
     libraryFailures: new Set(),
-    hostedRuntime: { supported: false, ready: false, registration: null, scope: '', projectId: null, baseUrl: '', renderUrl: '' }
+    hostedRuntime: { supported: false, ready: false, registration: null, scope: '', projectId: null, baseUrl: '', renderUrl: '', projectSerial: 0 }
   };
 
   if (window.Prism) app.classList.add('has-highlighting');
@@ -198,6 +198,19 @@
     let hash = 5381;
     for (let i = 0; i < signature.length; i += 1) hash = ((hash << 5) + hash) ^ signature.charCodeAt(i);
     return `p${(hash >>> 0).toString(36)}`;
+  }
+
+  function createRuntimeProjectId(project) {
+    const tree = projectTreeKey(project) || 'project';
+    state.hostedRuntime.projectSerial += 1;
+    const entropy = (globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`).replace(/[^a-z0-9-]/gi, '').slice(0, 20);
+    return `${tree}-${state.hostedRuntime.projectSerial.toString(36)}-${entropy}`;
+  }
+
+  function ensureRuntimeProjectId(project = state.project) {
+    if (!project || project.mode !== 'folder') return null;
+    if (!project.runtimeId) project.runtimeId = createRuntimeProjectId(project);
+    return project.runtimeId;
   }
 
   function persistTreeState() {
@@ -1006,8 +1019,8 @@
     }
   }
 
-  function hostedProjectId() {
-    return projectTreeKey(state.project) || 'project';
+  function hostedProjectId(project = state.project) {
+    return ensureRuntimeProjectId(project) || 'project';
   }
 
   function hostedPathUrl(path, projectId = hostedProjectId()) {
@@ -1050,8 +1063,8 @@
     return `<script data-mf-internal>\n(() => {\n  const base=${JSON.stringify(runtimeBase)};\n  const map=(value)=>{try{const raw=String(value||'');if(raw.startsWith(base))return raw;if(/^\\/(?!\\/)/.test(raw))return base+raw.replace(/^\\/+/, '');}catch{}return value;};\n  const remapNode=(node)=>{if(!(node instanceof Element)||node.hasAttribute('data-mf-internal'))return;['href','src','poster','action','data'].forEach((name)=>{const value=node.getAttribute(name);if(value&&/^\\/(?!\\/)/.test(value))node.setAttribute(name,map(value));});const srcset=node.getAttribute('srcset');if(srcset)node.setAttribute('srcset',srcset.split(',').map((part)=>{const bits=part.trim().split(/\\s+/);if(/^\\/(?!\\/)/.test(bits[0]||''))bits[0]=map(bits[0]);return bits.join(' ');}).join(', '));};\n  const observer=new MutationObserver((records)=>records.forEach((record)=>{if(record.type==='attributes')remapNode(record.target);record.addedNodes?.forEach((node)=>{if(!(node instanceof Element))return;remapNode(node);node.querySelectorAll?.('[href],[src],[poster],[action],[data],[srcset]').forEach(remapNode);});}));\n  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['href','src','poster','action','data','srcset']});\n  const nativeFetch=window.fetch?.bind(window);\n  if(nativeFetch)window.fetch=(input,init)=>{try{if(typeof input==='string'||input instanceof URL)return nativeFetch(map(String(input)),init);if(input instanceof Request){if(String(input.url).startsWith(base))return nativeFetch(input,init);const parsed=new URL(input.url);const raw=parsed.pathname+parsed.search+parsed.hash;const mapped=map(raw);if(mapped!==raw)return nativeFetch(new Request(mapped,input),init);}}catch{}return nativeFetch(input,init);};\n  const XHR=window.XMLHttpRequest;if(XHR){const open=XHR.prototype.open;XHR.prototype.open=function(method,url,...rest){return open.call(this,method,map(url),...rest);};}\n  const WorkerCtor=window.Worker;if(WorkerCtor){window.Worker=function(url,options){return new WorkerCtor(map(url),options);};window.Worker.prototype=WorkerCtor.prototype;}\n  const SharedWorkerCtor=window.SharedWorker;if(SharedWorkerCtor){window.SharedWorker=function(url,options){return new SharedWorkerCtor(map(url),options);};window.SharedWorker.prototype=SharedWorkerCtor.prototype;}\n  const push=history.pushState.bind(history),replace=history.replaceState.bind(history);history.pushState=(state,title,url)=>push(state,title,url==null?url:map(url));history.replaceState=(state,title,url)=>replace(state,title,url==null?url:map(url));\n})();\n<\\/script>`;
   }
 
-  function buildHostedHtml(entryPath, renderId, projectId) {
-    const record = state.project?.files.get(entryPath);
+  function buildHostedHtml(entryPath, renderId, projectId, project = state.project) {
+    const record = project?.files.get(entryPath);
     if (!record || typeof record.text !== 'string') return '<!doctype html><html><body></body></html>';
     const runtimeBase = hostedProjectBase(projectId);
     const doc = new DOMParser().parseFromString(record.text, 'text/html');
@@ -1113,52 +1126,64 @@
   }
 
   async function syncHostedProject(renderId) {
-    if (!state.hostedRuntime.ready || state.project?.mode !== 'folder') return null;
-    const projectId = hostedProjectId();
+    const project = state.project;
+    if (!state.hostedRuntime.ready || project?.mode !== 'folder') return null;
+    const projectId = hostedProjectId(project);
     const runtimeBase = hostedProjectBase(projectId);
     const cache = await caches.open(HOSTED_RUNTIME_CACHE);
+    if (state.project !== project || state.renderId !== renderId) return null;
     const existing = await cache.keys();
+    if (state.project !== project || state.renderId !== renderId) return null;
     const runtimePrefix = hostedProjectBase(projectId);
     const expectedUrls = new Set();
 
-    for (const record of state.project.files.values()) {
+    for (const record of project.files.values()) {
+      if (state.project !== project || state.renderId !== renderId) return null;
       const url = hostedPathUrl(record.path, projectId);
       expectedUrls.add(url);
       let body = null;
-      if (record.language === 'html' && typeof record.text === 'string') body = buildHostedHtml(record.path, renderId, projectId);
+      if (record.language === 'html' && typeof record.text === 'string') body = buildHostedHtml(record.path, renderId, projectId, project);
       else if (typeof record.text === 'string') {
         const kind = record.language === 'css' ? 'css' : record.language === 'js' ? 'js' : 'text';
         body = rewriteHostedRootRefs(record.text, runtimeBase, kind);
       } else if (record.file) body = await record.file.arrayBuffer();
+      if (state.project !== project || state.renderId !== renderId) return null;
 
       // Binary files restored from MF Code's local project snapshot may no longer
       // have a File handle after a page reload. Keep the previously cached copy
       // rather than replacing a valid asset with an empty response.
       if (body === null) {
         const cached = await cache.match(url, { ignoreSearch: true });
+        if (state.project !== project || state.renderId !== renderId) return null;
         if (cached) continue;
         body = '';
       }
       await cache.put(url, new Response(body, { status: 200, headers: { 'Content-Type': runtimeMime(record.path, record), 'Cache-Control': 'no-store', 'X-MF-Code-Project': projectId } }));
+      if (state.project !== project || state.renderId !== renderId) return null;
     }
 
+    if (state.project !== project || state.renderId !== renderId) return null;
     await Promise.all(existing
       .filter((request) => request.url.startsWith(runtimePrefix) && !expectedUrls.has(request.url.split('?')[0]))
       .map((request) => cache.delete(request)));
+    if (state.project !== project || state.renderId !== renderId) return null;
 
     state.hostedRuntime.projectId = projectId;
     state.hostedRuntime.baseUrl = runtimeBase;
-    return runtimeBase;
+    return { runtimeBase, projectId, project };
   }
 
   async function renderHostedPreview(renderId) {
     try {
-      const runtimeBase = await syncHostedProject(renderId);
-      if (!runtimeBase || state.renderId !== renderId) return false;
-      const entryPath = state.project.entryHtmlPath || [...state.project.files.values()].find((item) => item.language === 'html')?.path;
+      const synced = await syncHostedProject(renderId);
+      if (!synced || state.renderId !== renderId || state.project !== synced.project) return false;
+      const { projectId, project } = synced;
+      const entryPath = project.entryHtmlPath || [...project.files.values()].find((item) => item.language === 'html')?.path;
       if (!entryPath) return false;
-      const entryUrl = hostedPathUrl(entryPath, state.hostedRuntime.projectId);
+      const entryUrl = hostedPathUrl(entryPath, projectId);
       const url = `${entryUrl}?mf_render=${renderId}`;
+      if (state.renderId !== renderId || state.project !== project) return false;
+      state.hostedRuntime.projectId = projectId;
       state.hostedRuntime.renderUrl = url;
       preview.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
       preview.removeAttribute('srcdoc');
@@ -1168,7 +1193,7 @@
       }
       return true;
     } catch (error) {
-      setLiveState('FULL RUNTIME ERROR', true);
+      if (state.renderId === renderId) setLiveState('FULL RUNTIME ERROR', true);
       return false;
     }
   }
@@ -2838,8 +2863,10 @@
       entryHtmlPath: files.has(snapshot.entryHtmlPath) ? snapshot.entryHtmlPath : null,
       lastByLanguage: snapshot.lastByLanguage || {},
       directoryHandle: null,
-      detached: true
+      detached: true,
+      runtimeId: null
     };
+    state.project.runtimeId = createRuntimeProjectId(state.project);
     state.collapsedFolders = restoreTreeStateForProject(state.project, snapshot.collapsedFolders);
     applyAddonSnapshot(snapshot.addons || state.addonStates[addonProjectKey(state.project)] || null);
     state.code = { html: '', css: '', js: '' };
@@ -3366,8 +3393,10 @@ ${previewHtml}
       entryHtmlPath: firstHtml?.path || null,
       lastByLanguage: {},
       directoryHandle,
-      detached: !directoryHandle
+      detached: !directoryHandle,
+      runtimeId: null
     };
+    state.project.runtimeId = createRuntimeProjectId(state.project);
     state.collapsedFolders = restoreTreeStateForProject(state.project);
     restoreAddonsForProject();
     persistTreeState();

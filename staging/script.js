@@ -218,11 +218,6 @@
     let projectsTop=0;
     let projectProgress=0;
     let lastProjectProgress=0;
-    let settledProjects=0;
-    let lastRawProgress=0;
-    let isProjectAutoplaying=false;
-    let awaitingProjectSettle=false;
-    let projectAutoplayRaf=0;
     const progressSegments=[...document.querySelectorAll('.projects-progress-segment')];
     const projectDetails=[
       ['MIUNĀE','A skincare brand system built around time, tactility and restraint','Creative Direction'],
@@ -380,50 +375,10 @@
       stage.classList.toggle('is-released',p>=.999);
     };
     const projectRange=()=>Math.max(1,projects.scrollHeight-innerHeight);
-    const galleryStart=.08;
-    const projectSpan=(1-galleryStart)/images.length;
-    const projectStart=index=>galleryStart+projectSpan*index;
-    const projectEnd=index=>projectStart(index)+projectSpan;
-    const playProjectTransition=(index,direction)=>{
-      if(isProjectAutoplaying||reduce)return;
-      isProjectAutoplaying=true;
-      const from=direction>0?projectStart(index):projectEnd(index);
-      const to=direction>0?projectEnd(index):projectStart(index);
-      const startedAt=performance.now();
-      const duration=1800;
-      const tick=now=>{
-        const t=clamp((now-startedAt)/duration,0,1);
-        const eased=t*t*(3-2*t);
-        renderSequence(lerp(from,to,eased));
-        if(t<1){projectAutoplayRaf=requestAnimationFrame(tick);return;}
-        isProjectAutoplaying=false;
-        settledProjects=direction>0?index+1:index;
-        awaitingProjectSettle=true;
-        smooth.goTo(projectsTop+to*projectRange());
-      };
-      renderSequence(from);
-      projectAutoplayRaf=requestAnimationFrame(tick);
-    };
     const renderFromScroll=()=>{
       const projStart=projectsTop;
       const raw=clamp((scrollY-projStart)/projectRange(),0,1);
       projectProgress=raw;
-      if(isProjectAutoplaying)return;
-      const settledProgress=settledProjects?projectEnd(settledProjects-1):0;
-      if(awaitingProjectSettle){
-        renderSequence(settledProgress);
-        if(Math.abs(raw-settledProgress)<.012){awaitingProjectSettle=false;lastRawProgress=raw;}
-        return;
-      }
-      lastRawProgress=raw;
-      if(settledProjects<images.length&&raw>projectStart(settledProjects)+.002){
-        playProjectTransition(settledProjects,1);
-        return;
-      }
-      if(settledProjects>0&&raw<projectEnd(settledProjects-1)-.002){
-        playProjectTransition(settledProjects-1,-1);
-        return;
-      }
       renderSequence(raw);
     };
     const updateSequence=()=>{

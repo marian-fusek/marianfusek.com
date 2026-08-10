@@ -1066,19 +1066,39 @@
     return location.protocol === 'https:' && 'serviceWorker' in navigator && 'caches' in window;
   }
 
+  async function waitForHostedController(timeout = 2400) {
+    if (navigator.serviceWorker.controller) return true;
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        navigator.serviceWorker.removeEventListener('controllerchange', onChange);
+        resolve(value);
+      };
+      const onChange = () => finish(Boolean(navigator.serviceWorker.controller));
+      navigator.serviceWorker.addEventListener('controllerchange', onChange, { once: true });
+      window.setTimeout(() => finish(Boolean(navigator.serviceWorker.controller)), timeout);
+    });
+  }
+
   async function initHostedRuntime() {
     state.hostedRuntime.supported = hostedRuntimeCapable();
     if (!state.hostedRuntime.supported) return false;
     try {
       const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
       try { await registration.update(); } catch {}
-      await navigator.serviceWorker.ready;
-      state.hostedRuntime.registration = registration;
-      state.hostedRuntime.scope = registration.scope;
-      state.hostedRuntime.ready = true;
+      const readyRegistration = await navigator.serviceWorker.ready;
+      state.hostedRuntime.registration = readyRegistration || registration;
+      state.hostedRuntime.scope = (readyRegistration || registration).scope;
+      // Registration readiness alone is not enough: project URLs must actually be
+      // controlled before FULL PROJECT mode is allowed to take ownership.
+      const controlled = await waitForHostedController();
+      state.hostedRuntime.ready = Boolean(controlled);
       if (state.project?.mode === 'folder') renderPreview();
-      return true;
-    } catch {
+      return state.hostedRuntime.ready;
+    } catch (error) {
+      console.warn('N7-Code hosted runtime unavailable; using local compatibility preview.', error);
       state.hostedRuntime.ready = false;
       return false;
     }
@@ -1259,6 +1279,7 @@
       state.hostedRuntime.renderUrl = url;
       preview.dataset.projectSession = projectToken;
       preview.dataset.runtimeProject = projectId;
+      delete preview.dataset.runtimeFallback;
       preview.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
       preview.removeAttribute('srcdoc');
       preview.src = url;
@@ -1275,7 +1296,10 @@
       }
       return true;
     } catch (error) {
-      if (state.renderId === renderId && ownsProjectSession(project, projectToken)) setLiveState('FULL RUNTIME ERROR', true);
+      console.error('N7-Code FULL PROJECT render failed; falling back to compatibility preview.', error);
+      if (state.renderId === renderId && ownsProjectSession(project, projectToken)) {
+        state.hostedRuntime.ready = Boolean(navigator.serviceWorker?.controller && state.hostedRuntime.registration);
+      }
       return false;
     }
   }
@@ -1312,12 +1336,17 @@
       void renderHostedPreview(expectedRender, renderProject, renderProjectToken).then((usedHosted) => {
         if (!usedHosted && state.renderId === expectedRender && ownsProjectSession(renderProject, renderProjectToken)) {
           preview.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
+          preview.removeAttribute('src');
           preview.srcdoc = buildPreviewDocument(expectedRender);
+          preview.dataset.runtimeFallback = 'true';
+          setLiveState('LOCAL COMPAT · FALLBACK');
           writeDetachedPreview();
         }
       });
     } else {
       preview.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
+      preview.removeAttribute('src');
+      delete preview.dataset.runtimeFallback;
       preview.srcdoc = buildPreviewDocument(expectedRender);
       writeDetachedPreview();
     }

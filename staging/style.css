@@ -28,7 +28,7 @@
   --tracking-project-meta:.08em;
 }
 *{box-sizing:border-box}
-html{background:var(--bg);scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
+html{background:var(--bg);scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
 body{margin:0;background:linear-gradient(180deg,var(--bg-top),var(--bg));color:var(--ink);font-family:Geist,Arial,sans-serif;overflow-x:hidden;cursor:none}
 body.case-overlay-open{overflow:hidden}.case-overlay-open .site-menu{opacity:0;pointer-events:none}
 a,button{color:inherit;font:inherit}button{border:0;background:none;padding:0}

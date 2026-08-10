@@ -200,14 +200,39 @@
   let overlayInfoClone=null;
   let caseOverlayProjectIndex=-1;
   let restoreProjectVisuals=()=>{};
+  let caseTransitionFlyer=null;
   const closeCaseOverlay=()=>{
     if(!caseOverlay?.classList.contains('is-open'))return;
+    const returnIndex=caseOverlayProjectIndex;
+    projectDetailOpen=false;
+    images.forEach(image=>{image.style.removeProperty('transition');image.style.removeProperty('clip-path');});
+    restoreProjectVisuals();
+    const returnMask=masks[returnIndex];
+    const returnImage=images[returnIndex];
+    const sourceRect=returnImage?.getBoundingClientRect();
+    const overlayRect=caseOverlayMedia?.getBoundingClientRect();
+    let flyer=caseTransitionFlyer;
+    if(flyer){
+      const currentRect=flyer.getBoundingClientRect();
+      caseTransitionFlyer=null;
+      Object.assign(flyer.style,{left:`${currentRect.left}px`,top:`${currentRect.top}px`,width:`${currentRect.width}px`,height:`${currentRect.height}px`,transition:'none'});
+      void flyer.offsetWidth;
+    }else if(sourceRect&&overlayRect&&caseOverlayImage?.src){
+      flyer=caseOverlayImage.cloneNode(true);
+      flyer.className='case-transition-image';flyer.removeAttribute('id');
+      Object.assign(flyer.style,{left:`${overlayRect.left}px`,top:`${overlayRect.top}px`,width:`${overlayRect.width}px`,height:`${overlayRect.height}px`,transform:'none',clipPath:'none',opacity:'1'});
+      document.body.append(flyer);
+    }
+    if(flyer&&sourceRect){
+      if(returnMask)returnMask.style.visibility='hidden';
+      requestAnimationFrame(()=>Object.assign(flyer.style,{left:`${sourceRect.left}px`,top:`${sourceRect.top}px`,width:`${sourceRect.width}px`,height:`${sourceRect.height}px`,transition:'left 1.65s var(--ease),top 1.65s var(--ease),width 1.65s var(--ease),height 1.65s var(--ease)'}));
+    }
     caseOverlay.classList.remove('is-open');caseOverlay.setAttribute('aria-hidden','true');
     overlayInfoClone?.remove();overlayInfoClone=null;
     document.getElementById('projectsInfo')?.style.removeProperty('visibility');
-    masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.visibility='visible';mask.style.removeProperty('transition');});
-    images.forEach(image=>{image.style.removeProperty('transition');image.style.removeProperty('clip-path');});
-    document.body.classList.remove('case-overlay-open');projectDetailOpen=false;restoreProjectVisuals();
+    masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.removeProperty('transition');});
+    document.body.classList.remove('case-overlay-open');
+    setTimeout(()=>{flyer?.remove();if(returnMask)returnMask.style.visibility='visible';},1670);
   };
   caseOverlayClose?.addEventListener('click',closeCaseOverlay);
   addEventListener('keydown',event=>{if(event.key==='Escape')closeCaseOverlay();});
@@ -267,10 +292,11 @@
           flyer.removeAttribute('style');
           Object.assign(flyer.style,{left:`${sourceRect.left}px`,top:`${sourceRect.top}px`,right:'auto',bottom:'auto',width:`${sourceRect.width}px`,height:`${sourceRect.height}px`,transform:'none',clipPath:'none',opacity:'1'});
           document.body.append(flyer);
+          caseTransitionFlyer=flyer;
           mask.style.visibility='hidden';
           requestAnimationFrame(()=>{
             Object.assign(flyer.style,{left:`${targetRect.left}px`,top:`${targetRect.top}px`,width:`${targetRect.width}px`,height:`${targetRect.height}px`,transition:'left 1.65s var(--ease),top 1.65s var(--ease),width 1.65s var(--ease),height 1.65s var(--ease)'});
-            setTimeout(()=>{flyer.remove();caseOverlay.classList.remove('is-transitioning');},1670);
+            setTimeout(()=>{if(caseTransitionFlyer!==flyer)return;flyer.remove();caseTransitionFlyer=null;caseOverlay.classList.remove('is-transitioning');},1670);
           });
         });
       },1050);

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MF Code</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app" data-theme="light" data-code-font="geist">
+    <header class="topbar">
+      <nav class="view-tabs" aria-label="Code view">
+        <button class="view-tab is-active" type="button" data-view="html">HTML</button>
+        <button class="view-tab" type="button" data-view="css">CSS</button>
+        <button class="view-tab" type="button" data-view="js">JS</button>
+        <button class="view-tab" type="button" data-view="all">ALL</button>
+        <span class="tab-indicator" aria-hidden="true"></span>
+      </nav>
+
+      <div class="top-actions">
+        <button class="power-button" type="button" data-power-action="format" aria-label="Format current code">FORMAT</button>
+        <div class="project-control">
+          <button class="project-button" type="button" aria-haspopup="menu" aria-expanded="false">PROJECT</button>
+          <div class="project-menu" role="menu" hidden>
+            <button type="button" role="menuitem" data-project-action="open">OPEN</button>
+            <button type="button" role="menuitem" data-project-action="save">SAVE</button>
+            <button type="button" role="menuitem" data-project-action="reset">RESET</button>
+          </div>
+          <input class="project-file-input" type="file" accept=".mfcode,.json,.html,.htm,.css,.js,application/json,text/html,text/css,text/javascript,application/javascript" multiple hidden />
+        </div>
+        <button class="export-button" type="button" aria-label="Export as standalone HTML">EXPORT</button>
+        <button class="help-button" type="button" aria-label="Open help and shortcuts" aria-haspopup="dialog" aria-expanded="false">?</button>
+        <div class="font-selector" aria-label="Code font">
+          <button class="font-button is-active" type="button" data-font="geist" aria-label="Use Geist Mono">GM</button>
+          <button class="font-button" type="button" data-font="jetbrains" aria-label="Use JetBrains Mono">JB</button>
+        </div>
+        <button class="theme-toggle" type="button" aria-label="Switch to night mode">
+          <span class="theme-dot" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="Editor workspace">
+      <section class="editor-pane" aria-label="Code editor">
+        <div class="single-editor" data-single-editor>
+          <div class="code-surface">
+            <div class="line-numbers" aria-hidden="true"></div>
+            <pre class="code-highlight" aria-hidden="true"><code></code></pre>
+            <textarea class="code-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Code"></textarea>
+          </div>
+        </div>
+
+        <div class="all-editors" data-all-editors hidden>
+          <section class="code-section" data-language="html">
+            <div class="section-label">HTML</div>
+            <div class="code-surface">
+              <div class="line-numbers" aria-hidden="true"></div>
+              <pre class="code-highlight" aria-hidden="true"><code></code></pre>
+              <textarea class="code-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="HTML code"></textarea>
+            </div>
+          </section>
+          <div class="section-divider" aria-hidden="true"></div>
+          <section class="code-section" data-language="css">
+            <div class="section-label">CSS</div>
+            <div class="code-surface">
+              <div class="line-numbers" aria-hidden="true"></div>
+              <pre class="code-highlight" aria-hidden="true"><code></code></pre>
+              <textarea class="code-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="CSS code"></textarea>
+            </div>
+          </section>
+          <div class="section-divider" aria-hidden="true"></div>
+          <section class="code-section" data-language="js">
+            <div class="section-label">JS</div>
+            <div class="code-surface">
+              <div class="line-numbers" aria-hidden="true"></div>
+              <pre class="code-highlight" aria-hidden="true"><code></code></pre>
+              <textarea class="code-input" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="JavaScript code"></textarea>
+            </div>
+          </section>
+        </div>
+
+        <footer class="pane-footer">
+          <span class="footer-language">HTML</span>
+          <span class="footer-hint" aria-hidden="true"></span>
+        </footer>
+      </section>
+
+      <div class="workspace-divider" role="separator" aria-orientation="vertical" aria-label="Resize editor and preview" tabindex="0">
+        <span class="divider-line"></span>
+        <span class="divider-handle" aria-hidden="true"></span>
+      </div>
+
+      <section class="preview-pane" aria-label="Preview">
+        <div class="preview-stage">
+          <iframe class="preview-document" data-preview title="Live preview" sandbox="allow-scripts"></iframe>
+        </div>
+        <footer class="pane-footer preview-footer">
+          <span class="live-state"><span class="live-dot"></span> LIVE</span>
+          <div class="preview-controls" aria-label="Preview controls">
+            <div class="preview-sizes" aria-label="Preview size">
+              <button class="preview-size is-active" type="button" data-preview-size="desktop">DESKTOP</button>
+              <button class="preview-size" type="button" data-preview-size="tablet">TABLET</button>
+              <button class="preview-size" type="button" data-preview-size="mobile">MOBILE</button>
+            </div>
+            <span class="preview-control-divider" aria-hidden="true"></span>
+            <button class="preview-action" type="button" data-preview-action="refresh">REFRESH</button>
+            <button class="preview-action" type="button" data-preview-action="focus">FOCUS</button>
+          </div>
+        </footer>
+      </section>
+    </section>
+
+    <div class="find-bar" data-find-bar hidden>
+      <input class="find-input" type="text" autocomplete="off" spellcheck="false" aria-label="Find in code" placeholder="Find" />
+      <span class="find-count" aria-live="polite">0 / 0</span>
+      <button class="find-action" type="button" data-find-action="prev" aria-label="Previous match">↑</button>
+      <button class="find-action" type="button" data-find-action="next" aria-label="Next match">↓</button>
+      <button class="find-action" type="button" data-find-action="close" aria-label="Close find">ESC</button>
+    </div>
+
+    <div class="command-palette" data-command-palette hidden>
+      <div class="command-panel" role="dialog" aria-modal="true" aria-label="Command palette">
+        <input class="command-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type a command" aria-label="Command search" />
+        <div class="command-list" role="listbox"></div>
+        <div class="command-footer"><span>↑↓ NAVIGATE</span><span>↵ RUN</span><span>ESC CLOSE</span></div>
+      </div>
+    </div>
+
+    <div class="autocomplete" data-autocomplete hidden role="listbox"></div>
+
+    <div class="help-overlay" data-help-overlay hidden>
+      <section class="help-panel" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <header class="help-header">
+          <div>
+            <p class="help-kicker">MF CODE</p>
+            <h2 id="help-title">A quiet guide.</h2>
+          </div>
+          <button class="help-close" type="button" aria-label="Close help">ESC</button>
+        </header>
+
+        <div class="help-content">
+          <div class="help-intro">
+            <p class="help-label">START HERE</p>
+            <p class="help-copy">Write HTML, CSS and JavaScript on the left. The preview updates automatically. Use <strong>ALL</strong> when you want all three languages stacked together.</p>
+          </div>
+
+          <div class="help-columns">
+            <div class="help-column">
+              <section class="help-section">
+                <p class="help-label">MOST HANDY</p>
+                <div class="help-feature-list">
+                  <div class="help-feature"><span>LIVE PREVIEW</span><p>Changes appear automatically. CSS updates without reloading the page, so preview state and scroll stay put.</p></div>
+                  <div class="help-feature"><span>CODE ↔ PREVIEW</span><p>Click an element in the preview to jump to its HTML. Move through HTML to softly identify the matching preview element.</p></div>
+                  <div class="help-feature"><span>FORMAT + EMMET</span><p>Format keeps indentation tidy. In HTML/CSS, type an Emmet abbreviation and press Tab to expand it.</p></div>
+                  <div class="help-feature"><span>DIAGNOSTICS</span><p>Errors and warnings appear quietly in the gutter and footer. JavaScript reports exact runtime lines and messages.</p></div>
+                  <div class="help-feature"><span>HISTORY</span><p>Undo and redo survive reopening the editor. Drafts and interface preferences are also preserved locally.</p></div>
+                </div>
+              </section>
+
+              <section class="help-section help-tip">
+                <p class="help-label">QUICKEST WAY AROUND</p>
+                <p class="help-copy">Press <strong>⌘ K</strong> and type what you want to do. Most actions are available without reaching for a button.</p>
+              </section>
+            </div>
+
+            <div class="help-column">
+              <section class="help-section">
+                <p class="help-label">SHORTCUTS</p>
+                <div class="shortcut-list">
+                  <div><span>COMMAND PALETTE</span><kbd>⌘ K</kbd></div>
+                  <div><span>UNDO</span><kbd>⌘ Z</kbd></div>
+                  <div><span>REDO</span><kbd>⇧ ⌘ Z</kbd></div>
+                  <div><span>FIND</span><kbd>⌘ F</kbd></div>
+                  <div><span>COMMENT / UNCOMMENT</span><kbd>⌘ /</kbd></div>
+                  <div><span>DUPLICATE LINE</span><kbd>⌘ D</kbd></div>
+                  <div><span>MOVE LINE UP / DOWN</span><kbd>⌥ ↑ / ↓</kbd></div>
+                  <div><span>FORMAT</span><kbd>⌥ ⇧ F</kbd></div>
+                  <div><span>EMMET EXPAND</span><kbd>TAB</kbd></div>
+                </div>
+              </section>
+
+              <section class="help-section">
+                <p class="help-label">PROJECT + OUTPUT</p>
+                <div class="help-feature-list">
+                  <div class="help-feature"><span>PROJECT</span><p>Open HTML, CSS, JS or an MF Code project. Save preserves all three sources. Reset returns to the starter template.</p></div>
+                  <div class="help-feature"><span>EXPORT</span><p>Creates one standalone <code>index.html</code> containing your current HTML, CSS and JavaScript.</p></div>
+                  <div class="help-feature"><span>PREVIEW</span><p>Switch desktop, tablet and mobile widths, refresh manually, or use Focus to give the preview the workspace.</p></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <script src="vendor/prism.js"></script>
+  <script src="vendor/prism-markup.min.js"></script>
+  <script src="vendor/prism-css.min.js"></script>
+  <script src="vendor/prism-javascript.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

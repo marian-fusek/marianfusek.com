@@ -21,6 +21,7 @@
 
   <main>
     <section class="hero" id="hero">
+      <div class="hero-transition-copy" id="heroTransitionCopy" aria-hidden="true"><p>I wish it was way easier to tell you about all I've been through and how much creativity I feel looking ahead. But for now, let's just start with.</p></div>
       <div class="hero-info">
         <h1 class="hero-copy">
           <span>Brand, UI, AI &amp; Visual Designer</span>
@@ -56,19 +57,17 @@
     </section>
 
     <section class="projects" id="projects">
-      <div class="projects-spacer" aria-hidden="true">
-        <div class="projects-intro projects-intro--spacer" id="projectsIntro" aria-hidden="true">
-          <span class="projects-intro-piece">Recent projects</span>
-        </div>
-      </div>
-
       <div class="projects-stage" id="projectsStage">
         <div class="projects-shell projects-shell--sequence">
-          <div class="projects-frame" id="projectsFrame">
-            <img class="projects-image is-active" data-step="0" src="../media/projects/vault/01-nofakie-1.jpg" alt="Project image 1">
-            <img class="projects-image" data-step="1" src="../media/projects/vault/02-nofakie-2.jpg" alt="Project image 2">
-            <img class="projects-image" data-step="2" src="../media/projects/vault/03-one3.jpg" alt="Project image 3">
-            <img class="projects-image" data-step="3" src="../media/projects/vault/04-ennui.jpg" alt="Project image 4">
+      <div class="projects-intro projects-intro--overlay" id="projectsIntro" aria-hidden="true">
+        <span class="projects-intro-piece">Recent Works (〜1y)</span>
+        <span class="projects-info" id="projectsInfo">No Fake — identity / digital experience</span>
+      </div>
+      <div class="projects-frame" id="projectsFrame">
+        <div class="projects-image-mask"><img class="projects-image is-active" data-step="0" src="../media/projects/vault/01-nofakie-1.jpg" alt="Project image 1"></div>
+        <div class="projects-image-mask"><img class="projects-image" data-step="1" src="../media/projects/vault/02-nofakie-2.jpg" alt="Project image 2"></div>
+        <div class="projects-image-mask"><img class="projects-image" data-step="2" src="../media/projects/vault/03-one3.jpg" alt="Project image 3"></div>
+        <div class="projects-image-mask"><img class="projects-image" data-step="3" src="../media/projects/vault/04-ennui.jpg" alt="Project image 4"></div>
           </div>
           <div class="projects-progress" aria-hidden="true">
             <span class="projects-progress-segment"></span>

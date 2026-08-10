@@ -1,4 +1,21 @@
 (()=>{
+  const transitionCopyGlobal=document.getElementById('heroTransitionCopy');
+  if(transitionCopyGlobal){
+    const updateTransitionCopy=()=>{
+      const t=Math.max(0,Math.min(1,scrollY/(innerHeight*.95)));
+      const paragraph=transitionCopyGlobal.querySelector('p');
+      if(!paragraph)return;
+      transitionCopyGlobal.style.opacity=String(t>0?1-t:0);
+      if(!paragraph.dataset.split){
+        paragraph.innerHTML=paragraph.textContent.trim().split(/(\s+)/).map((part,i)=>part.trim()?`<span class="scroll-word" style="--i:${i}">${part}</span>`:part).join('');
+        paragraph.dataset.split='1';
+      }
+      const words=[...paragraph.querySelectorAll('.scroll-word')];
+      words.forEach((word,i)=>word.style.color=`rgba(26,26,26,${Math.max(0,Math.min(1,t*1.35-i/words.length))})`);
+    };
+    addEventListener('scroll',updateTransitionCopy,{passive:true});
+    updateTransitionCopy();
+  }
   'use strict';
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
@@ -65,6 +82,8 @@
   const nameWrap=document.getElementById('heroNameWrap');
   const name=document.getElementById('heroName');
   const monogram=document.querySelector('.hero-monogram');
+  const heroInfo=document.querySelector('.hero-info');
+  const hitbox=document.querySelector('.hero-hitbox');
   const letters=[...document.querySelectorAll('.name-letter')];
   const pointer={x:innerWidth/2,y:innerHeight*.78};
   const eased={x:pointer.x,y:pointer.y};
@@ -72,25 +91,47 @@
 
   function fitName(){
     if(!nameWrap||!name)return;
-    name.style.transform='scaleX(1)';
-    const available=nameWrap.clientWidth;
-    const measured=name.scrollWidth;
-    const fit=measured>0?Math.min(1,(available/measured)*.985):1;
-    name.style.transform=`scaleX(${fit})`;
+    name.style.transform='none';
+    const pad=getComputedStyle(document.documentElement).getPropertyValue('--pad').trim();
+    const padPx=parseFloat(pad)||32;
+    const available=Math.max(0,Math.min(innerWidth-(padPx*2)-12,innerWidth*.6));
+    name.style.maxWidth=`${available}px`;
   }
   addEventListener('resize',fitName,{passive:true});
   fitName();
+  if(monogram){
+    const fadeBottomMonogram=()=>{
+      const r=monogram.getBoundingClientRect();
+      const fade=clamp((r.top-innerHeight*.1)/(innerHeight*.4),0,1);
+      monogram.style.setProperty('--scroll-fade',String(fade));
+      monogram.classList.toggle('is-scroll-faded',fade<1);
+      if(heroInfo){
+        const ir=heroInfo.getBoundingClientRect();
+        const infoFade=clamp((ir.top-innerHeight*.1)/(innerHeight*.4),0,1);
+        heroInfo.style.setProperty('--scroll-fade',String(infoFade));
+        heroInfo.classList.toggle('is-scroll-faded',infoFade<1);
+      }
+    };
+    addEventListener('scroll',fadeBottomMonogram,{passive:true});
+    fadeBottomMonogram();
+  }
+  const navLogo=document.querySelector('.nav-logo');
+  if(navLogo){
+    navLogo.classList.add('is-scroll-reveal');
+    const revealNavLogo=()=>navLogo.classList.toggle('is-scroll-reveal-active',monogram?monogram.getBoundingClientRect().top<=0:false);
+    addEventListener('scroll',revealNavLogo,{passive:true}); revealNavLogo();
+  }
 
   function pressureTick(){
     eased.x+=(pointer.x-eased.x)/15;
     eased.y+=(pointer.y-eased.y)/15;
-    const maxDist=Math.max(innerWidth*.38,360);
+    const maxDist=Math.max(innerWidth*.24,260);
     for(const span of letters){
       const r=span.getBoundingClientRect();
       const cx=r.left+r.width/2,cy=r.top+r.height/2;
       const d=Math.hypot(eased.x-cx,eased.y-cy);
       const influence=clamp(1-d/maxDist,0,1);
-      const wght=Math.round(620-influence*180);
+      const wght=Math.round(680-influence*300);
       const sx=1.0-influence*.06;
       span.style.fontVariationSettings=`'wght' ${wght}`;
       span.style.transform=`scaleX(${sx})`;
@@ -103,14 +144,24 @@
   /* Only the MF monogram opens the name. Once expanded, the pointer can travel
      across the full name without closing it. */
   if(nameWrap&&monogram&&name){
-    const updateHoverState=e=>{
-      const r=monogram.getBoundingClientRect();
-      const overMono=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
-      nameWrap.classList.toggle('is-expanded',overMono);
+    const overRect=(e,el)=>{
+      const r=el.getBoundingClientRect();
+      return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
     };
-    monogram.addEventListener('pointerenter',updateHoverState,{passive:true});
-    monogram.addEventListener('pointermove',updateHoverState,{passive:true});
-    monogram.addEventListener('pointerleave',()=>nameWrap.classList.remove('is-expanded'),{passive:true});
+    const updateHoverState=e=>{
+      const overMono=overRect(e,hitbox)||overRect(e,monogram);
+      const overFull=nameWrap.classList.contains('is-expanded')&&overRect(e,name);
+      nameWrap.classList.toggle('is-expanded',overMono||overFull);
+    };
+    (hitbox||monogram).addEventListener('pointerenter',updateHoverState,{passive:true});
+    (hitbox||monogram).addEventListener('pointermove',updateHoverState,{passive:true});
+    name.addEventListener('pointerenter',updateHoverState,{passive:true});
+    name.addEventListener('pointermove',updateHoverState,{passive:true});
+    (hitbox||monogram).addEventListener('pointerleave',updateHoverState,{passive:true});
+    name.addEventListener('pointerleave',e=>{
+      if(!overRect(e,hitbox||monogram)) nameWrap.classList.remove('is-expanded');
+    },{passive:true});
+    addEventListener('pointermove',updateHoverState,{passive:true});
     nameWrap.addEventListener('focusout',()=>nameWrap.classList.remove('is-expanded'));
   }
 
@@ -135,10 +186,14 @@
   const stage=document.getElementById('projectsStage');
   const frame=document.getElementById('projectsFrame');
   const intro=document.getElementById('projectsIntro');
-  const images=frame?[...frame.querySelectorAll('.projects-image')]:[];
+    const images=frame?[...frame.querySelectorAll('.projects-image')]:[];
+    const masks=images.map(img=>img.parentElement);
   if(projects&&stage&&frame&&images.length){
     let seqRaf=0;
     let projectsTop=0;
+    let projectProgress=0;
+    let introAutoStarted=false;
+    let lastProjectProgress=0;
     const progressSegments=[...document.querySelectorAll('.projects-progress-segment')];
     const smoothstep=(edge0,edge1,x)=>{
       const t=clamp((x-edge0)/((edge1-edge0)||1e-6),0,1);
@@ -146,25 +201,53 @@
     };
     const renderSequence=(sequenceP)=>{
       const p=clamp(sequenceP,0,1);
-      const introP=clamp(p/.82,0,1);
+      lastProjectProgress=p;
+      const introP=clamp(p/.1,0,1);
       if(intro){
         const line=intro.querySelector('.projects-intro-piece');
-        if(line){
+        if(line&&p>=.35){
+          line.classList.remove('is-auto');
+          line.style.opacity='0';
+        }
+        if(line&&!line.classList.contains('is-auto')&&p<.08){
           const local=smoothstep(0,.9,introP);
           const fold=1-local;
-          line.style.opacity=String(p<.86?local:0);
-          line.style.transform=`rotateX(${92*fold}deg) translateY(${18*fold}px)`;
+          line.style.opacity=String(p<.14?local:0);
+          line.style.transform='none';
           line.style.filter=`blur(${1.4*fold}px)`;
         }
       }
       const steps=images.length;
-      const holdRatio=.72;
-      const openRatio=.28;
+      const holdRatio=.4;
+      const openRatio=.6;
       const unit=holdRatio+openRatio;
-      const timeline=p*steps*unit;
+      const galleryStart=.08;
+      const galleryP=clamp((p-galleryStart)/(1-galleryStart),0,1);
+      const timeline=galleryP*steps*unit;
       const activeIndex=Math.min(steps-1,Math.floor(timeline/unit));
       const within=timeline-activeIndex*unit;
       const open=smoothstep(0,1,clamp(within/openRatio,0,1));
+      const info=document.getElementById('projectsInfo');
+      const transitionCopy=document.getElementById('heroTransitionCopy');
+      if(transitionCopy){const fade=clamp(1-p/.08,0,1);transitionCopy.style.opacity=String(fade);}
+      if(info){
+        const meta=[
+          ['MIUNĀE','A SKINCARE BRAND SYSTEM BUILT AROUND TIME, TACTILITY AND RESTRAINT','CREATIVE DIRECTION'],
+          ['GoBaller','FOOTBALL COACHING APP FOR PLAYERS OF ALL AGES','BRAND, IOS APP'],
+          ['AIMS','THE MOST ADVANCED AI SEARCH FOR MUSIC CATALOGS','WEBSITE, BRAND REFRESH, MARKETING & SALES ASSETS'],
+          ['Fragments','WHATEVER I COULD FIND TO SHOW SOME VARIETY','RANDOM DESIGNS LOST IN TIME, EXPERIMENTS']
+        ][activeIndex]||[];
+        const key=meta.join('|');
+        if(info.dataset.copy!==key){
+          info.dataset.copy=key;
+          info.classList.remove('is-visible');
+          info.innerHTML=meta.map((text,i)=>`<span class="projects-info-col projects-info-col--${i} ${i===0?'type-project-title':'type-project-meta'}">${text}</span>`).join('');
+          void info.offsetWidth;
+        }
+      }
+      if(info) info.classList.toggle('is-visible',open>=.99);
+      if(intro) intro.classList.toggle('is-gallery-moving',open>0.01);
+      window.dispatchEvent(new CustomEvent('projects-shader-progress',{detail:{progress:galleryP,index:activeIndex,open,images:images.map(img=>img.currentSrc||img.src)}}));
       stage.dataset.step=String(activeIndex);
       progressSegments.forEach((seg,i)=>{
         const segTimeline=clamp((timeline-i*unit)/unit,0,1);
@@ -172,34 +255,74 @@
         seg.style.setProperty('--seg-fill',String(segFill));
       });
       images.forEach((img,i)=>{
+        const mask=masks[i];
         const before=i<activeIndex;
         const active=i===activeIndex;
         const next=i===activeIndex+1;
         const settle=before?1:active?open:0;
-        const zoom=before?1:active?lerp(1.28,1,settle):1.35;
-        const insetX=before?0:active?lerp(29,0,settle):29;
-        const insetY=before?0:active?lerp(21,0,settle):21;
-        const opacity=i===0?1:before?1:active?lerp(.35,1,smoothstep(0,.18,settle)):next?0:0;
+        const holdP=active?clamp((within-openRatio)/holdRatio,0,1):0;
+        const zoom=before?1:active?lerp(1.05,1,holdP):1.05;
+        const revealY=before?0:active?lerp(75,0,smoothstep(0,.96,settle)):75;
+        const revealLeft=before?0:25;
+        const galleryVisible=p>=galleryStart;
+        const opacity=!galleryVisible?0:before?1:active?lerp(.35,1,smoothstep(0,.18,settle)):next?0:0;
         img.classList.toggle('is-active',active||before);
         img.style.opacity=String(opacity);
         img.style.transform=`scale(${zoom})`;
-        img.style.clipPath=`inset(${insetY}% ${insetX}% ${insetY}% ${insetX}%)`;
+        img.style.transformOrigin='center bottom';
+        img.style.transition=galleryVisible?'opacity .85s var(--ease), clip-path .85s var(--ease), transform .85s var(--ease)':'none';
+        const revealBottom=active&&!before?lerp(100,0,smoothstep(0,.96,settle)):0;
+        img.style.clipPath='none';
+        if(mask){let maskClip='inset(100% 0 0 0)';if(before)maskClip='inset(0)';else if(active){const r=lerp(100,0,smoothstep(0,.96,settle));maskClip=i===0?`inset(${r}% 0 0 0)`:i===1?`inset(0 0 ${r}% 0)`:i===2?`inset(0 ${r}% 0 0)`: `inset(0 0 0 ${r}%)`;}mask.style.clipPath=maskClip;mask.style.zIndex=String(active?100+i:before?10+i:0);}
+        if(active&&!before){
+          const size=75;
+          img.style.width=`${size}%`;
+          img.style.height='auto';
+          img.style.left=`${100-size}%`;
+          img.style.right='auto';
+          img.style.top='auto';
+          img.style.bottom='var(--pad)';
+          img.style.objectFit='contain';
+        }else{
+          img.style.width='75%';img.style.height='auto';img.style.left='25%';img.style.top='auto';img.style.bottom='var(--pad)';img.style.objectFit='contain';
+        }
+        img.style.filter='saturate(.98) contrast(.98)';
         img.style.zIndex=String(active?100+i:before?10+i:0);
         img.style.pointerEvents='none';
       });
+      if(info){requestAnimationFrame(()=>{const target=masks[activeIndex],fr=frame.getBoundingClientRect(),shellRect=frame.parentElement.getBoundingClientRect(),navRect=document.querySelector('.site-nav')?.getBoundingClientRect(),ir=target&&target.getBoundingClientRect();if(ir){const menuBottom=navRect?.bottom||0;const metadataY=menuBottom+(ir.top-menuBottom)*.75;info.style.top=`${metadataY-shellRect.top}px`;info.style.left=`${fr.left-shellRect.left}px`;info.style.width=`${fr.width}px`;info.style.transform='none';}});}
       stage.classList.toggle('is-released',p>=.999);
+    };
+    const projectRange=()=>Math.max(1,projects.scrollHeight-innerHeight);
+    const renderFromScroll=()=>{
+      const projStart=projectsTop;
+      const raw=clamp((scrollY-projStart)/projectRange(),0,1);
+      projectProgress=raw;
+      renderSequence(raw);
     };
     const updateSequence=()=>{
       seqRaf=0;
-      const projStart=projectsTop-innerHeight;
-      const raw=clamp((scrollY-projStart)/(innerHeight*7.2),0,1);
-      renderSequence(raw);
+      renderFromScroll();
     };
     const requestSequenceUpdate=()=>{if(!seqRaf)seqRaf=requestAnimationFrame(updateSequence)};
     addEventListener('scroll',requestSequenceUpdate,{passive:true});
     addEventListener('resize',requestSequenceUpdate,{passive:true});
     const measure=()=>{projectsTop=projects.getBoundingClientRect().top+scrollY;};
     measure();
+    const startIntroAuto=()=>{
+      const line=intro.querySelector('.projects-intro-piece');
+      if(!line) return;
+      introAutoStarted=true;
+      line.classList.remove('is-auto');
+      void line.offsetWidth;
+      line.classList.add('is-auto');
+    };
+    const introObserver=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting&&entry.intersectionRatio>=.98) startIntroAuto();
+      });
+    },{threshold:[.98]});
+    introObserver.observe(stage.querySelector('.projects-shell')||stage);
     addEventListener('resize',measure,{passive:true});
     requestSequenceUpdate();
   }

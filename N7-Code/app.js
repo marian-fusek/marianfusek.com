@@ -147,6 +147,8 @@
     fonts: new Set(),
     addonStates: {},
     libraryFailures: new Set(),
+    projectSession: 0,
+    projectToken: '',
     hostedRuntime: { supported: false, ready: false, registration: null, scope: '', projectId: null, baseUrl: '', renderUrl: '', projectSerial: 0 }
   };
 
@@ -211,6 +213,45 @@
     if (!project || project.mode !== 'folder') return null;
     if (!project.runtimeId) project.runtimeId = createRuntimeProjectId(project);
     return project.runtimeId;
+  }
+
+  function makeProjectToken(project) {
+    state.projectSession += 1;
+    const entropy = (globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`).replace(/[^a-z0-9-]/gi, '').slice(0, 18);
+    return `s${state.projectSession.toString(36)}-${entropy}`;
+  }
+
+  async function retireHostedProject(projectId) {
+    if (!projectId || !('caches' in window)) return;
+    try {
+      const cache = await caches.open(HOSTED_RUNTIME_CACHE);
+      const prefix = hostedProjectBase(projectId);
+      const keys = await cache.keys();
+      await Promise.all(keys.filter((request) => request.url.startsWith(prefix)).map((request) => cache.delete(request)));
+    } catch {}
+  }
+
+  function beginProjectSession(project = state.project, { clearPreview = true } = {}) {
+    const previousProjectId = state.hostedRuntime.projectId;
+    const token = makeProjectToken(project);
+    state.projectToken = token;
+    if (project) {
+      project.sessionToken = token;
+      if (project.mode === 'folder') project.runtimeId = createRuntimeProjectId(project);
+    }
+    state.hostedRuntime.projectId = null;
+    state.hostedRuntime.baseUrl = '';
+    state.hostedRuntime.renderUrl = '';
+    state.previewReady = false;
+    if (clearPreview) {
+      try { preview.removeAttribute('srcdoc'); preview.src = 'about:blank'; } catch {}
+    }
+    if (previousProjectId) void retireHostedProject(previousProjectId);
+    return token;
+  }
+
+  function ownsProjectSession(project, token) {
+    return Boolean(project && state.project === project && state.projectToken === token && project.sessionToken === token);
   }
 
   function persistTreeState() {
@@ -765,17 +806,19 @@
   function previewBridge(renderId, options = {}) {
     const hosted = Boolean(options.hosted);
     const runtimeBase = String(options.runtimeBase || '');
+    const projectToken = String(options.projectToken || state.projectToken || '');
     return `<script>
 (() => {
   const hostedRuntime = ${hosted ? 'true' : 'false'};
   const runtimeBase = ${JSON.stringify(runtimeBase)};
+  const projectToken = ${JSON.stringify(projectToken)};
   const lineFrom = (error) => {
     const stack = String(error?.stack || '');
     const match = stack.match(/(?:mf-user\.js|mf-project\/[^:\s]+):(\d+):/);
     return match ? Number(match[1]) : null;
   };
   const host = window.opener && !window.opener.closed ? window.opener : parent;
-  const send = (type, message = '', line = null, extra = {}) => host.postMessage({ source: 'mf-preview', type, message, line, renderId: ${renderId}, ...extra }, '*');
+  const send = (type, message = '', line = null, extra = {}) => host.postMessage({ source: 'mf-preview', type, message, line, renderId: ${renderId}, projectToken, ...extra }, '*');
   window.__mfLibPromises = window.__mfLibPromises || [];
   window.__mfLibraryError = (name) => send('library-error', String(name || 'library'));
   // Sandboxed previews intentionally keep an opaque origin for safety. Some real
@@ -996,7 +1039,7 @@
   }
 
 
-  const HOSTED_RUNTIME_CACHE = 'mf-code-runtime-v1';
+  const HOSTED_RUNTIME_CACHE = 'mf-code-runtime-v2';
 
   function hostedRuntimeCapable() {
     return location.protocol === 'https:' && 'serviceWorker' in navigator && 'caches' in window;
@@ -1007,6 +1050,7 @@
     if (!state.hostedRuntime.supported) return false;
     try {
       const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+      try { await registration.update(); } catch {}
       await navigator.serviceWorker.ready;
       state.hostedRuntime.registration = registration;
       state.hostedRuntime.scope = registration.scope;
@@ -1114,7 +1158,7 @@
     });
 
     if (doc.body) doc.body.innerHTML = annotateHtmlForPreview(doc.body.innerHTML || '');
-    const bridgeMarkup = `${previewBridge(renderId, { hosted: true, runtimeBase })}${hostedCompatScript(runtimeBase)}${addonHeadHtml()}`;
+    const bridgeMarkup = `${previewBridge(renderId, { hosted: true, runtimeBase, projectToken: project?.sessionToken || state.projectToken })}${hostedCompatScript(runtimeBase)}${addonHeadHtml()}`;
     if (doc.head) doc.head.insertAdjacentHTML('afterbegin', bridgeMarkup);
     if (doc.body) doc.body.insertAdjacentHTML('beforeend', '<script data-mf-internal>window.__mfPrepareInspect?.();<\\/script>');
 
@@ -1125,20 +1169,19 @@
     return `${doctype}\n<html${htmlAttrs ? ' '+htmlAttrs : ''}>\n<head>${head}</head>\n<body${bodyAttrs ? ' '+bodyAttrs : ''}>${body}</body>\n</html>`;
   }
 
-  async function syncHostedProject(renderId) {
-    const project = state.project;
-    if (!state.hostedRuntime.ready || project?.mode !== 'folder') return null;
+  async function syncHostedProject(renderId, project, projectToken) {
+    if (!state.hostedRuntime.ready || project?.mode !== 'folder' || !ownsProjectSession(project, projectToken)) return null;
     const projectId = hostedProjectId(project);
     const runtimeBase = hostedProjectBase(projectId);
     const cache = await caches.open(HOSTED_RUNTIME_CACHE);
-    if (state.project !== project || state.renderId !== renderId) return null;
+    if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
     const existing = await cache.keys();
-    if (state.project !== project || state.renderId !== renderId) return null;
+    if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
     const runtimePrefix = hostedProjectBase(projectId);
     const expectedUrls = new Set();
 
     for (const record of project.files.values()) {
-      if (state.project !== project || state.renderId !== renderId) return null;
+      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
       const url = hostedPathUrl(record.path, projectId);
       expectedUrls.add(url);
       let body = null;
@@ -1147,44 +1190,46 @@
         const kind = record.language === 'css' ? 'css' : record.language === 'js' ? 'js' : 'text';
         body = rewriteHostedRootRefs(record.text, runtimeBase, kind);
       } else if (record.file) body = await record.file.arrayBuffer();
-      if (state.project !== project || state.renderId !== renderId) return null;
+      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
 
-      // Binary files restored from MF Code's local project snapshot may no longer
-      // have a File handle after a page reload. Keep the previously cached copy
-      // rather than replacing a valid asset with an empty response.
       if (body === null) {
         const cached = await cache.match(url, { ignoreSearch: true });
-        if (state.project !== project || state.renderId !== renderId) return null;
+        if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
         if (cached) continue;
         body = '';
       }
-      await cache.put(url, new Response(body, { status: 200, headers: { 'Content-Type': runtimeMime(record.path, record), 'Cache-Control': 'no-store', 'X-MF-Code-Project': projectId } }));
-      if (state.project !== project || state.renderId !== renderId) return null;
+      await cache.put(url, new Response(body, { status: 200, headers: {
+        'Content-Type': runtimeMime(record.path, record),
+        'Cache-Control': 'no-store',
+        'X-MF-Code-Project': projectId,
+        'X-MF-Code-Session': projectToken
+      } }));
+      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
     }
 
-    if (state.project !== project || state.renderId !== renderId) return null;
     await Promise.all(existing
       .filter((request) => request.url.startsWith(runtimePrefix) && !expectedUrls.has(request.url.split('?')[0]))
       .map((request) => cache.delete(request)));
-    if (state.project !== project || state.renderId !== renderId) return null;
+    if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
 
     state.hostedRuntime.projectId = projectId;
     state.hostedRuntime.baseUrl = runtimeBase;
-    return { runtimeBase, projectId, project };
+    return { runtimeBase, projectId, project, projectToken };
   }
 
-  async function renderHostedPreview(renderId) {
+  async function renderHostedPreview(renderId, project, projectToken) {
     try {
-      const synced = await syncHostedProject(renderId);
-      if (!synced || state.renderId !== renderId || state.project !== synced.project) return false;
-      const { projectId, project } = synced;
+      const synced = await syncHostedProject(renderId, project, projectToken);
+      if (!synced || state.renderId !== renderId || !ownsProjectSession(project, projectToken)) return false;
+      const { projectId } = synced;
       const entryPath = project.entryHtmlPath || [...project.files.values()].find((item) => item.language === 'html')?.path;
       if (!entryPath) return false;
       const entryUrl = hostedPathUrl(entryPath, projectId);
-      const url = `${entryUrl}?mf_render=${renderId}`;
-      if (state.renderId !== renderId || state.project !== project) return false;
+      const url = `${entryUrl}?mf_render=${renderId}&mf_session=${encodeURIComponent(projectToken)}`;
+      if (state.renderId !== renderId || !ownsProjectSession(project, projectToken)) return false;
       state.hostedRuntime.projectId = projectId;
       state.hostedRuntime.renderUrl = url;
+      preview.dataset.projectSession = projectToken;
       preview.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
       preview.removeAttribute('srcdoc');
       preview.src = url;
@@ -1193,7 +1238,7 @@
       }
       return true;
     } catch (error) {
-      if (state.renderId === renderId) setLiveState('FULL RUNTIME ERROR', true);
+      if (state.renderId === renderId && ownsProjectSession(project, projectToken)) setLiveState('FULL RUNTIME ERROR', true);
       return false;
     }
   }
@@ -1223,10 +1268,12 @@
     recoverPreviewButton.hidden = true;
     setLiveState('UPDATING');
     const expectedRender = state.renderId;
+    const renderProject = state.project;
+    const renderProjectToken = state.projectToken || renderProject?.sessionToken || '';
 
-    if (state.project?.mode === 'folder' && state.hostedRuntime.ready) {
-      void renderHostedPreview(expectedRender).then((usedHosted) => {
-        if (!usedHosted && state.renderId === expectedRender) {
+    if (renderProject?.mode === 'folder' && state.hostedRuntime.ready) {
+      void renderHostedPreview(expectedRender, renderProject, renderProjectToken).then((usedHosted) => {
+        if (!usedHosted && state.renderId === expectedRender && ownsProjectSession(renderProject, renderProjectToken)) {
           preview.setAttribute('sandbox', 'allow-scripts allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
           preview.srcdoc = buildPreviewDocument(expectedRender);
           writeDetachedPreview();
@@ -1261,20 +1308,6 @@
     });
   }
 
-
-  function updateCode(language, value, container, options = {}) {
-    if (value === state.code[language]) {
-      syncEditor(container, language);
-      return;
-    }
-    recordHistory(language, Boolean(options.coalesce));
-    state.code[language] = value;
-    if (language === 'js') state.errorLine.js = null;
-    updateDiagnostics(language);
-    syncEditor(container, language);
-    persistDraftSoon();
-    requestPreviewUpdate(language);
-  }
 
   function applyView(view, animate = true) {
     state.view = view;
@@ -2834,11 +2867,13 @@
     if (!snapshot || snapshot.mode === 'simple') {
       if (validCode(snapshot?.code)) state.code = { ...snapshot.code };
       state.project = simpleProjectFromCode();
+      beginProjectSession(state.project, { clearPreview: false });
       applyAddonSnapshot(snapshot?.addons || null);
       return;
     }
     if (snapshot.mode !== 'folder' || !Array.isArray(snapshot.files)) {
       state.project = simpleProjectFromCode();
+      beginProjectSession(state.project, { clearPreview: false });
       return;
     }
     const files = new Map();
@@ -2866,7 +2901,7 @@
       detached: true,
       runtimeId: null
     };
-    state.project.runtimeId = createRuntimeProjectId(state.project);
+    beginProjectSession(state.project, { clearPreview: false });
     state.collapsedFolders = restoreTreeStateForProject(state.project, snapshot.collapsedFolders);
     applyAddonSnapshot(snapshot.addons || state.addonStates[addonProjectKey(state.project)] || null);
     state.code = { html: '', css: '', js: '' };
@@ -2891,7 +2926,7 @@
     const draft = safeJsonParse(safeStorageGet(STORAGE.draft));
     if (validCode(draft?.code)) state.code = { ...draft.code };
     if (draft?.project) restoreProjectSnapshot(draft.project);
-    else state.project = simpleProjectFromCode();
+    else { state.project = simpleProjectFromCode(); beginProjectSession(state.project, { clearPreview: false }); }
     restoreAddonsForProject(draft?.project?.addons || draft?.addons || null);
 
     const prefs = safeJsonParse(safeStorageGet(STORAGE.prefs));
@@ -3003,7 +3038,7 @@
   }
 
   function renderFileTree() {
-    if (!state.project) state.project = simpleProjectFromCode();
+    if (!state.project) { state.project = simpleProjectFromCode(); beginProjectSession(state.project, { clearPreview: false }); }
     fileTreeTitle.textContent = state.project.name.toUpperCase();
     fileTreeList.innerHTML = '';
     const files = [...state.project.files.values()].sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true }));
@@ -3346,6 +3381,7 @@ ${previewHtml}
     ASSET_URLS.clear();
     state.code = { ...code };
     state.project = simpleProjectFromCode();
+    beginProjectSession(state.project);
     applyAddonSnapshot(addons);
     state.addonStates.simple = addonSnapshot();
     state.view = 'html';
@@ -3396,7 +3432,7 @@ ${previewHtml}
       detached: !directoryHandle,
       runtimeId: null
     };
-    state.project.runtimeId = createRuntimeProjectId(state.project);
+    beginProjectSession(state.project);
     state.collapsedFolders = restoreTreeStateForProject(state.project);
     restoreAddonsForProject();
     persistTreeState();
@@ -3787,6 +3823,7 @@ ${previewHtml}
     const fromDetached = isDetachedPreviewOpen() && event.source === state.detachedWindow;
     if ((!fromEmbedded && !fromDetached) || event.data?.source !== 'mf-preview') return;
     if (event.data.renderId !== state.renderId) return;
+    if (event.data.projectToken && event.data.projectToken !== state.projectToken) return;
     if (event.data.type === 'bridge-ready' && !liveState.classList.contains('is-error')) {
       state.previewReady = true;
       setLiveState('LIVE');

@@ -1,6 +1,6 @@
 'use strict';
 
-const RUNTIME_CACHE = 'mf-code-runtime-v1';
+const RUNTIME_CACHE = 'mf-code-runtime-v2';
 const RUNTIME_MARKER = '/__mf_project__/';
 
 self.addEventListener('install', (event) => {
@@ -8,7 +8,11 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key.startsWith('mf-code-runtime-') && key !== RUNTIME_CACHE).map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 function runtimeRequestUrl(requestUrl) {

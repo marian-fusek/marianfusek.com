@@ -206,6 +206,7 @@
               <p class="library-label">GOOGLE FONTS</p>
               <span>400 · 500 · 600</span>
             </div>
+            <p class="font-library-note">Adds the font to preview. Apply it in CSS.</p>
             <label class="font-search-wrap">
               <span class="sr-only">Search Google Fonts</span>
               <input class="font-library-search" type="text" autocomplete="off" spellcheck="false" placeholder="Search fonts" aria-label="Search Google Fonts" />
@@ -241,7 +242,7 @@
                   <div class="help-feature"><span>LIVE PREVIEW</span><p>Changes appear automatically. CSS updates without reloading the page, so preview state and scroll stay put.</p></div>
                   <div class="help-feature"><span>CODE ↔ PREVIEW</span><p>Click an element in the preview to jump to its HTML. Move through HTML to softly identify the matching preview element.</p></div>
                   <div class="help-feature"><span>FORMAT + EMMET</span><p>Format keeps indentation tidy. In HTML/CSS, type an Emmet abbreviation and press Tab to expand it.</p></div>
-                  <div class="help-feature"><span>LIBRARIES</span><p>TOOLS → LIBRARIES can preload curated front-end libraries and Google Fonts into the preview. Project dependencies are detected so nothing is injected twice.</p></div>
+                  <div class="help-feature"><span>LIBRARIES</span><p>TOOLS → LIBRARIES can preload curated front-end libraries and Google Fonts into the preview. IN PROJECT means the dependency already exists in the opened project, so N7-Code never injects a duplicate. Fonts are loaded into preview and applied through your CSS.</p></div>
                   <div class="help-feature"><span>DIAGNOSTICS</span><p>Errors and warnings appear quietly in the gutter and footer. JavaScript reports exact runtime lines and messages.</p></div>
                   <div class="help-feature"><span>HISTORY</span><p>Undo and redo survive reopening the editor. Drafts and interface preferences are also preserved locally.</p></div>
                 </div>
@@ -306,6 +307,12 @@
   <script src="vendor/prism-markup.min.js"></script>
   <script src="vendor/prism-css.min.js"></script>
   <script src="vendor/prism-javascript.min.js"></script>
-  <script src="app.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/preview.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/compat-runtime.js"></script>
+  <script src="js/projects.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

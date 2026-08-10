@@ -1,7 +1,7 @@
 'use strict';
 
-const RUNTIME_CACHE = 'mf-code-runtime-v2';
-const RUNTIME_MARKER = '/__mf_project__/';
+const RUNTIME_CACHE = 'n7-code-runtime-v3';
+const RUNTIME_MARKER = '/__n7_project__/';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting());
@@ -10,7 +10,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((key) => key.startsWith('mf-code-runtime-') && key !== RUNTIME_CACHE).map((key) => caches.delete(key)));
+    await Promise.all(keys.filter((key) => (key.startsWith('mf-code-runtime-') || key.startsWith('n7-code-runtime-')) && key !== RUNTIME_CACHE).map((key) => caches.delete(key)));
     await self.clients.claim();
   })());
 });

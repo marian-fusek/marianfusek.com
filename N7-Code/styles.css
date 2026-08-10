@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap");
 
 :root {
   font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -12,7 +12,7 @@
 
 * { box-sizing: border-box; }
 
-html, body { margin: 0; min-width: 920px; min-height: 100%; }
+html, body { margin: 0; min-width: 920px;  }
 body { min-height: 100vh; overflow: hidden; }
 button, textarea { font: inherit; }
 button { color: inherit; }
@@ -46,10 +46,10 @@ button { color: inherit; }
   --syntax-number: #8a745f;
   --syntax-function: #526f86;
   --syntax-property: #596f8b;
-  width: 100vw;
-  height: 100vh;
+  
+  
   display: grid;
-  grid-template-rows: 66px minmax(0, 1fr);
+  
   color: var(--ink);
   background:
     radial-gradient(circle at 12% 7%, var(--atmo-peach), transparent 28%),
@@ -59,7 +59,7 @@ button { color: inherit; }
   transition:
     color 980ms var(--ease-slow),
     background 980ms var(--ease-slow);
-  position: relative;
+  
   isolation: isolate;
 }
 
@@ -126,7 +126,7 @@ button { color: inherit; }
   align-items: center;
   justify-content: space-between;
   padding: 0 22px 0 26px;
-  border-bottom: 1px solid var(--line);
+  
   background: rgba(255, 255, 255, .14);
   backdrop-filter: blur(24px) saturate(112%);
   -webkit-backdrop-filter: blur(24px) saturate(112%);
@@ -307,7 +307,7 @@ button { color: inherit; }
 .app[data-theme="dark"] .theme-dot { transform: rotate(146deg); }
 
 .workspace {
-  min-height: 0;
+  
   display: grid;
   --files-width: 0px;
   grid-template-columns: var(--files-width) minmax(320px, var(--editor-width, 50%)) 1px minmax(320px, 1fr);
@@ -316,16 +316,16 @@ button { color: inherit; }
   -webkit-backdrop-filter: blur(16px) saturate(105%);
   transition: grid-template-columns 820ms var(--ease-slow), background var(--motion-slow) var(--ease-slow);
 }
-.workspace.has-files { --files-width: 176px; }
+
 
 .file-tree {
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
+  
   display: grid;
   grid-template-rows: minmax(0, 1fr) 38px;
   background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border-right: 1px solid transparent;
+  
   opacity: 0;
   pointer-events: none;
   transform: translateX(-7px);
@@ -335,10 +335,10 @@ button { color: inherit; }
   opacity: 1;
   pointer-events: auto;
   transform: translateX(0);
-  border-right-color: var(--line);
+  
 }
 .file-tree-body {
-  min-width: 176px;
+  
   overflow: auto;
   padding: 23px 14px 18px;
 }
@@ -366,7 +366,7 @@ button { color: inherit; }
 .file-tree-item:hover { color: var(--ink); background: var(--hover); padding-left: 13px; }
 .file-tree-item.is-active { color: var(--ink); background: var(--hover); }
 .file-tree-footer {
-  min-width: 176px;
+  
   display: flex;
   align-items: center;
   padding: 0 24px;
@@ -555,7 +555,7 @@ button { color: inherit; }
   -webkit-text-fill-color: transparent;
 }
 
-.app.has-highlighting .code-input::selection { -webkit-text-fill-color: transparent; }
+
 
 .token.comment,
 .token.prolog,
@@ -594,13 +594,7 @@ button { color: inherit; }
   border-radius: 22px;
   background: rgba(255, 255, 255, .82);
   box-shadow: 0 24px 80px rgba(59, 77, 100, .065);
-  transition:
-    width 820ms var(--ease-slow),
-    height 820ms var(--ease-slow),
-    background 980ms var(--ease-slow),
-    border-color 980ms var(--ease-slow),
-    box-shadow 980ms var(--ease-slow),
-    transform 760ms var(--ease-slow);
+  
 }
 
 .preview-document:hover {
@@ -813,14 +807,7 @@ button { color: inherit; }
   letter-spacing: .055em;
   transition: color 420ms var(--ease-slow), background 520ms var(--ease-slow);
 }
-.command-item:hover,
-.command-item.is-active {
-  color: var(--ink);
-  background:
-    radial-gradient(90% 150% at 9% 44%, var(--menu-glow-blue), transparent 58%),
-    radial-gradient(70% 130% at 68% 110%, var(--menu-glow-mint), transparent 62%),
-    radial-gradient(66% 125% at 102% -8%, var(--menu-glow-peach), transparent 64%);
-}
+
 .command-shortcut { color: var(--faint); font-weight: 400; }
 .command-footer { height: 38px; display: flex; align-items: center; gap: 15px; padding: 0 20px 2px; color: var(--faint); font: 500 8px/1 "Geist", sans-serif; letter-spacing: .06em; }
 
@@ -1051,8 +1038,7 @@ button:focus-visible,
 }
 .footer-hint:not(:empty) { opacity: .9; }
 
-/* Build 17.1 — real project tree */
-.workspace.has-files { --files-width: 214px; }
+
 .file-tree-body,
 .file-tree-footer { min-width: 214px; }
 .file-tree-list { display: grid; gap: 1px; }
@@ -1070,15 +1056,14 @@ button:focus-visible,
   cursor: default;
   text-align: left;
   font: 400 10.5px/1 var(--code-font, "Geist Mono"), ui-monospace, monospace;
-  transition: color 560ms var(--ease-slow), background 760ms var(--ease-slow), padding-left 760ms var(--ease-slow), opacity 560ms var(--ease-slow);
+  
 }
 button.file-tree-row { cursor: pointer; }
-button.file-tree-row:hover,
-button.file-tree-row:focus-visible { color: var(--ink); background: var(--hover); }
-.file-tree-row.is-active { color: var(--ink); background: var(--hover); }
+
+
 .file-tree-row.is-folder { color: color-mix(in srgb, var(--muted) 86%, var(--ink)); font-family: "Geist", sans-serif; font-weight: 500; letter-spacing: .015em; }
 .file-tree-row.is-muted { opacity: .52; }
-.file-tree-caret { width: 8px; flex: 0 0 8px; color: var(--faint); transform: rotate(90deg); transition: transform 520ms var(--ease-slow); }
+.file-tree-caret { width: 8px; flex: 0 0 8px; color: var(--faint); transform: rotate(90deg);  }
 .file-tree-row.is-collapsed .file-tree-caret { transform: rotate(0deg); }
 .file-tree-spacer { width: 8px; flex: 0 0 8px; }
 .file-tree-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1091,28 +1076,27 @@ button.file-tree-row:focus-visible { color: var(--ink); background: var(--hover)
   display: grid;
   place-items: center;
   padding: 24px;
-  background: rgba(238, 244, 248, .18);
-  backdrop-filter: blur(9px);
-  -webkit-backdrop-filter: blur(9px);
+  
+  
+  
 }
-.app[data-theme="dark"] .project-switch-overlay { background: rgba(9, 12, 16, .22); }
+
 .project-switch-overlay[hidden] { display: none; }
 .project-switch-card {
-  width: min(430px, calc(100vw - 40px));
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 24px;
-  background: var(--surface-solid);
-  box-shadow: 0 24px 80px rgba(59, 77, 100, .07);
+  
+  
+  
+  
+  
+  
   animation: command-in 520ms var(--ease-slow) both;
 }
 .project-switch-kicker { margin: 0 0 18px; color: var(--faint); font: 500 9px/1 "Geist", sans-serif; letter-spacing: .08em; }
 .project-switch-card h2 { margin: 0; color: var(--ink); font: 500 15px/1.1 "Geist", sans-serif; letter-spacing: .04em; }
-.project-switch-copy { margin: 10px 0 24px; color: var(--muted); font: 400 11px/1.55 "Geist", sans-serif; }
-.project-switch-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.project-switch-actions button { height: 32px; border: 0; border-radius: 9px; padding: 0 10px; background: transparent; color: var(--faint); cursor: pointer; font: 500 9px/1 "Geist", sans-serif; letter-spacing: .07em; transition: color 560ms var(--ease-slow), background 720ms var(--ease-slow); }
-.project-switch-actions button:hover,
-.project-switch-actions button:focus-visible { color: var(--ink); background: var(--hover); }
+.project-switch-copy {  color: var(--muted); font: 400 11px/1.55 "Geist", sans-serif; }
+.project-switch-actions { display: flex; justify-content: flex-end;  }
+.project-switch-actions button {      color: var(--faint); cursor: pointer; font: 500 9px/1 "Geist", sans-serif; letter-spacing: .07em;  }
+
 
 .app.is-drop-target::after {
   content: "DROP TO OPEN";
@@ -1166,7 +1150,6 @@ button.file-tree-row:focus-visible { color: var(--ink); background: var(--hover)
 }
 
 
-/* Build 17.3 — real-project polish */
 .workspace { --tree-width: 214px; }
 .workspace.has-files { --files-width: var(--tree-width); }
 .file-tree {
@@ -1318,35 +1301,19 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 }
 
 /* Project-open confirmation: same quiet instrument language as the editor. */
-.project-switch-overlay {
-  background: color-mix(in srgb, var(--surface-solid) 20%, transparent);
-  backdrop-filter: blur(18px) saturate(112%);
-  -webkit-backdrop-filter: blur(18px) saturate(112%);
-}
+
 .project-switch-card {
-  width: min(450px, calc(100vw - 40px));
+  
   border-color: color-mix(in srgb, var(--line-hover) 48%, var(--line));
-  border-radius: 20px;
-  padding: 26px;
-  background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
-  box-shadow: 0 30px 100px color-mix(in srgb, var(--ink) 7%, transparent);
+  
+  
+  
+  
 }
-.project-switch-kicker { margin-bottom: 20px; }
-.project-switch-copy { margin: 11px 0 27px; max-width: 360px; }
-.project-switch-actions { gap: 8px; align-items: center; }
-.project-switch-actions button {
-  height: 34px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 0 11px;
-  background: transparent;
-  transition:
-    color 620ms var(--ease-slow),
-    background 760ms var(--ease-slow),
-    border-color 760ms var(--ease-slow),
-    box-shadow 820ms var(--ease-slow),
-    transform 760ms var(--ease-slow);
-}
+
+
+.project-switch-actions {  align-items: center; }
+
 .project-switch-actions [data-project-switch-action="cancel"] { color: var(--faint); }
 .project-switch-actions [data-project-switch-action="confirm"] {
   color: var(--ink);
@@ -1356,8 +1323,8 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 }
 .project-switch-actions button:hover,
 .project-switch-actions button:focus-visible {
-  color: var(--ink);
-  background: color-mix(in srgb, var(--hover) 78%, transparent);
+  
+  
   transform: translateY(-1px);
 }
 .project-switch-actions [data-project-switch-action="confirm"]:hover,
@@ -1372,7 +1339,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   .file-tree-resizer { display: none; }
 }
 
-/* Build 18.1 resilience: never double-render source if Prism is unavailable. */
 .app:not(.has-highlighting) .code-highlight { display: none; }
 .app:not(.has-highlighting) .code-input {
   color: var(--code-plain);
@@ -1402,7 +1368,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   background-clip: padding-box;
 }
 
-/* Build 19 — one canonical seam between chrome and workspace. */
 .topbar { border-bottom: 0; box-shadow: none; }
 .workspace { position: relative; }
 .workspace::before {
@@ -1491,7 +1456,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   .preview-recovery-menu button { transition-duration: 1ms !important; }
 }
 
-/* Build 20 — optional tools + curated libraries. */
 .sr-only {
   position: absolute !important;
   width: 1px !important;
@@ -1572,28 +1536,28 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .library-overlay[hidden] { display: none; }
 .library-overlay.is-open { opacity: 1; }
 .library-panel {
-  width: min(900px, calc(100vw - 52px));
-  max-height: min(720px, calc(100vh - 52px));
+  
+  
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--surface-solid) 91%, transparent);
-  box-shadow: 0 26px 80px rgba(21,28,38,.09);
+  
+  
+  
+  
   backdrop-filter: blur(34px) saturate(112%);
   -webkit-backdrop-filter: blur(34px) saturate(112%);
   opacity: 0;
-  transform: translateY(9px) scale(.995);
-  filter: blur(3px);
-  transition: opacity 520ms var(--ease-slow), transform 760ms var(--ease-slow), filter 620ms var(--ease-slow), background 900ms var(--ease-slow), border-color 900ms var(--ease-slow);
+  
+  
+  
 }
-.library-overlay.is-open .library-panel { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+.library-overlay.is-open .library-panel { opacity: 1;  filter: blur(0); }
 .library-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 26px 28px 18px;
+  
 }
 .library-kicker,
 .library-label {
@@ -1622,9 +1586,9 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .library-close:hover,
 .library-close:focus-visible { color: var(--ink); background: var(--hover); }
 .library-intro {
-  max-width: 650px;
+  
   margin: 0;
-  padding: 0 28px 24px;
+  
   color: var(--muted);
   font: 400 12px/1.55 "Geist", sans-serif;
   letter-spacing: -.01em;
@@ -1632,29 +1596,29 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .library-columns {
   min-height: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
-.library-section { min-width: 0; padding: 20px 20px 22px; }
-.library-section + .library-section { border-left: 1px solid var(--line); }
+
+
 .library-section-head {
-  height: 26px;
+  
   display: flex;
-  align-items: flex-start;
+  
   justify-content: space-between;
-  padding: 0 8px;
+  
 }
 .library-section-head > span {
   color: var(--faint);
   font: 500 7px/1 "Geist", sans-serif;
-  letter-spacing: .08em;
+  
 }
 .library-list,
 .font-library-list {
   display: grid;
-  gap: 2px;
-  max-height: 380px;
+  
+  
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 2px;
@@ -1675,28 +1639,24 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .library-row,
 .font-library-row {
   width: 100%;
-  min-height: 48px;
+  
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   border: 0;
-  border-radius: 10px;
-  padding: 8px 10px;
+  
+  
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   text-align: left;
-  transition: color 600ms var(--ease-slow), background 760ms var(--ease-slow), padding-left 760ms var(--ease-slow), filter 760ms var(--ease-slow);
+  
 }
-.library-row:hover,
-.library-row:focus-visible,
-.font-library-row:hover,
-.font-library-row:focus-visible { color: var(--ink); background: var(--hover); padding-left: 13px; }
-.library-row.is-active,
-.font-library-row.is-active { color: var(--ink); background: color-mix(in srgb, var(--hover) 64%, transparent); }
+
+
 .library-row.is-project { cursor: default; opacity: .72; }
-.library-row.is-project:hover { padding-left: 10px; background: transparent; }
+
 .library-row-main,
 .font-library-row > span:first-child { min-width: 0; display: grid; gap: 5px; }
 .library-row strong,
@@ -1726,15 +1686,15 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .library-row.is-active .library-row-status,
 .font-library-row.is-active .library-row-status { color: var(--ink); transform: translateX(-2px); }
 .library-row.is-project .library-row-status { transform: none; }
-.font-search-wrap { display: block; margin: 0 6px 8px; }
+.font-search-wrap { display: block;  }
 .font-library-search {
   width: 100%;
-  height: 34px;
+  
   border: 0;
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   outline: none;
-  padding: 0 2px;
+  
   background: transparent;
   color: var(--ink);
   font: 400 11px/1 "Geist", sans-serif;
@@ -1747,7 +1707,7 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  padding: 14px 28px 16px;
+  
   color: var(--faint);
   font: 500 7px/1 "Geist", sans-serif;
   letter-spacing: .08em;
@@ -1768,7 +1728,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   .library-row, .font-library-row, .library-row-status { transition-duration: 1ms !important; }
 }
 
-/* Build 21 — context-aware help state */
 .help-state-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
 .help-state-list > div { min-height: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); align-items: center; gap: 18px; border-bottom: 1px solid var(--line); }
 .help-state-list span, .help-state-list strong { font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 10px; line-height: 1; letter-spacing: .105em; text-transform: uppercase; font-weight: 500; }
@@ -1776,7 +1735,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .help-state-list strong { color: var(--ink); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 760px) { .help-state-list > div { grid-template-columns: 1fr auto; gap: 12px; } }
 
-/* Build 21.1 — flatter, airier menus and tool surfaces. */
 .project-button,
 .export-button,
 .tools-button {
@@ -1830,12 +1788,9 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .tools-menu button:focus-visible,
 .preview-recovery-menu button:hover,
 .preview-recovery-menu button:focus-visible {
-  color: var(--ink);
-  padding-left: 16px;
-  background:
-    radial-gradient(90% 150% at 9% 44%, var(--menu-glow-blue), transparent 58%),
-    radial-gradient(70% 130% at 68% 110%, var(--menu-glow-mint), transparent 62%),
-    radial-gradient(66% 125% at 102% -8%, var(--menu-glow-peach), transparent 64%);
+  
+  
+  
   filter: saturate(.92);
 }
 
@@ -1919,7 +1874,7 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .library-row.is-active,
 .font-library-row.is-active {
   color: var(--ink);
-  background: color-mix(in srgb, var(--hover) 32%, transparent);
+  
 }
 
 .library-row.is-project:hover {
@@ -1953,18 +1908,8 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   .library-section + .library-section { padding-top: 4px; }
 }
 
-/* Build 22.1 — transient surface opacity refinement.
-   Keep the atmosphere in the background, but do not let it compete with UI content. */
-.app {
-  --panel-surface: rgba(250, 252, 253, .965);
-  --panel-surface-strong: rgba(250, 252, 253, .985);
-  --overlay-wash: rgba(238, 244, 248, .54);
-}
-.app[data-theme="dark"] {
-  --panel-surface: rgba(25, 30, 37, .965);
-  --panel-surface-strong: rgba(22, 27, 33, .985);
-  --overlay-wash: rgba(8, 11, 15, .58);
-}
+
+
 
 /* Small transient menus */
 .project-menu,
@@ -1978,14 +1923,7 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 }
 
 /* Large overlays — enough wash to clearly separate the foreground surface. */
-.command-palette,
-.help-overlay,
-.project-switch-overlay,
-.library-overlay {
-  background: var(--overlay-wash);
-  backdrop-filter: blur(12px) saturate(104%);
-  -webkit-backdrop-filter: blur(12px) saturate(104%);
-}
+
 .app[data-theme="dark"] .command-palette,
 .app[data-theme="dark"] .help-overlay,
 .app[data-theme="dark"] .project-switch-overlay {
@@ -2009,24 +1947,13 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 }
 
 
-/* Build 22.2 — transient menu hover refinement.
-   Hover is tonal only: no padding shift, no expanding inner box. */
 .project-menu button,
 .tools-menu button,
 .preview-recovery-menu button {
   padding-left: 16px;
   transform: none;
 }
-.project-menu button:hover,
-.project-menu button:focus-visible,
-.tools-menu button:hover,
-.tools-menu button:focus-visible,
-.preview-recovery-menu button:hover,
-.preview-recovery-menu button:focus-visible {
-  padding-left: 16px;
-  transform: none;
-  background: color-mix(in srgb, var(--ink) 7%, var(--panel-surface-strong));
-}
+
 .app[data-theme="dark"] .project-menu button:hover,
 .app[data-theme="dark"] .project-menu button:focus-visible,
 .app[data-theme="dark"] .tools-menu button:hover,
@@ -2036,8 +1963,19 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   background: color-mix(in srgb, var(--paper) 8%, var(--panel-surface-strong));
 }
 
-/* Build 24 — canonical transient surface rendering.
-   Solid-enough layers avoid Chromium backdrop-filter text re-rasterization. */
+
+
+
+
+@keyframes mf-surface-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+
+
 .app {
   --panel-surface: rgba(250, 252, 253, .992);
   --panel-surface-strong: rgba(250, 252, 253, .998);
@@ -2098,77 +2036,12 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   transform: none !important;
 }
 
-/* Build 24 — canonical transient surface rendering.
-   Solid-enough layers avoid Chromium backdrop-filter text re-rasterization. */
-.app {
-  --panel-surface: rgba(250, 252, 253, .992);
-  --panel-surface-strong: rgba(250, 252, 253, .998);
-  --overlay-wash: rgba(238, 244, 248, .91);
-}
-.app[data-theme="dark"] {
-  --panel-surface: rgba(24, 29, 36, .992);
-  --panel-surface-strong: rgba(21, 26, 32, .998);
-  --overlay-wash: rgba(8, 11, 15, .91);
-}
-.project-menu,
-.tools-menu,
-.preview-recovery-menu,
-.autocomplete,
-.find-bar,
-.command-panel,
-.help-panel,
-.project-switch-card,
-.library-panel {
-  background: var(--panel-surface-strong);
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-.command-palette,
-.help-overlay,
-.project-switch-overlay,
-.library-overlay {
-  background: var(--overlay-wash);
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-@keyframes mf-surface-in {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.command-panel,
-.help-panel,
-.project-switch-card {
-  animation: mf-surface-in 560ms var(--ease-slow) both !important;
-  filter: none !important;
-}
-.library-panel {
-  filter: none !important;
-  transform: translateY(7px) !important;
-  transition: opacity 520ms var(--ease-slow), transform 720ms var(--ease-slow), background 900ms var(--ease-slow), border-color 900ms var(--ease-slow) !important;
-}
-.library-overlay.is-open .library-panel { transform: translateY(0) !important; }
-.project-menu button,
-.tools-menu button,
-.preview-recovery-menu button,
-.project-menu button:hover,
-.project-menu button:focus-visible,
-.tools-menu button:hover,
-.tools-menu button:focus-visible,
-.preview-recovery-menu button:hover,
-.preview-recovery-menu button:focus-visible {
-  padding-left: 16px !important;
-  transform: none !important;
-}
 
-
-/* Build 25 — one visible editor glyph layer. */
 .code-input,.code-highlight,.code-highlight code{font-kerning:none;font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0;font-synthesis:none;}
 .app.has-highlighting .code-input,.app.has-highlighting .code-input:hover,.app.has-highlighting .code-input:focus,.app.has-highlighting .code-input:focus-visible{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;transition:caret-color var(--motion-slow) var(--ease-slow)!important;}
 .app.has-highlighting .code-input::selection{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;}
 .code-highlight{contain:paint;}
 
-/* Build 25.2 — canonical branded transient-menu hover.
-   This MUST remain the final hover layer: atmospheric color, zero geometry change. */
 .project-menu button,
 .tools-menu button,
 .preview-recovery-menu button,
@@ -2177,7 +2050,7 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   isolation: isolate;
   overflow: hidden;
   background: transparent !important;
-  transform: none !important;
+  
 }
 
 .project-menu button::before,
@@ -2230,10 +2103,7 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   transform: none !important;
 }
 
-.command-item:hover,
-.command-item.is-active {
-  padding-left: 20px !important;
-}
+
 
 .app[data-theme="dark"] .project-menu button::before,
 .app[data-theme="dark"] .tools-menu button::before,
@@ -2264,7 +2134,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   }
 }
 
-/* Build 27.1 — flat project-switch surface; no box-in-box chrome */
 .project-switch-overlay {
   background:
     radial-gradient(720px 360px at 44% 42%, rgba(177, 211, 232, .18), transparent 68%),
@@ -2293,10 +2162,10 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
 .project-switch-actions button {
   position: relative;
   isolation: isolate;
-  height: 34px !important;
-  padding: 0 2px !important;
+  
+  
   border: 0 !important;
-  border-radius: 0 !important;
+  
   background: transparent !important;
   overflow: visible;
   transition: color 620ms var(--ease-slow), opacity 620ms var(--ease-slow) !important;
@@ -2305,39 +2174,26 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   content: "";
   position: absolute;
   z-index: -1;
-  left: -18px;
-  right: -18px;
+  
+  
   top: 50%;
-  height: 34px;
-  transform: translateY(-50%) scale(.94);
-  border-radius: 999px;
-  opacity: 0;
-  filter: blur(15px);
-  background: linear-gradient(90deg,
-    rgba(170, 211, 238, .28),
-    rgba(207, 228, 207, .22) 52%,
-    rgba(238, 204, 193, .20));
-  transition: opacity 720ms var(--ease-slow), transform 920ms var(--ease-slow);
+  
+  
+  
+  
+  
+  
+  
   pointer-events: none;
 }
-.app[data-theme="dark"] .project-switch-actions button::before {
-  background: linear-gradient(90deg,
-    rgba(92, 133, 164, .24),
-    rgba(108, 145, 115, .18) 52%,
-    rgba(160, 112, 103, .16));
-}
+
 .project-switch-actions button:hover,
 .project-switch-actions button:focus-visible {
   color: var(--ink) !important;
   background: transparent !important;
 }
-.project-switch-actions button:hover::before,
-.project-switch-actions button:focus-visible::before {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
-}
 
-/* Build 27.2 — canonical light atmospheric hover; direct background, zero geometry change. */
+
 .project-menu button,
 .tools-menu button,
 .preview-recovery-menu button,
@@ -2402,7 +2258,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   .command-item { transition-duration: 1ms !important; }
 }
 
-/* Build 29.1 — project-switch action aura refinement: broader, softer, fixed geometry. */
 .project-switch-actions button {
   min-width: 58px !important;
   height: 38px !important;
@@ -2434,7 +2289,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   transform: translateY(-50%) scale(1) !important;
 }
 
-/* Build 30.1 — OPEN/CANCEL actions: soft rounded hit geometry, no sharp focus box. */
 .project-switch-actions button {
   border-radius: 14px !important;
   outline-offset: 4px;
@@ -2443,7 +2297,6 @@ button.file-tree-row:hover .file-tree-caret { color: var(--muted); }
   outline: 1px solid color-mix(in srgb, var(--ink) 22%, transparent) !important;
 }
 
-/* Build 31 — canonical viewport + large-file editor stability. */
 html, body {
   width: 100%;
   height: 100%;
@@ -2523,3 +2376,40 @@ body { margin: 0; }
 }
 .single-editor.is-large-file .code-highlight,
 .code-section.is-large-file .code-highlight { position: relative; }
+
+
+/* Canonical library interaction: fixed geometry in every state. */
+.library-row,
+.font-library-row {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  transform: none !important;
+  transition: color 620ms var(--ease-slow), background 760ms var(--ease-slow), box-shadow 760ms var(--ease-slow), opacity 760ms var(--ease-slow) !important;
+}
+.library-row:hover,
+.library-row:focus-visible,
+.font-library-row:hover,
+.font-library-row:focus-visible,
+.library-row.is-active,
+.font-library-row.is-active {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  transform: none !important;
+}
+.library-row-status {
+  width: 72px;
+  flex: 0 0 72px;
+  text-align: right;
+  transform: none !important;
+}
+.library-row:hover .library-row-status,
+.font-library-row:hover .library-row-status,
+.library-row.is-active .library-row-status,
+.font-library-row.is-active .library-row-status,
+.library-row.is-project .library-row-status { transform: none !important; }
+.font-library-note {
+  margin: 0 0 10px;
+  color: var(--faint);
+  font: 400 9px/1.35 "Geist", sans-serif;
+  letter-spacing: .01em;
+}

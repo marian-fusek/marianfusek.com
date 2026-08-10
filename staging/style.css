@@ -88,6 +88,7 @@ a,button{color:inherit;font:inherit;cursor:none!important}button{border:0;backgr
 .projects-intro-piece{display:block;position:absolute;inset:0;width:100%;height:100%;}
 .projects-intro-piece{clip-path:inset(0 0 100% 0);opacity:0}
 .projects-intro-piece.is-visible{animation:recentTopWipe 1.08s var(--ease) forwards}
+.projects-intro-piece.is-wiping-out{animation:recentWipeOut .6s var(--ease) forwards!important}@keyframes recentWipeOut{from{opacity:1;transform:translateY(0);clip-path:inset(0)}to{opacity:0;transform:translateY(-8px);clip-path:inset(0 0 100% 0)}}
 .recent-period{color:var(--meta)}
 @keyframes recentTopWipe{from{opacity:0;transform:translateY(8px);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:translateY(0);clip-path:inset(0)}}
 .projects-intro{align-items:flex-start;justify-content:flex-end;padding:0;box-sizing:border-box}.projects-intro-piece{position:absolute!important;left:var(--pad);bottom:calc(var(--pad) + 20px);top:auto;width:auto!important;height:auto!important;display:block!important;filter:none}.projects-intro-word{position:static!important;display:inline!important}.projects-intro-word--recent::after{content:' '}
@@ -109,7 +110,7 @@ a,button{color:inherit;font:inherit;cursor:none!important}button{border:0;backgr
 .projects-progress-segment::before{content:'';display:block;width:100%;height:100%;background:#000;transform:scaleX(var(--seg-fill,0));transform-origin:left center;transition:transform .63s cubic-bezier(.22,.61,.36,1)}
 .projects-stage.is-released .projects-progress{opacity:0;transition:opacity .3s var(--ease)}
 .case-overlay{position:fixed;z-index:3000;inset:0;overflow:auto;overscroll-behavior:contain;background:var(--surface);padding:0 var(--pad) var(--pad);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s var(--ease),visibility 0s linear .6s}
-.case-overlay.is-open{opacity:1;visibility:visible;pointer-events:auto;transition:none}
+.case-overlay.is-open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .6s var(--ease)}
 .case-overlay-nav{height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;font:600 13px/1 Geist,sans-serif;letter-spacing:-.02em}.case-overlay-close{width:34px;height:34px;display:grid;place-items:center;font:300 28px/1 Geist,sans-serif}
 .case-overlay-close.is-cursor-target{color:var(--surface)}
 .case-overlay-close.is-wiping-out{animation:overlayCloseWipe .28s var(--ease) forwards}@keyframes overlayCloseWipe{to{opacity:0;transform:translateY(-7px);clip-path:inset(0 0 100% 0)}}

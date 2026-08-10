@@ -1,13 +1,21 @@
-N7-Code — Build 31
+N7-Code — Build 32 Production Architecture Candidate
 
-Core stability / performance build.
+This build consolidates the production source without changing the locked product direction.
 
-This build focuses only on four previously-open issues:
-- canonical viewport sizing so the top bar/workspace/footer cannot drift outside the browser viewport;
-- HTML entry-page isolation inside real folder projects so switching pages cannot reuse the previous page runtime/styles;
-- precise curated-library detection (PROJECT is shown only for dependencies actually referenced by the project);
-- large-file editor virtualization for very large HTML/CSS/JS files, reducing line-number and syntax-paint work to the visible viewport.
+Architecture
+- JS runtime split into seven ordered modules: core, preview, editor, tools, compat runtime, projects, main.
+- Real-project hosted runtime uses N7-branded cache/path/header/message identifiers.
+- Legacy MF storage keys and .mfcode project files remain read-compatible; new writes use N7 identifiers and .n7-code.
+- Build-history CSS comments removed and safely superseded declarations pruned without reordering the cascade.
 
-Large-file mode is automatic. The UI and editing model do not change.
+UX cleanup
+- Library state label is IN PROJECT.
+- Library action slot has fixed geometry in + / ✓ / IN PROJECT states.
+- Google Fonts explicitly explains that fonts are made available to preview and must be applied in CSS.
 
-For FULL PROJECT runtime testing, serve N7-Code over HTTPS (for example GitHub Pages) so the included service worker can control the virtual project runtime. Double-click/file:// remains LOCAL COMPAT mode.
+QA included
+- tests/audit.mjs: syntax, module references, duplicate functions, active legacy identifiers, CSS history, package fixture checks.
+- tests/runtime-smoke.mjs: sequential browser-script structure smoke test in an isolated VM before app initialization.
+- fixtures: cache-busted CSS + local font/assets, multi-page CSS ordering, ES modules + dynamic import + fetch, and a 20,000-line CSS stress file.
+
+FULL PROJECT runtime still requires HTTPS (GitHub Pages is appropriate). file:// uses compatibility mode.

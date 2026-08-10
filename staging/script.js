@@ -215,6 +215,11 @@
       restoredInfo.classList.add('is-visible');
       restoredInfo.querySelectorAll('.projects-info-col').forEach(field=>Object.assign(field.style,{opacity:'1',transform:'none',clipPath:'none',animation:'none'}));
     }
+    const restoredRecent=intro?.querySelector('.projects-intro-piece');
+    if(restoredRecent){
+      restoredRecent.classList.remove('is-wiping-out','is-visible');void restoredRecent.offsetWidth;
+      restoredRecent.classList.add('is-visible');
+    }
     const returnMask=masks[returnIndex];
     const returnImage=images[returnIndex];
     const sourceRect=returnImage?.getBoundingClientRect();
@@ -236,7 +241,6 @@
       requestAnimationFrame(()=>Object.assign(flyer.style,{left:`${sourceRect.left}px`,top:`${sourceRect.top}px`,width:`${sourceRect.width}px`,height:`${sourceRect.height}px`,transition:'left 1.65s var(--ease),top 1.65s var(--ease),width 1.65s var(--ease),height 1.65s var(--ease)'}));
     }
     caseOverlay.classList.remove('is-open');caseOverlay.setAttribute('aria-hidden','true');
-    overlayInfoClone?.remove();overlayInfoClone=null;
     masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.removeProperty('transition');});
     document.body.classList.remove('case-overlay-open');
     if(siteMenu){
@@ -244,6 +248,7 @@
       siteMenu.classList.add('is-wiping-in');
     }
     setTimeout(()=>caseOverlayClose?.classList.remove('is-wiping-out'),300);
+    setTimeout(()=>{overlayInfoClone?.remove();overlayInfoClone=null;},620);
     setTimeout(()=>{flyer?.remove();if(returnMask)returnMask.style.visibility='visible';},1670);
   };
   caseOverlayClose?.addEventListener('click',closeCaseOverlay);
@@ -271,6 +276,7 @@
       const index=masks.indexOf(mask),detail=projectDetails[index];
       if(!detail)return;
       cursor?.classList.remove('is-open','is-close-target');
+      intro?.querySelector('.projects-intro-piece')?.classList.add('is-wiping-out');
       projectDetailOpen=true;
       caseOverlayClose?.classList.remove('is-wiping-out');
       caseOverlayProjectIndex=index;
@@ -297,7 +303,7 @@
         caseOverlay.classList.add('is-open');
         caseOverlay.classList.add('is-transitioning');
         caseOverlay.setAttribute('aria-hidden','false');
-        liveInfo.style.visibility='hidden';
+        setTimeout(()=>{if(projectDetailOpen)liveInfo.style.visibility='hidden';},620);
         requestAnimationFrame(()=>{
           if(!caseOverlayMedia)return;
           const targetRect=caseOverlayMedia.getBoundingClientRect();
@@ -313,7 +319,7 @@
             setTimeout(()=>{if(caseTransitionFlyer!==flyer)return;flyer.remove();caseTransitionFlyer=null;caseOverlay.classList.remove('is-transitioning');},1670);
           });
         });
-      },1050);
+      },0);
     });
     const smoothstep=(edge0,edge1,x)=>{
       const t=clamp((x-edge0)/((edge1-edge0)||1e-6),0,1);

@@ -1169,72 +1169,88 @@
     return `${doctype}\n<html${htmlAttrs ? ' '+htmlAttrs : ''}>\n<head>${head}</head>\n<body${bodyAttrs ? ' '+bodyAttrs : ''}>${body}</body>\n</html>`;
   }
 
+  function hostedRenderProjectId(project, projectToken, renderId) {
+    const stable = ensureRuntimeProjectId(project) || createRuntimeProjectId(project);
+    const tokenPart = String(projectToken || 'session').replace(/[^a-z0-9-]/gi, '').slice(-14) || 'session';
+    return `${stable}-r${renderId.toString(36)}-${tokenPart}`;
+  }
+
   async function syncHostedProject(renderId, project, projectToken) {
     if (!state.hostedRuntime.ready || project?.mode !== 'folder' || !ownsProjectSession(project, projectToken)) return null;
-    const projectId = hostedProjectId(project);
+
+    // Every render is staged into a fresh immutable runtime namespace. We never
+    // mutate the runtime currently displayed by the iframe.
+    const projectId = hostedRenderProjectId(project, projectToken, renderId);
     const runtimeBase = hostedProjectBase(projectId);
     const cache = await caches.open(HOSTED_RUNTIME_CACHE);
     if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
-    const existing = await cache.keys();
-    if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
-    const runtimePrefix = hostedProjectBase(projectId);
-    const expectedUrls = new Set();
 
-    for (const record of project.files.values()) {
-      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
-      const url = hostedPathUrl(record.path, projectId);
-      expectedUrls.add(url);
-      let body = null;
-      if (record.language === 'html' && typeof record.text === 'string') body = buildHostedHtml(record.path, renderId, projectId, project);
-      else if (typeof record.text === 'string') {
-        const kind = record.language === 'css' ? 'css' : record.language === 'js' ? 'js' : 'text';
-        body = rewriteHostedRootRefs(record.text, runtimeBase, kind);
-      } else if (record.file) body = await record.file.arrayBuffer();
-      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
-
-      if (body === null) {
-        const cached = await cache.match(url, { ignoreSearch: true });
-        if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
-        if (cached) continue;
-        body = '';
+    const stagedUrls = [];
+    try {
+      for (const record of project.files.values()) {
+        if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) throw new DOMException('Stale render', 'AbortError');
+        const url = hostedPathUrl(record.path, projectId);
+        let body = null;
+        if (record.language === 'html' && typeof record.text === 'string') body = buildHostedHtml(record.path, renderId, projectId, project);
+        else if (typeof record.text === 'string') {
+          const kind = record.language === 'css' ? 'css' : record.language === 'js' ? 'js' : 'text';
+          body = rewriteHostedRootRefs(record.text, runtimeBase, kind);
+        } else if (record.file) body = await record.file.arrayBuffer();
+        if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) throw new DOMException('Stale render', 'AbortError');
+        if (body === null) body = '';
+        await cache.put(url, new Response(body, { status: 200, headers: {
+          'Content-Type': runtimeMime(record.path, record),
+          'Cache-Control': 'no-store',
+          'X-MF-Code-Project': projectId,
+          'X-MF-Code-Session': projectToken,
+          'X-MF-Code-Render': String(renderId)
+        } }));
+        stagedUrls.push(url);
       }
-      await cache.put(url, new Response(body, { status: 200, headers: {
-        'Content-Type': runtimeMime(record.path, record),
-        'Cache-Control': 'no-store',
-        'X-MF-Code-Project': projectId,
-        'X-MF-Code-Session': projectToken
-      } }));
-      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
+
+      if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) throw new DOMException('Stale render', 'AbortError');
+      const entryPath = project.entryHtmlPath || [...project.files.values()].find((item) => item.language === 'html')?.path;
+      if (!entryPath) throw new Error('No HTML entry file');
+      const entryUrl = hostedPathUrl(entryPath, projectId);
+      const stagedEntry = await cache.match(entryUrl, { ignoreSearch: true });
+      if (!stagedEntry) throw new Error('Hosted runtime entry was not staged');
+      return { runtimeBase, projectId, entryPath, entryUrl, project, projectToken };
+    } catch (error) {
+      // A cancelled/failed staged render is disposable and can never become active.
+      await Promise.all(stagedUrls.map((url) => cache.delete(url)));
+      if (error?.name === 'AbortError') return null;
+      throw error;
     }
-
-    await Promise.all(existing
-      .filter((request) => request.url.startsWith(runtimePrefix) && !expectedUrls.has(request.url.split('?')[0]))
-      .map((request) => cache.delete(request)));
-    if (!ownsProjectSession(project, projectToken) || state.renderId !== renderId) return null;
-
-    state.hostedRuntime.projectId = projectId;
-    state.hostedRuntime.baseUrl = runtimeBase;
-    return { runtimeBase, projectId, project, projectToken };
   }
 
   async function renderHostedPreview(renderId, project, projectToken) {
     try {
+      const previousProjectId = state.hostedRuntime.projectId;
       const synced = await syncHostedProject(renderId, project, projectToken);
       if (!synced || state.renderId !== renderId || !ownsProjectSession(project, projectToken)) return false;
-      const { projectId } = synced;
-      const entryPath = project.entryHtmlPath || [...project.files.values()].find((item) => item.language === 'html')?.path;
-      if (!entryPath) return false;
-      const entryUrl = hostedPathUrl(entryPath, projectId);
+      const { projectId, entryUrl, runtimeBase } = synced;
       const url = `${entryUrl}?mf_render=${renderId}&mf_session=${encodeURIComponent(projectToken)}`;
       if (state.renderId !== renderId || !ownsProjectSession(project, projectToken)) return false;
+
+      // Atomic ownership swap: only a fully staged runtime becomes visible.
       state.hostedRuntime.projectId = projectId;
+      state.hostedRuntime.baseUrl = runtimeBase;
       state.hostedRuntime.renderUrl = url;
       preview.dataset.projectSession = projectToken;
+      preview.dataset.runtimeProject = projectId;
       preview.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads allow-pointer-lock');
       preview.removeAttribute('srcdoc');
       preview.src = url;
       if (isDetachedPreviewOpen()) {
         try { state.detachedWindow.opener = null; state.detachedWindow.location.replace(url); } catch {}
+      }
+
+      // Keep the previous runtime alive briefly so the old document can finish
+      // unloading; then retire it. Never retire the runtime we just activated.
+      if (previousProjectId && previousProjectId !== projectId) {
+        window.setTimeout(() => {
+          if (state.hostedRuntime.projectId !== previousProjectId) void retireHostedProject(previousProjectId);
+        }, 1800);
       }
       return true;
     } catch (error) {

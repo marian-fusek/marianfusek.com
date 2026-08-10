@@ -186,6 +186,7 @@
   const stage=document.getElementById('projectsStage');
   const frame=document.getElementById('projectsFrame');
   const intro=document.getElementById('projectsIntro');
+  const edgeGlow=document.getElementById('projectsEdgeGlow');
     const images=frame?[...frame.querySelectorAll('.projects-image')]:[];
     const masks=images.map(img=>img.parentElement);
   if(projects&&stage&&frame&&images.length){
@@ -227,21 +228,29 @@
       const activeIndex=Math.min(steps-1,Math.floor(timeline/unit));
       const within=timeline-activeIndex*unit;
       const open=smoothstep(0,1,clamp(within/openRatio,0,1));
+      const glowDirections=['bottom','top','left','right'];
+      if(edgeGlow){
+        const glowOpen=p>=galleryStart?open:0;
+        edgeGlow.dataset.direction=glowDirections[activeIndex]||'bottom';
+        edgeGlow.style.setProperty('--glow-span',`${20+glowOpen*105}%`);
+        edgeGlow.style.setProperty('--glow-depth',`${4+glowOpen*42}%`);
+        edgeGlow.style.opacity=String(glowOpen*.78);
+      }
       const info=document.getElementById('projectsInfo');
       const transitionCopy=document.getElementById('heroTransitionCopy');
       if(transitionCopy){const fade=clamp(1-p/.08,0,1);transitionCopy.style.opacity=String(fade);}
       if(info){
         const meta=[
-          ['MIUNĀE','A SKINCARE BRAND SYSTEM BUILT AROUND TIME, TACTILITY AND RESTRAINT','CREATIVE DIRECTION'],
-          ['GoBaller','FOOTBALL COACHING APP FOR PLAYERS OF ALL AGES','BRAND, IOS APP'],
-          ['AIMS','THE MOST ADVANCED AI SEARCH FOR MUSIC CATALOGS','WEBSITE, BRAND REFRESH, MARKETING & SALES ASSETS'],
-          ['Fragments','WHATEVER I COULD FIND TO SHOW SOME VARIETY','RANDOM DESIGNS LOST IN TIME, EXPERIMENTS']
+          ['MIUNĀE','A skincare brand system built around time, tactility and restraint','CREATIVE DIRECTION'],
+          ['GoBaller','Football coaching app for players of all ages','BRAND, IOS APP'],
+          ['AIMS','The most advanced AI search for music catalogs','WEBSITE, BRAND REFRESH, MARKETING & SALES ASSETS'],
+          ['Fragments','Whatever I could find to show some variety','RANDOM DESIGNS LOST IN TIME, EXPERIMENTS']
         ][activeIndex]||[];
         const key=meta.join('|');
         if(info.dataset.copy!==key){
           info.dataset.copy=key;
           info.classList.remove('is-visible');
-          info.innerHTML=meta.map((text,i)=>`<span class="projects-info-col projects-info-col--${i} ${i===0?'type-project-title':'type-project-meta'}">${text}</span>`).join('');
+          info.innerHTML=meta.map((text,i)=>`<span class="projects-info-col projects-info-col--${i} ${i===0?'type-project-title':i===1?'type-project-meta':'type-project-label'}">${text}</span>`).join('');
           void info.offsetWidth;
         }
       }
@@ -290,7 +299,7 @@
         img.style.zIndex=String(active?100+i:before?10+i:0);
         img.style.pointerEvents='none';
       });
-      if(info){requestAnimationFrame(()=>{const target=masks[activeIndex],fr=frame.getBoundingClientRect(),shellRect=frame.parentElement.getBoundingClientRect(),navRect=document.querySelector('.site-nav')?.getBoundingClientRect(),ir=target&&target.getBoundingClientRect();if(ir){const menuBottom=navRect?.bottom||0;const metadataY=menuBottom+(ir.top-menuBottom)*.75;info.style.top=`${metadataY-shellRect.top}px`;info.style.left=`${fr.left-shellRect.left}px`;info.style.width=`${fr.width}px`;info.style.transform='none';}});}
+      if(info){requestAnimationFrame(()=>{const target=masks[activeIndex],shellRect=frame.parentElement.getBoundingClientRect(),navRect=document.querySelector('.site-nav')?.getBoundingClientRect(),ir=target&&target.getBoundingClientRect();if(ir){const menuBottom=navRect?.bottom||0;const metadataY=menuBottom+(ir.top-menuBottom)*.6;const localY=metadataY-shellRect.top;info.style.top=`${localY}px`;info.style.left=`${ir.left-shellRect.left}px`;info.style.width=`${ir.width}px`;info.style.transform='none';const recent=intro?.querySelector('.projects-intro-piece');if(recent){recent.style.top=`${localY}px`;recent.style.bottom='auto';}}});}
       stage.classList.toggle('is-released',p>=.999);
     };
     const projectRange=()=>Math.max(1,projects.scrollHeight-innerHeight);

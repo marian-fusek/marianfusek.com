@@ -27,11 +27,12 @@
   --tracking-project-title:-.04em;
   --tracking-project-meta:.08em;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;cursor:none!important}
 html{background:var(--bg);scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:var(--muted) transparent}
 body{margin:0;background:linear-gradient(180deg,var(--bg-top),var(--bg));color:var(--ink);font-family:Geist,Arial,sans-serif;overflow-x:hidden;cursor:none}
 body.case-overlay-open{overflow:hidden}.case-overlay-open .site-menu{opacity:0;pointer-events:none}
-a,button{color:inherit;font:inherit}button{border:0;background:none;padding:0}
+.site-menu.is-wiping-in a{opacity:0;transform:translateY(7px);clip-path:inset(0 0 100% 0);animation:menuTopWipe .6s var(--ease) forwards}.site-menu.is-wiping-in a:nth-child(2){animation-delay:.09s}.site-menu.is-wiping-in a:nth-child(3){animation-delay:.18s}.site-menu.is-wiping-in a:nth-child(4){animation-delay:.27s}.site-menu.is-wiping-in a:nth-child(5){animation-delay:.36s}.site-menu.is-wiping-in a:nth-child(6){animation-delay:.45s}@keyframes menuTopWipe{to{opacity:.72;transform:translateY(0);clip-path:inset(0)}}
+a,button{color:inherit;font:inherit;cursor:none!important}button{border:0;background:none;padding:0}
 
 .site-nav{position:fixed;z-index:50;top:0;left:0;right:0;height:var(--nav-h);display:flex;align-items:center;padding:0 var(--pad);font-family:Geist,sans-serif;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink)}
 .site-nav a{text-decoration:none;opacity:.72;transition:opacity 1.2s var(--ease),transform 1.2s var(--ease)}
@@ -109,7 +110,9 @@ a,button{color:inherit;font:inherit}button{border:0;background:none;padding:0}
 .projects-stage.is-released .projects-progress{opacity:0;transition:opacity .3s var(--ease)}
 .case-overlay{position:fixed;z-index:3000;inset:0;overflow:auto;overscroll-behavior:contain;background:var(--surface);padding:0 var(--pad) var(--pad);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s var(--ease),visibility 0s linear .6s}
 .case-overlay.is-open{opacity:1;visibility:visible;pointer-events:auto;transition:none}
-.case-overlay-nav{height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;font:600 13px/1 Geist,sans-serif;letter-spacing:-.02em}.case-overlay-close{width:34px;height:34px;display:grid;place-items:center;font:300 28px/1 Geist,sans-serif;cursor:pointer}
+.case-overlay-nav{height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;font:600 13px/1 Geist,sans-serif;letter-spacing:-.02em}.case-overlay-close{width:34px;height:34px;display:grid;place-items:center;font:300 28px/1 Geist,sans-serif}
+.case-overlay-close.is-cursor-target{color:var(--surface)}
+.case-overlay-close.is-wiping-out{animation:overlayCloseWipe .28s var(--ease) forwards}@keyframes overlayCloseWipe{to{opacity:0;transform:translateY(-7px);clip-path:inset(0 0 100% 0)}}
 .case-overlay-media{position:fixed;left:var(--pad);right:var(--pad);top:var(--case-image-top,30svh);margin:0;width:auto;aspect-ratio:2200 / 1463;overflow:hidden;background:var(--ink)}.case-overlay-media img{display:block;width:100%;height:100%;object-fit:cover}
 .case-overlay.is-transitioning .case-overlay-media{opacity:0}.case-transition-image{position:fixed;z-index:3002;object-fit:cover;pointer-events:none;will-change:left,top,width,height}
 
@@ -136,6 +139,7 @@ a,button{color:inherit;font:inherit}button{border:0;background:none;padding:0}
 
 .cursor{position:fixed;z-index:99999;left:0;top:0;width:14px;height:14px;pointer-events:none;transform:translate3d(-100px,-100px,0);color:#fff;will-change:transform}
 .cursor-dot{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#050505;transform:translate(-50%,-50%);transition:width .7s var(--ease),height .7s var(--ease),opacity .7s var(--ease),transform .7s var(--ease)}
+.cursor.is-close-target .cursor-dot{width:42px;height:42px}.cursor.is-close-target .cursor-dot::after{content:'×';position:absolute;inset:0;display:grid;place-items:center;color:var(--surface);font:300 28px/1 Geist,sans-serif}.cursor.is-close-target .cursor-label{opacity:0}
 .cursor-label{position:absolute;left:50%;top:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:123px;height:123px;border-radius:50%;background:#050505;color:#f7f8f7;font-family:Geist,sans-serif;font-size:9px;line-height:1;letter-spacing:.085em;text-align:center;transform:translate(-50%,-50%) scale(.72);opacity:0;transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .cursor-project-wrap{display:block;height:1em;overflow:hidden}.cursor-project{display:block;white-space:nowrap}.cursor-project.is-wiping-out{animation:cursorProjectOut .16s var(--ease) forwards}.cursor-project.is-wiping-in{animation:cursorProjectIn .28s var(--ease) forwards}@keyframes cursorProjectOut{to{opacity:0;transform:translateY(-7px);clip-path:inset(0 0 100% 0)}}@keyframes cursorProjectIn{from{opacity:0;transform:translateY(7px);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:translateY(0);clip-path:inset(0)}}
 .cursor.is-open .cursor-dot{opacity:0}

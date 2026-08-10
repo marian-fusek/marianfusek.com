@@ -127,7 +127,7 @@
       }
       if(heroInfo){
         const infoFade=1-infoWipe;
-        heroInfo.style.setProperty('--hero-info-scroll-y',`${scrollY-infoWipe*Math.min(170,innerHeight*.2)}px`);
+        heroInfo.style.setProperty('--hero-info-scroll-y',`${-infoWipe*Math.min(170,innerHeight*.2)}px`);
         heroInfo.style.setProperty('--scroll-fade',String(infoFade));
         heroInfo.style.setProperty('--hero-info-wipe',String(infoWipe));
         heroInfo.classList.toggle('is-scroll-faded',infoWipe>0);
@@ -195,6 +195,7 @@
   const caseOverlayImage=document.getElementById('caseOverlayImage');
   const caseOverlayMedia=document.querySelector('.case-overlay-media');
   const caseOverlayClose=document.getElementById('caseOverlayClose');
+  const siteMenu=document.querySelector('.site-menu');
   let caseOverlayScrollY=0;
   let projectDetailOpen=false;
   let overlayInfoClone=null;
@@ -203,10 +204,17 @@
   let caseTransitionFlyer=null;
   const closeCaseOverlay=()=>{
     if(!caseOverlay?.classList.contains('is-open'))return;
+    caseOverlayClose?.classList.add('is-wiping-out');
     const returnIndex=caseOverlayProjectIndex;
     projectDetailOpen=false;
     images.forEach(image=>{image.style.removeProperty('transition');image.style.removeProperty('clip-path');});
+    document.getElementById('projectsInfo')?.style.removeProperty('visibility');
     restoreProjectVisuals();
+    const restoredInfo=document.getElementById('projectsInfo');
+    if(restoredInfo){
+      restoredInfo.classList.add('is-visible');
+      restoredInfo.querySelectorAll('.projects-info-col').forEach(field=>Object.assign(field.style,{opacity:'1',transform:'none',clipPath:'none',animation:'none'}));
+    }
     const returnMask=masks[returnIndex];
     const returnImage=images[returnIndex];
     const sourceRect=returnImage?.getBoundingClientRect();
@@ -229,9 +237,13 @@
     }
     caseOverlay.classList.remove('is-open');caseOverlay.setAttribute('aria-hidden','true');
     overlayInfoClone?.remove();overlayInfoClone=null;
-    document.getElementById('projectsInfo')?.style.removeProperty('visibility');
     masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.removeProperty('transition');});
     document.body.classList.remove('case-overlay-open');
+    if(siteMenu){
+      siteMenu.classList.remove('is-wiping-in');void siteMenu.offsetWidth;
+      siteMenu.classList.add('is-wiping-in');
+    }
+    setTimeout(()=>caseOverlayClose?.classList.remove('is-wiping-out'),300);
     setTimeout(()=>{flyer?.remove();if(returnMask)returnMask.style.visibility='visible';},1670);
   };
   caseOverlayClose?.addEventListener('click',closeCaseOverlay);
@@ -258,7 +270,9 @@
       if(!mask||!caseOverlay||projectDetailOpen)return;
       const index=masks.indexOf(mask),detail=projectDetails[index];
       if(!detail)return;
+      cursor?.classList.remove('is-open','is-close-target');
       projectDetailOpen=true;
+      caseOverlayClose?.classList.remove('is-wiping-out');
       caseOverlayProjectIndex=index;
       const liveInfo=document.getElementById('projectsInfo');
       if(liveInfo){
@@ -407,7 +421,7 @@
     const projectRange=()=>Math.max(1,projects.scrollHeight-innerHeight);
     restoreProjectVisuals=()=>{
       if(caseOverlayProjectIndex<0)return;
-      const completedProgress=.08+(1-.08)*((caseOverlayProjectIndex+1)/images.length);
+      const completedProgress=.08+(1-.08)*((caseOverlayProjectIndex+1)/images.length)-.0001;
       projectProgress=completedProgress;
       renderSequence(completedProgress);
       smooth.goTo(projectsTop+completedProgress*projectRange());
@@ -460,9 +474,16 @@
     if(Math.abs(cx-tx)+Math.abs(cy-ty)>.15)raf=requestAnimationFrame(tickCursor);else raf=0;
   }
   addEventListener('pointermove',e=>{
-    tx=e.clientX;ty=e.clientY;if(!raf)raf=requestAnimationFrame(tickCursor);
     const mask=e.target.closest('.projects-image-mask');
+    const closeTarget=e.target.closest('.case-overlay-close');
+    if(closeTarget){
+      const rect=closeTarget.getBoundingClientRect();
+      tx=rect.left+rect.width/2;ty=rect.top+rect.height/2;
+    }else{tx=e.clientX;ty=e.clientY;}
+    if(!raf)raf=requestAnimationFrame(tickCursor);
     cursor.classList.toggle('is-open',!!mask);
+    cursor.classList.toggle('is-close-target',!!closeTarget);
+    caseOverlayClose?.classList.toggle('is-cursor-target',!!closeTarget);
     if(mask)updateCursorProject(cursorProjects[Number(mask.querySelector('.projects-image')?.dataset.step)]);
   },{passive:true});
   addEventListener('pointerdown',e=>{

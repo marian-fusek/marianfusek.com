@@ -10,6 +10,9 @@
   const PROJECT_FORMAT = 'n7-code-project';
   const LEGACY_PROJECT_FORMAT = 'mf-code-project';
   const PROJECT_VERSION = 1;
+  const LARGE_FILE_LINE_THRESHOLD = 5000;
+  const LARGE_FILE_CHAR_THRESHOLD = 240000;
+  const LARGE_FILE_OVERSCAN = 48;
   const STORAGE = {
     draft: 'mf-code-draft-v1',
     prefs: 'mf-code-prefs-v1',
@@ -335,28 +338,6 @@
     return value && ['html', 'css', 'js'].every((language) => typeof value[language] === 'string');
   }
 
-  function restoreLocalState() {
-    const draft = safeJsonParse(safeStorageGet(STORAGE.draft));
-    if (validCode(draft?.code)) state.code = { ...draft.code };
-
-    const prefs = safeJsonParse(safeStorageGet(STORAGE.prefs));
-    if (prefs) {
-      if (['html', 'css', 'js', 'all'].includes(prefs.view)) state.view = prefs.view;
-      if (['light', 'dark'].includes(prefs.theme)) state.theme = prefs.theme;
-      if (['geist', 'jetbrains'].includes(prefs.font)) state.font = prefs.font;
-      if (['desktop', 'tablet', 'mobile'].includes(prefs.previewSize)) state.previewSize = prefs.previewSize;
-      if (typeof prefs.filesOpen === 'boolean') state.filesOpen = prefs.filesOpen;
-      if (Number.isFinite(prefs.filesWidth)) state.filesWidth = clamp(prefs.filesWidth, 164, 480);
-      if (Number.isFinite(prefs.editorWidth)) workspace.style.setProperty('--editor-width', `${prefs.editorWidth}px`);
-    }
-
-    const history = safeJsonParse(safeStorageGet(STORAGE.history));
-    if (history) {
-      const validEntries = (entries) => Array.isArray(entries) ? entries.filter(validCode).slice(-HISTORY_LIMIT).map((code) => ({ ...code })) : [];
-      state.history.past = validEntries(history.past);
-      state.history.future = validEntries(history.future);
-    }
-  }
 
   function codeSnapshot() {
     return { ...state.code };
@@ -413,14 +394,6 @@
     state.history.lastLanguage = null;
   }
 
-  function applyHistorySnapshot(code) {
-    state.code = { ...code };
-    state.errorLine = { html: null, css: null, js: null };
-    refreshVisibleEditors();
-    populateAllEditors();
-    persistDraftNow();
-    renderPreview();
-  }
 
   function undoHistory() {
     const target = state.history.past.pop();
@@ -446,17 +419,7 @@
     return true;
   }
 
-  function persistDraftSoon() {
-    window.clearTimeout(state.draftTimer);
-    state.draftTimer = window.setTimeout(() => {
-      safeStorageSet(STORAGE.draft, JSON.stringify({ code: state.code }));
-    }, SAVE_DELAY);
-  }
 
-  function persistDraftNow() {
-    window.clearTimeout(state.draftTimer);
-    safeStorageSet(STORAGE.draft, JSON.stringify({ code: state.code }));
-  }
 
   function persistPrefs() {
     safeStorageSet(STORAGE.prefs, JSON.stringify({
@@ -483,17 +446,19 @@
     return state.diagnostics[language].filter((item) => item.line === line);
   }
 
+  function lineNumberMarkup(line, language, firstStyle = '') {
+    const items = diagnosticsAtLine(language, line);
+    const hasError = state.errorLine[language] === line || items.some((item) => item.severity === 'error');
+    const hasWarning = !hasError && items.some((item) => item.severity === 'warning');
+    const kind = hasError ? ' is-error' : (hasWarning ? ' is-warning' : '');
+    const title = items[0]?.message ? ` title="${escapeHtml(items[0].message).replace(/&quot;/g, '&amp;quot;')}"` : '';
+    const style = firstStyle ? ` style="${firstStyle}"` : '';
+    return `<span class="line-no${kind}"${title}${style}>${line}</span>`;
+  }
+
   function lineNumbersFor(value, language) {
     const count = Math.max(1, value.split('\n').length);
-    return Array.from({ length: count }, (_, index) => {
-      const line = index + 1;
-      const items = diagnosticsAtLine(language, line);
-      const hasError = state.errorLine[language] === line || items.some((item) => item.severity === 'error');
-      const hasWarning = !hasError && items.some((item) => item.severity === 'warning');
-      const kind = hasError ? ' is-error' : (hasWarning ? ' is-warning' : '');
-      const title = items[0]?.message ? ` title="${escapeHtml(items[0].message).replace(/&quot;/g, '&amp;quot;')}"` : '';
-      return `<span class="line-no${kind}"${title}>${line}</span>`;
-    }).join('');
+    return Array.from({ length: count }, (_, index) => lineNumberMarkup(index + 1, language)).join('');
   }
 
   function escapeHtml(value) {
@@ -542,14 +507,74 @@
     return host.innerHTML;
   }
 
-  function highlightCode(value, language) {
+  function highlightCode(value, language, ranges = state.matchRanges[language]) {
     const prismLanguage = LANGUAGE_MAP[language];
     const grammar = window.Prism?.languages?.[prismLanguage];
     const html = grammar ? window.Prism.highlight(value, grammar, prismLanguage) : escapeHtml(value);
-    return applyMatchRangesToHighlightedHtml(html, state.matchRanges[language]);
+    return applyMatchRangesToHighlightedHtml(html, ranges);
   }
 
-  function syncScroll(parts) {
+  function isLargeFileValue(value) {
+    if (String(value || '').length >= LARGE_FILE_CHAR_THRESHOLD) return true;
+    let lines = 1;
+    const source = String(value || '');
+    for (let i = 0; i < source.length && lines < LARGE_FILE_LINE_THRESHOLD; i += 1) if (source.charCodeAt(i) === 10) lines += 1;
+    return lines >= LARGE_FILE_LINE_THRESHOLD;
+  }
+
+  function buildLargeFileCache(input) {
+    const source = input.value;
+    const lines = source.split('\n');
+    const starts = new Array(lines.length);
+    let offset = 0;
+    for (let i = 0; i < lines.length; i += 1) {
+      starts[i] = offset;
+      offset += lines[i].length + 1;
+    }
+    input.__n7LargeCache = { source, lines, starts };
+    return input.__n7LargeCache;
+  }
+
+  function largeFileCache(input) {
+    return input.__n7LargeCache?.source === input.value ? input.__n7LargeCache : buildLargeFileCache(input);
+  }
+
+  function renderLargeViewport(parts, language) {
+    const cache = largeFileCache(parts.input);
+    const lineHeight = Number.parseFloat(getComputedStyle(parts.input).lineHeight) || 22.75;
+    const visible = Math.max(1, Math.ceil(parts.input.clientHeight / lineHeight));
+    const firstVisible = Math.max(0, Math.floor(parts.input.scrollTop / lineHeight));
+    const start = Math.max(0, firstVisible - LARGE_FILE_OVERSCAN);
+    const end = Math.min(cache.lines.length, firstVisible + visible + LARGE_FILE_OVERSCAN);
+    const slice = cache.lines.slice(start, end).join('\n');
+    const sourceOffset = cache.starts[start] || 0;
+    const sliceRanges = (state.matchRanges[language] || []).map((range) => ({ start: range.start - sourceOffset, end: range.end - sourceOffset })).filter((range) => range.end > 0 && range.start < slice.length).map((range) => ({ start: Math.max(0, range.start), end: Math.min(slice.length, range.end) }));
+    const y = start * lineHeight - parts.input.scrollTop;
+
+    parts.code.innerHTML = `${highlightCode(slice, language, sliceRanges)}\n`;
+    parts.code.style.transform = `translate(${-parts.input.scrollLeft}px, ${y}px)`;
+
+    const numberRows = [];
+    for (let index = start; index < end; index += 1) numberRows.push(lineNumberMarkup(index + 1, language));
+    parts.numbers.innerHTML = `<div class="virtual-line-numbers" style="transform:translateY(${y}px)">${numberRows.join('')}</div>`;
+    parts.numbers.scrollTop = 0;
+    parts.highlight.scrollTop = 0;
+    parts.highlight.scrollLeft = 0;
+  }
+
+  function scheduleLargeViewport(parts, language) {
+    if (parts.input.__n7ScrollFrame) return;
+    parts.input.__n7ScrollFrame = requestAnimationFrame(() => {
+      parts.input.__n7ScrollFrame = 0;
+      renderLargeViewport(parts, language || parts.input.dataset.language);
+    });
+  }
+
+  function syncScroll(parts, language = parts.input.dataset.language) {
+    if (parts.input.dataset.largeFile === 'true') {
+      scheduleLargeViewport(parts, language);
+      return;
+    }
     parts.numbers.scrollTop = parts.input.scrollTop;
     parts.highlight.scrollTop = parts.input.scrollTop;
     parts.highlight.scrollLeft = parts.input.scrollLeft;
@@ -557,9 +582,19 @@
 
   function syncEditor(container, language) {
     const parts = getEditorParts(container);
+    const large = isLargeFileValue(parts.input.value);
+    parts.input.dataset.largeFile = String(large);
+    container.classList.toggle('is-large-file', large);
+    if (large) {
+      largeFileCache(parts.input);
+      renderLargeViewport(parts, language);
+      return;
+    }
+    parts.input.__n7LargeCache = null;
+    parts.code.style.transform = '';
     parts.numbers.innerHTML = lineNumbersFor(parts.input.value, language);
     parts.code.innerHTML = `${highlightCode(parts.input.value, language)}\n`;
-    syncScroll(parts);
+    syncScroll(parts, language);
   }
 
   function setEditorValue(container, language, value) {
@@ -570,10 +605,6 @@
     syncEditor(container, language);
   }
 
-  function setSingleEditor(language) {
-    setEditorValue(singleEditor, language, state.code[language]);
-    footerLanguage.textContent = language.toUpperCase();
-  }
 
   function populateAllEditors() {
     allSections.forEach((section) => {
@@ -1403,30 +1434,13 @@
   }
 
 
-  function updateFileTreeActive() {
-    fileTreeItems.forEach((item) => item.classList.toggle('is-active', state.view !== 'all' && item.dataset.fileLanguage === state.view));
-  }
 
-  function applyFilesOpen(active) {
-    state.filesOpen = Boolean(active);
-    workspace.classList.toggle('has-files', state.filesOpen);
-    filesButton.classList.toggle('is-active', state.filesOpen);
-    filesButton.setAttribute('aria-pressed', String(state.filesOpen));
-    filesButton.setAttribute('aria-label', state.filesOpen ? 'Hide project files' : 'Show project files');
-    fileTree.setAttribute('aria-hidden', String(!state.filesOpen));
-    updateFileTreeActive();
-  }
 
   function toggleFiles() {
     applyFilesOpen(!state.filesOpen);
     persistPrefs();
   }
 
-  function switchView(nextView) {
-    if (nextView === state.view) return;
-    applyView(nextView, true);
-    persistPrefs();
-  }
 
   function replaceSelection(input, replacement, caretOffset = replacement.length) {
     const start = input.selectionStart;
@@ -2010,16 +2024,40 @@
     updateFind();
   }
 
-  function projectDependencySource() {
-    if (state.project?.mode === 'folder') {
-      return [...state.project.files.values()].filter((record) => typeof record.text === 'string').map((record) => record.text).join('\n');
-    }
-    return `${state.code.html}\n${state.code.js}`;
+  function projectDependencyRefs() {
+    const refs = [];
+    const add = (value) => { if (value) refs.push(String(value)); };
+    const records = state.project?.mode === 'folder' ? [...state.project.files.values()] : [
+      { language: 'html', text: state.code.html },
+      { language: 'js', text: state.code.js }
+    ];
+
+    records.forEach((record) => {
+      if (typeof record.text !== 'string') return;
+      if (record.language === 'html') {
+        try {
+          const doc = new DOMParser().parseFromString(record.text, 'text/html');
+          doc.querySelectorAll('script[src]').forEach((node) => add(node.getAttribute('src')));
+          doc.querySelectorAll('link[href]').forEach((node) => {
+            const rel = String(node.getAttribute('rel') || '').toLowerCase();
+            if (/modulepreload|preload/.test(rel) && /script|module/i.test(node.getAttribute('as') || rel)) add(node.getAttribute('href'));
+          });
+          doc.querySelectorAll('script:not([src])').forEach((node) => {
+            const text = node.textContent || '';
+            for (const match of text.matchAll(/(?:from\s*|import\s*\()\s*["']([^"']+)["']/g)) add(match[1]);
+          });
+        } catch {}
+      }
+      if (record.language === 'js') {
+        for (const match of record.text.matchAll(/(?:from\s*|import\s*\()\s*["']([^"']+)["']/g)) add(match[1]);
+      }
+    });
+    return refs.join('\n');
   }
 
   function projectProvidedLibraries() {
-    const source = projectDependencySource();
-    return new Set(CURATED_LIBRARIES.filter((library) => library.detect.test(source)).map((library) => library.id));
+    const refs = projectDependencyRefs();
+    return new Set(CURATED_LIBRARIES.filter((library) => library.detect.test(refs)).map((library) => library.id));
   }
 
   function effectiveLibraries() {
@@ -2174,7 +2212,7 @@
       if (language === 'html' && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End','PageUp','PageDown'].includes(event.key)) highlightPreviewFromHtmlInput(parts.input);
     });
     parts.input.addEventListener('select', () => { if (languageResolver() === 'html') highlightPreviewFromHtmlInput(parts.input); });
-    parts.input.addEventListener('scroll', () => syncScroll(parts));
+    parts.input.addEventListener('scroll', () => syncScroll(parts, languageResolver()));
     parts.input.addEventListener('keydown', (event) => {
       const language = languageResolver();
 
@@ -3091,7 +3129,14 @@
     if (!record?.language || typeof record.text !== 'string') return false;
     state.project.activePath = path;
     state.project.lastByLanguage[record.language] = path;
-    if (record.language === 'html') state.project.entryHtmlPath = path;
+    if (record.language === 'html') {
+      state.project.entryHtmlPath = path;
+      // Entry pages own their own preview session. Switching HTML files inside the
+      // same folder project must never reuse CSS/runtime state from the previous page.
+      window.clearTimeout(state.previewTimer);
+      state.cssUpdateId += 1;
+      beginProjectSession(state.project, { clearPreview: false });
+    }
     state.code[record.language] = record.text;
     clearProjectHistory();
     applyView(record.language, animate);

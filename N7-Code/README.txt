@@ -1,14 +1,13 @@
-N7-Code — Build 30
+N7-Code — Build 31
 
-Hosted full-project runtime.
+Core stability / performance build.
 
-TESTING
-- Double-clicking index.html still uses LOCAL MODE / the existing compatibility preview.
-- For the new FULL PROJECT runtime, upload the entire build folder to GitHub Pages, including sw.js and vendor/.
-- Open N7-Code over HTTPS, then open a real project folder.
+This build focuses only on four previously-open issues:
+- canonical viewport sizing so the top bar/workspace/footer cannot drift outside the browser viewport;
+- HTML entry-page isolation inside real folder projects so switching pages cannot reuse the previous page runtime/styles;
+- precise curated-library detection (PROJECT is shown only for dependencies actually referenced by the project);
+- large-file editor virtualization for very large HTML/CSS/JS files, reducing line-number and syntax-paint work to the visible viewport.
 
-The hosted runtime keeps project files local in the browser. It uses a service worker + Cache Storage to give folder projects stable virtual URLs under the editor's GitHub Pages scope. No backend or project upload is used.
+Large-file mode is automatic. The UI and editing model do not change.
 
-
-Project backup format: .n7-code (legacy .mfcode files remain openable).
-Automatic project switching no longer downloads backups; previous work is protected in browser storage unless it can be saved directly to its folder.
+For FULL PROJECT runtime testing, serve N7-Code over HTTPS (for example GitHub Pages) so the included service worker can control the virtual project runtime. Double-click/file:// remains LOCAL COMPAT mode.

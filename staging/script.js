@@ -30,7 +30,7 @@
   /* Automatic text wipes are split into the lines the browser actually lays out.
      This keeps the effect responsive: a resize recalculates the lines instead of
      relying on hard-coded breaks, while scroll-scrubbed animations remain intact. */
-  const autoTextLineSelector='.projects-info-col,.case-project-title,.case-project-strapline,.case-project-copy-title,.case-project-body,.case-project-web-caption,.case-project-instagram-copy,.case-goballer-process';
+  const autoTextLineSelector='.projects-info-col,.case-project-title,.case-project-strapline,.case-project-copy-title,.case-project-body,.case-project-web-caption,.case-project-instagram-copy,.case-goballer-process,.case-miunae-launch-copy,.case-aims-web-copy,.case-aims-social-copy,.case-aims-deck-copy';
   const prepareAutoTextLines=(root=document)=>{
     const targets=[];
     if(root.matches?.(autoTextLineSelector))targets.push(root);
@@ -296,8 +296,10 @@
   let caseProjectHeroVideo=activeCaseProjectContent?.querySelector('.case-project-hero-video')||null;
   let caseProjectMediaLinks=activeCaseProjectContent?.querySelector('.case-project-media-links')||null;
   const projectWipeThreshold=.18;
-  const allProjectWipeTargets=caseOverlay?[...caseOverlay.querySelectorAll('.case-project-title, .case-project-strapline, .case-project-links a, .case-project-copy-title, .case-project-meta .case-project-data, .case-project-body, .case-project-web-caption, .case-project-instagram-copy, .case-goballer-process')]:[];
+  const allProjectWipeTargets=caseOverlay?[...caseOverlay.querySelectorAll('.case-project-title, .case-project-strapline, .case-project-copy-title, .case-project-meta .case-project-data, .case-project-body, .case-project-web-caption, .case-project-instagram-copy, .case-goballer-process, .case-miunae-launch-copy, .case-aims-web-copy, .case-aims-social-copy, .case-aims-deck-copy')]:[];
   let projectWipeTargets=[];
+  let projectDetailScrollTop=0;
+  let projectDetailScrollDirection='forward';
   allProjectWipeTargets.forEach(target=>target.classList.add('project-viewport-wipe'));
   const setActiveCaseProject=index=>{
     activeCaseProjectIndex=index;
@@ -306,28 +308,71 @@
     caseProjectGallery=activeCaseProjectContent?.querySelector('.case-project-gallery')||null;
     caseProjectHeroVideo=activeCaseProjectContent?.querySelector('.case-project-hero-video')||null;
     caseProjectMediaLinks=activeCaseProjectContent?.querySelector('.case-project-media-links')||null;
-    projectWipeTargets=activeCaseProjectContent?[...activeCaseProjectContent.querySelectorAll('.case-project-title, .case-project-strapline, .case-project-links a, .case-project-copy-title, .case-project-meta .case-project-data, .case-project-body, .case-project-web-caption, .case-project-instagram-copy, .case-goballer-process')]:[];
+    projectWipeTargets=activeCaseProjectContent?[...activeCaseProjectContent.querySelectorAll('.case-project-title, .case-project-strapline, .case-project-copy-title, .case-project-meta .case-project-data, .case-project-body, .case-project-web-caption, .case-project-instagram-copy, .case-goballer-process, .case-miunae-launch-copy, .case-aims-web-copy, .case-aims-social-copy, .case-aims-deck-copy')]:[];
   };
   setActiveCaseProject(0);
-  const projectWipeObserver=caseOverlay&&allProjectWipeTargets.length&&'IntersectionObserver' in window
-    ? new IntersectionObserver(entries=>{
-        if(!projectDetailOpen)return;
-        entries.forEach(entry=>{
-          if(entry.target.closest('.case-project-content')!==activeCaseProjectContent)return;
-          entry.target.classList.toggle('is-viewport-revealed',entry.isIntersecting);
-        });
-      },{root:caseOverlay,threshold:projectWipeThreshold})
-    : null;
-  allProjectWipeTargets.forEach(target=>projectWipeObserver?.observe(target));
+  /* The scroll listener below is the sole owner of detail wipes. An
+     IntersectionObserver would toggle the same class independently and
+     restart animations whenever its threshold fluctuated. */
+  const projectWipeObserver=null;
   const updateProjectWipes=()=>{
     if(!projectDetailOpen||!caseOverlay)return;
+    const currentScrollTop=caseOverlay.scrollTop;
+    projectDetailScrollDirection=currentScrollTop<projectDetailScrollTop-.5?'backward':'forward';
+    projectDetailScrollTop=currentScrollTop;
     const root=caseOverlay.getBoundingClientRect();
     projectWipeTargets.forEach(target=>{
       const rect=target.getBoundingClientRect();
       /* Keep a revealed block visible while any part of it is still in the
          viewport; only wipe it once it has completely left the overlay. */
-      const visible=rect.bottom>root.top&&rect.top<root.bottom;
+      const wasVisible=target.dataset.viewportVisible==='1';
+      /* Hysteresis avoids threshold flicker at an overlay edge: a revealed
+         block stays visible until it is fully out, and only re-enters after
+         it has cleared a small buffer inside the viewport. */
+      const visible=wasVisible
+        ? rect.bottom>root.top-40&&rect.top<root.bottom+40
+        : rect.bottom>root.top+40&&rect.top<root.bottom-40;
+      const nextVisible=visible?'1':'0';
+      const direction=projectDetailScrollDirection;
+      /* Keep viewport visibility stateful. Direction classes may change on
+         every scroll tick, but a wipe may only start when visibility changes. */
+      if(target.dataset.viewportVisible===nextVisible){
+        target.classList.toggle('is-wipe-backward',direction==='backward');
+        target.classList.toggle('is-wipe-forward',direction==='forward');
+        return;
+      }
+      target.dataset.viewportVisible=nextVisible;
+      target.classList.add('detail-wipe-controlled');
+      target.classList.toggle('is-wipe-backward',direction==='backward');
+      target.classList.toggle('is-wipe-forward',direction==='forward');
       target.classList.toggle('is-viewport-revealed',visible);
+      target._detailWipeAnimation?.cancel();
+      const edge=direction==='backward'?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
+      target.style.opacity=visible?'0':'1';
+      target.style.clipPath=visible?edge:'inset(0)';
+      target._detailWipeAnimation=target.animate(
+        [{opacity:visible?0:1,clipPath:visible?edge:'inset(0)'},{opacity:visible?1:0,clipPath:visible?'inset(0)':edge}],
+        {duration:1500,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'}
+      );
+      target._detailWipeAnimation.onfinish=()=>{
+        if(target.dataset.viewportVisible===nextVisible){
+          target.style.opacity=visible?'1':'0';
+          target.style.clipPath=visible?'inset(0)':edge;
+        }
+      };
+      const lines=[...target.querySelectorAll('.auto-wipe-line')];
+      lines.forEach((line,index)=>{
+        line._detailLineWipeAnimation?.cancel();
+        const lineEdge=direction==='backward'?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
+        line.style.opacity=visible?'0':'1';
+        line.style.clipPath=visible?lineEdge:'inset(0)';
+        line._detailLineWipeAnimation=line.animate(
+          [{opacity:visible?0:1,clipPath:visible?lineEdge:'inset(0)',transform:visible?'translateY(8px)':'none'},
+           {opacity:visible?1:0,clipPath:visible?'inset(0)':lineEdge,transform:'none'}],
+          {duration:1100,easing:'cubic-bezier(.22,.61,.36,1)',delay:visible?index*90:(lines.length-1-index)*50,fill:'forwards'}
+        );
+        line._detailLineWipeAnimation.onfinish=()=>{line.style.opacity=visible?'1':'0';line.style.clipPath=visible?'inset(0)':lineEdge;line.style.transform='none';};
+      });
     });
   };
   caseOverlay?.addEventListener('scroll',updateProjectWipes,{passive:true});
@@ -355,8 +400,14 @@
     caseProjectMediaLinks?.classList.remove('is-video-expanded');
     caseProjectMediaLinks?.style.removeProperty('--video-placeholder-height');
     caseOverlay.classList.remove('is-video-expanded');
-    projectWipeTargets.forEach(target=>target.classList.remove('is-viewport-revealed'));
-    caseProjectHeroVideo?.setAttribute('aria-label','Expand Miunāe hero video');
+      projectWipeTargets.forEach(target=>{
+      target._detailWipeAnimation?.cancel();
+      target._detailWipeAnimation=null;
+      target.querySelectorAll('.auto-wipe-line').forEach(line=>{line._detailLineWipeAnimation?.cancel();line._detailLineWipeAnimation=null;});
+      delete target.dataset.viewportVisible;
+      target.classList.remove('detail-wipe-controlled','is-viewport-revealed','is-wipe-forward','is-wipe-backward');
+    });
+    caseProjectHeroVideo?.setAttribute('aria-label',`Expand ${activeCaseProjectIndex===1?'GoBaller':activeCaseProjectIndex===2?'AIMS':'Miunāe'} video`);
     projectDetailOpen=false;
     masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.removeProperty('transition');});
     caseOverlay.classList.add('is-content-exiting');
@@ -395,13 +446,13 @@
         mediaLinks?.classList.add('is-video-expanded');
         video.classList.add('is-expanded');
         caseOverlay.classList.add('is-video-expanded');
-        video.setAttribute('aria-label',`Minimize ${activeCaseProjectIndex===1?'GoBaller':'Miunāe'} video`);
+        video.setAttribute('aria-label',`Minimize ${activeCaseProjectIndex===1?'GoBaller':activeCaseProjectIndex===2?'AIMS':'Miunāe'} video`);
         requestAnimationFrame(()=>video.classList.add('is-video-visible'));
         return;
       }
       video.classList.add('is-video-closing');
       video.classList.remove('is-video-visible');
-      video.setAttribute('aria-label',`Expand ${activeCaseProjectIndex===1?'GoBaller':'Miunāe'} video`);
+      video.setAttribute('aria-label',`Expand ${activeCaseProjectIndex===1?'GoBaller':activeCaseProjectIndex===2?'AIMS':'Miunāe'} video`);
       setTimeout(()=>{
         video.classList.remove('is-expanded','is-video-closing');
         video.classList.add('is-video-returning');
@@ -490,6 +541,7 @@
   }
   addEventListener('keydown',event=>{if(event.key==='Escape')closeCaseOverlay();});
   const stage=document.getElementById('projectsStage');
+  const postTransition=document.getElementById('postProjectTransition');
   const frame=document.getElementById('projectsFrame');
   const intro=document.getElementById('projectsIntro');
   const images=frame?[...frame.querySelectorAll('.projects-image')]:[];
@@ -499,7 +551,11 @@
     let seqRaf=0;
     let projectsTop=0;
     let projectProgress=0;
+    let projectScrollDirection='forward';
+    let projectExitLatched=false;
+    let infoPositionRaf=0;
     const progressSegments=[...document.querySelectorAll('.projects-progress-segment')];
+    const progressBar=document.querySelector('.projects-progress');
     const projectDetails=[
       ['MIUNĀE','A skincare brand system built around time, tactility and restraint','Creative Direction'],
       ['GoBaller','Football coaching app for players of all ages','Brand, iOS App'],
@@ -509,7 +565,7 @@
       const mask=event.target.closest?.('.projects-image-mask');
       if(!mask||!caseOverlay||projectDetailOpen)return;
       const index=masks.indexOf(mask);
-      if(index<0||index>1)return;
+      if(index<0||index>2)return;
       if(!projectDetails[index])return;
       if(smooth.raf){cancelAnimationFrame(smooth.raf);smooth.raf=0;}
       smooth.current=scrollY;smooth.target=scrollY;
@@ -519,6 +575,8 @@
       clearTimeout(overlayRevealTimer);overlayRevealTimer=0;
       clearTimeout(overlayCloseTimer);overlayCloseTimer=0;
       setActiveCaseProject(index);
+      projectDetailScrollTop=0;
+      projectDetailScrollDirection='forward';
       caseOverlay.classList.remove('is-cleaning','is-content-reveal','is-content-exiting','is-closing','is-close-visible');
       masks.forEach(item=>item.style.pointerEvents='none');
       smooth.resetOverlay(0);
@@ -542,9 +600,99 @@
       const t=clamp((x-edge0)/((edge1-edge0)||1e-6),0,1);
       return t*t*(3-2*t);
     };
-    const renderSequence=(sequenceP)=>{
+    const applyProjectWipeState=(element,visible,direction)=>{
+      if(!element)return;
+      const wipeDirection=visible?direction:(element.dataset.wipeDirection||direction);
+      const nextVisible=visible?'1':'0';
+      /* Visibility is the state machine. Direction is only chosen when a
+         state change actually happens; changing scroll direction while an
+         element is already hidden must not replay its wipe. */
+      if(element.dataset.wipeVisible===nextVisible)return;
+      element.dataset.wipeVisible=nextVisible;
+      element.dataset.wipeDirection=wipeDirection;
+      element.classList.add('wipe-controlled');
+      element.classList.toggle('is-wipe-backward',wipeDirection==='backward');
+      element.classList.toggle('is-wipe-forward',wipeDirection==='forward');
+      element.classList.toggle('is-visible',visible);
+      element.classList.toggle('is-wiping-out',!visible);
+      element._projectWipeAnimation?.cancel();
+      const edge=wipeDirection==='backward'?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
+      const from=visible?edge:'inset(0)';
+      const to=visible?'inset(0)':edge;
+      element.style.opacity=visible?'0':'1';
+      element.style.clipPath=from;
+      element._projectWipeAnimation=element.animate(
+        [{opacity:visible?0:1,clipPath:from,transform:'none'},{opacity:visible?1:0,clipPath:to,transform:'none'}],
+        {duration:1500,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'}
+      );
+      element._projectWipeAnimation.onfinish=()=>{
+        if(element.dataset.wipeVisible===nextVisible){
+          element.style.opacity=visible?'1':'0';
+          element.style.clipPath=visible?'inset(0)':edge;
+        }
+      };
+      const lines=[...element.querySelectorAll('.auto-wipe-line')];
+      lines.forEach((line,index)=>{
+        line._projectLineWipeAnimation?.cancel();
+        const lineEdge=wipeDirection==='backward'?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
+        line.style.opacity=visible?'0':'1';
+        line.style.clipPath=visible?lineEdge:'inset(0)';
+        line._projectLineWipeAnimation=line.animate(
+          [{opacity:visible?0:1,clipPath:visible?lineEdge:'inset(0)',transform:visible?'translateY(8px)':'none'},
+           {opacity:visible?1:0,clipPath:visible?'inset(0)':lineEdge,transform:'none'}],
+          {duration:1100,easing:'cubic-bezier(.22,.61,.36,1)',delay:visible?index*90:(lines.length-1-index)*50,fill:'forwards'}
+        );
+        line._projectLineWipeAnimation.onfinish=()=>{line.style.opacity=visible?'1':'0';line.style.clipPath=visible?'inset(0)':lineEdge;line.style.transform='none';};
+      });
+      [...element.querySelectorAll('.projects-info-col')].forEach((column,index)=>{
+        column._projectColumnWipeAnimation?.cancel();
+        /* The metadata parent owns the wipe. Child masks caused the visible
+           title/description to be clipped mid-line and appear cut off. */
+        column.style.opacity='1';
+        column.style.clipPath='inset(0)';
+        column.style.transform='none';
+      });
+    };
+    const resetProjectWipeState=(element)=>{
+      if(!element)return;
+      element._projectWipeAnimation?.cancel();
+      element._projectWipeAnimation=null;
+      element.querySelectorAll('.auto-wipe-line').forEach(line=>{line._projectLineWipeAnimation?.cancel();line._projectLineWipeAnimation=null;});
+      element.querySelectorAll('.projects-info-col').forEach(column=>{column._projectColumnWipeAnimation?.cancel();column._projectColumnWipeAnimation=null;});
+      delete element.dataset.wipeVisible;
+      delete element.dataset.wipeDirection;
+      element.classList.remove('wipe-controlled','is-visible','is-wiping-out','is-wipe-forward','is-wipe-backward');
+      element.style.removeProperty('opacity');
+      element.style.removeProperty('clip-path');
+      element.style.removeProperty('transform');
+    };
+    const renderSequence=(sequenceP,stageP=sequenceP)=>{
       if(projectDetailOpen)return;
       const p=clamp(sequenceP,0,1);
+      const sectionExit=smoothstep(.88,1,stageP);
+      /* Hysteresis prevents smooth-scroll settling at the boundary from
+         toggling the same exit wipe repeatedly. Re-entry must travel back
+         below .84 before the exit state can be reset. */
+      if(!projectExitLatched&&stageP>=.88){
+        projectExitLatched=true;
+        postTransition?.classList.add('is-project-exit-start');
+        const exitDirection=projectScrollDirection;
+        applyProjectWipeState(intro?.querySelector('.projects-intro-piece'),false,exitDirection);
+        applyProjectWipeState(document.getElementById('projectsInfo'),false,exitDirection);
+        applyProjectWipeState(progressBar,false,exitDirection);
+      }else if(projectExitLatched&&projectScrollDirection==='backward'&&stageP<=.84){
+        projectExitLatched=false;
+        postTransition?.classList.remove('is-project-exit-start');
+        resetProjectWipeState(intro?.querySelector('.projects-intro-piece'));
+        resetProjectWipeState(document.getElementById('projectsInfo'));
+        resetProjectWipeState(progressBar);
+      }
+      const finalTextExit=projectExitLatched;
+      if(frame){frame.style.clipPath=`inset(0 0 ${sectionExit*100}% 0)`;frame.style.pointerEvents=sectionExit>.99?'none':'';}
+      /* Recent Works and the metadata have independent wipe controllers.
+         Clipping their shared wrapper made the metadata disappear/move early
+         as the project frame exited. */
+      if(intro){intro.style.clipPath='none';}
       const steps=images.length;
       const holdRatio=.4;
       const openRatio=.6;
@@ -558,7 +706,8 @@
       if(intro){
         const line=intro.querySelector('.projects-intro-piece');
         if(line){
-          line.classList.toggle('is-visible',p>=galleryStart&&(activeIndex>0||open>.02));
+          const introVisible=!finalTextExit&&p>=galleryStart&&(activeIndex>0||open>.02);
+          if(!finalTextExit)applyProjectWipeState(line,introVisible,projectScrollDirection);
         }
       }
       const glowDirections=['bottom','left','top'];
@@ -588,13 +737,21 @@
         const key=meta.join('|');
         if(info.dataset.copy!==key){
           info.dataset.copy=key;
-          info.classList.remove('is-visible');
+          delete info.dataset.wipeVisible;
+          delete info.dataset.wipeDirection;
+          info.classList.remove('is-visible','is-wiping-out');
           info.innerHTML=meta.map((text,i)=>`<span class="projects-info-col projects-info-col--${i} ${i===0?'type-project-title':i===1?'type-project-meta':'type-project-tag'}">${text}</span>`).join('');
           prepareAutoTextLines(info);
           void info.offsetWidth;
         }
       }
-      if(info) info.classList.toggle('is-visible',open>.02);
+      if(info){
+        const infoVisible=!finalTextExit&&p>=galleryStart;
+        if(!finalTextExit){
+          applyProjectWipeState(info,infoVisible,projectScrollDirection);
+          applyProjectWipeState(progressBar,infoVisible,projectScrollDirection);
+        }
+      }
       if(intro) intro.classList.toggle('is-gallery-moving',open>0.01);
       window.dispatchEvent(new CustomEvent('projects-shader-progress',{detail:{progress:galleryP,index:activeIndex,open,images:images.map(img=>img.currentSrc||img.src)}}));
       stage.dataset.step=String(activeIndex);
@@ -636,15 +793,38 @@
         img.style.zIndex=String(active?100+i:before?10+i:0);
         img.style.pointerEvents='none';
       });
-      if(info){requestAnimationFrame(()=>{const target=masks[activeIndex],shellRect=frame.parentElement.getBoundingClientRect(),navRect=document.querySelector('.site-nav')?.getBoundingClientRect(),menuRect=document.querySelector('.site-menu')?.getBoundingClientRect(),ir=target&&target.getBoundingClientRect();if(ir){const menuBottom=navRect?.bottom||0;const metadataY=menuBottom+(ir.top-menuBottom)*.6;const localY=metadataY-shellRect.top;info.style.top=`${localY}px`;info.style.left=`${ir.left-shellRect.left}px`;info.style.width=`${ir.width}px`;info.style.transform='none';const pill=info.querySelector('.projects-info-col--2');if(pill&&menuRect&&innerWidth>900){pill.style.left=`${menuRect.left-ir.left}px`;pill.style.right='auto';}const recent=intro?.querySelector('.projects-intro-piece');if(recent){recent.style.top=`${localY}px`;recent.style.bottom='auto';}}});}
-      stage.classList.toggle('is-released',p>=.999);
+      if(info&&!sectionExit){
+        cancelAnimationFrame(infoPositionRaf);
+        infoPositionRaf=requestAnimationFrame(()=>{
+          const target=masks[activeIndex],shellRect=frame.parentElement.getBoundingClientRect(),navRect=document.querySelector('.site-nav')?.getBoundingClientRect(),menuRect=document.querySelector('.site-menu')?.getBoundingClientRect(),ir=target&&target.getBoundingClientRect();
+          if(!ir)return;
+          const menuBottom=navRect?.bottom||0;
+          const metadataY=menuBottom+(ir.top-menuBottom)*.6;
+          const localY=metadataY-shellRect.top;
+          info.style.top=`${localY}px`;info.style.left=`${ir.left-shellRect.left}px`;info.style.width=`${ir.width}px`;info.style.transform='none';
+          if(progressBar){
+            const description=info.querySelector('.projects-info-col--1');
+            const descriptionRect=description?.getBoundingClientRect();
+            const progressY=descriptionRect?descriptionRect.top-shellRect.top+(descriptionRect.height-progressBar.offsetHeight)/2:localY;
+            progressBar.style.top=`${progressY}px`;progressBar.style.bottom='auto';progressBar.style.left='auto';progressBar.style.right=`${shellRect.right-ir.right}px`;
+          }
+          const pill=info.querySelector('.projects-info-col--2');
+          if(pill&&menuRect&&innerWidth>900){pill.style.left=`${menuRect.left-ir.left}px`;pill.style.right='auto';}
+          const recent=intro?.querySelector('.projects-intro-piece');
+          if(recent){recent.style.top=`${localY}px`;recent.style.bottom='auto';}
+        });
+      }
+      stage.classList.toggle('is-exiting',sectionExit>0);
+      stage.classList.toggle('is-released',stageP>=.999);
     };
-    const projectRange=()=>Math.max(1,projects.scrollHeight-innerHeight);
+    const projectRange=()=>Math.max(1,stage.offsetHeight-innerHeight);
     const renderFromScroll=()=>{
       const projStart=projectsTop;
       const raw=clamp((scrollY-projStart)/projectRange(),0,1);
+      projectScrollDirection=raw<projectProgress-.0005?'backward':'forward';
       projectProgress=raw;
-      renderSequence(raw);
+      const sequenceP=clamp(raw/.88,0,1);
+      renderSequence(sequenceP,raw);
     };
     const updateSequence=()=>{
       seqRaf=0;
@@ -658,6 +838,72 @@
     addEventListener('resize',measure,{passive:true});
     requestSequenceUpdate();
   }
+  const postServices=[...document.querySelectorAll('.post-project-service')];
+  if(postTransition){
+    let postPlaybackTimer=0;
+    let postPlaybackDirection='idle';
+    let postPreviousProgress=0;
+    let postDirectionAnchor=0;
+    const postDirectionThreshold=.015;
+    const postServiceStagger=90;
+    const setPostServicePhase=(item,phase)=>{
+      if(item.dataset.phase===phase)return false;
+      item.dataset.phase=phase;
+      item.classList.remove('is-visible','is-exiting');
+      if(phase==='visible')item.classList.add('is-visible');
+      if(phase==='exiting')item.classList.add('is-exiting');
+      return true;
+    };
+    const stopPostPlayback=()=>{if(postPlaybackTimer){clearTimeout(postPlaybackTimer);postPlaybackTimer=0;}};
+    const playPostServicesForward=()=>{
+      stopPostPlayback();
+      postPlaybackDirection='forward';
+      let index=0;
+      const step=()=>{
+        if(postPlaybackDirection!=='forward'||index>=postServices.length){postPlaybackTimer=0;return;}
+        const item=postServices[index++];
+        setPostServicePhase(item,'visible');
+        item.dataset.revealed='1';
+        postPlaybackTimer=setTimeout(step,postServiceStagger);
+      };
+      step();
+    };
+    const playPostServicesReverse=()=>{
+      stopPostPlayback();
+      postPlaybackDirection='reverse';
+      let index=postServices.length-1;
+      const step=()=>{
+        if(postPlaybackDirection!=='reverse'||index<0){postPlaybackTimer=0;return;}
+        const item=postServices[index--];
+        setPostServicePhase(item,'exiting');
+        postPlaybackTimer=setTimeout(step,postServiceStagger);
+      };
+      step();
+    };
+    const updatePostTransition=()=>{
+      const top=postTransition.getBoundingClientRect().top+scrollY;
+      const p=clamp((scrollY-top)/(Math.max(1,postTransition.offsetHeight-innerHeight)),0,1);
+      postTransition.classList.toggle('is-active',p>.04&&p<.96);
+      const scrollingBack=p<postPreviousProgress-.0005;
+      const scrollingForward=p>postPreviousProgress+.0005;
+      /* Smooth scrolling can oscillate by a few pixels at section boundaries.
+         Require meaningful travel before changing playback direction so an
+         exit wipe cannot be restarted by settling noise. */
+      if(p>=.03&&scrollingForward&&postPlaybackDirection!=='forward'&&p>=postDirectionAnchor+postDirectionThreshold){
+        postDirectionAnchor=p;
+        playPostServicesForward();
+      }
+      if(scrollingBack&&postPlaybackDirection!=='reverse'&&p<.995){
+        postDirectionAnchor=p;
+        playPostServicesReverse();
+      }
+      postPreviousProgress=p;
+    };
+    addEventListener('scroll',updatePostTransition,{passive:true});
+    addEventListener('resize',updatePostTransition,{passive:true});
+    updatePostTransition();
+  }
+  if(postServices.length){postServices.forEach(item=>{item.classList.remove('is-visible','is-exiting');item.dataset.phase='hidden';});}
 
   /* Cursor. */
   const cursor=document.getElementById('cursor');

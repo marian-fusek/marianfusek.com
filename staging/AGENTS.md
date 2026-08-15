@@ -67,6 +67,7 @@ The user may refer to these sizes without repeating the definition:
 - **3** — project-detail metadata label size (`Year`, `Role`, `Type`, `Team`, `Deliverables`).
 - **3G** — the grey value beneath a 3 label.
 - **tag** — a separate style for project type/tag copy. It should visually match the slideshow description unless the user asks for a distinct adjustment.
+- The canonical 3G look is `font-size: var(--type-3); line-height: 1.2; letter-spacing: -0.01em; color: var(--body);` (see `.case-project-meta`/`.case-project-data span`). `.hero-meta` ("20+ Years of XP") now matches this exactly — it previously had a stray `letter-spacing: 0.07em` and `line-height: 1.3` that made it read as oddly spaced compared to every other small grey label on the site. If a small grey caption anywhere looks off, compare its letter-spacing/line-height against this pair before assuming it's a font or sizing issue.
 - Keep descriptions in normal sentence case unless the user explicitly requests capitals/all caps.
 - Do not distort type to force a fit. Adjust size, available width, gap, or responsive layout while preserving normal proportions.
 - The typography system should use shared variables/classes, not one-off random sizes.
@@ -91,6 +92,9 @@ The user may refer to these sizes without repeating the definition:
 - On initial load, follow the latest explicit direction about whether the name is expanded or collapsed; do not reintroduce an old initial animation accidentally.
 - The right role block (for example “Brand, UI, AI & Visual Designer”) must align to the requested hero baseline and must not be independently repositioned by unrelated overlay/project-detail code.
 - Hero video/media must not remove the established background color or hide the bottom hero objects.
+- **Hero wipe is one source of truth.** `updateHeroCopyWipe()` in `script.js` computes a single eased `progress` (`smoothstep` over scroll/viewport-height) and applies the exact same `opacity`/`clip-path` pair, plus the same `is-hero-pinned` pin toggle, to all three of `.hero-info`, `.hero-name-wrap`, and `.hero-availability` together. If a new hero element needs to wipe with scroll, add it to that same loop — never give it its own separate progress formula or timing (that was the original bug: three unrelated hand-tuned formulas were each driving a different hero element).
+- `.hero-name-wrap`’s `--hero-scale` custom property is currently pinned to `1` (neutral). It used to drive a pointer-pressure hover effect on the name that has since been removed; that feature's dead JS (`pointer`/`eased`/`pressureRaf`/`nameExitProgress`) was deleted. If reviving a pointer effect, remember `transform-origin: center bottom` on a nearly-full-viewport-height box means even a tiny scale value (e.g. `0.99`) shifts the top content several pixels — that was the cause of "Marian Fusek" not lining up with "Brand, UI, AI & Visual Designer" once.
+- `alignHeroNameToInfo()` sets `.hero-name`’s `top` relative to `.hero-name-wrap`’s own bounding rect (not a raw `getBoundingClientRect().top`, which is viewport-relative and only coincidentally correct when the containing block starts at viewport y=0). Keep it that way — it's what makes the name track the role-block baseline correctly regardless of scroll/pin state.
 
 ## Recent Works / homepage project slideshow
 
@@ -118,6 +122,16 @@ The user may refer to these sizes without repeating the definition:
 - Escape and clicking X should use the same close path. Closing mid-animation should reverse from the current visual state rather than jump to a completed/maximized state.
 - Project detail content should wipe in as it enters the viewport. The polished left/right gallery companion text is an exception only when the user explicitly says to preserve its existing behavior.
 - Use shared body/metadata/title styles; do not duplicate the same text in overlay and homepage just to animate it.
+
+### Three distinct `#caseOverlay` choreographies — do not conflate them
+
+`#caseOverlay` (`style.css`) has three separate transition surfaces. Each exists for a reason; reusing the wrong one for a new interaction is what caused the switcher-link bug (see git history around the "double wipe" fixes):
+
+1. **Opening from Recent Works** (click handler around the `masks`/`.projects-image-mask` click listener in `script.js`): toggles `is-open` → `is-cleaning` → (900ms later) `is-content-reveal`. Content has `transition: none` while hidden, because nothing was visible before this fires — the "clear" phase is invisible by design, only the reveal (`.case-overlay.is-open.is-content-reveal .case-project-content`, 900ms clip-path + 180ms opacity, both on `var(--ease)`) is meant to be seen.
+2. **Closing** (`closeCaseOverlay()`): toggles `is-content-exiting` (the `::after` curtain, `z-index:2`, sweeps IN over the content, 900ms) → 900ms later `is-closing` (the `::before` curtain, `z-index:0`, sweeps AWAY to reveal the homepage underneath, another 900ms) → teardown. This is a genuine two-curtain sweep, which is why it reads as "perfect timing" — the motion is a solid panel sweeping across the screen, not a content fade.
+3. **Switching between projects while the overlay stays open** (`switchCaseProject()`, triggered by the “Check the other:” links in `.case-project-switcher`): has its **own** dedicated curtain states, `is-switch-covering` / `is-switch-revealing`, driving only the `::after` panel (same panel as closing's first curtain, same 900ms/`var(--ease)`) — deliberately **not** wired through `is-content-reveal`/`is-close-visible`/`is-cleaning`, because those also toggle the X button and switcher nav visibility, which must stay put during a same-overlay switch. The active project is swapped underneath (`setActiveCaseProject`) while the curtain is fully covering, so the swap itself is invisible.
+
+If a future interaction needs a similar “stay in the overlay, change what’s showing” wipe (e.g. switching gallery sets), reuse the `is-switch-covering`/`is-switch-revealing` pattern rather than the open or close classes — those two are load-bearing for other UI (X button, switcher nav, homepage lock/unlock) and toggling them for an unrelated transition will produce side effects.
 
 ## Media and gallery rules
 
@@ -176,3 +190,7 @@ For visual changes, verify at minimum:
 10. No horizontal overflow, clipped right edge, duplicate text, flicker, or visible browser scrollbar when the user asked it hidden.
 
 When reporting a fix, state what was changed and what was verified. Keep the report short unless the user asks for an explanation.
+
+## Live preview limitation
+
+This folder (`_MARIANFUSEK.COM/staging`) sits outside the sandbox the agent's browser/preview tools are scoped to — attempts to open it via the preview pane render as an unstyled static snapshot, and spawning a local dev server from within the tool sandbox fails with filesystem permission errors. There is currently no way for the agent to visually verify a change in-session. Do not claim a change was visually confirmed unless it actually was — say plainly that it needs the user's own local preview, and call out anything time/scroll/interaction-dependent (easing feel, timing, alignment) as specifically worth checking.

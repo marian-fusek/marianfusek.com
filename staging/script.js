@@ -1,26 +1,4 @@
 (()=>{
-  const transitionCopyGlobal=document.getElementById('heroTransitionCopy');
-  if(transitionCopyGlobal){
-    const bound=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
-    const updateTransitionCopy=()=>{
-      const reveal=bound(scrollY/(innerHeight*.7),0,1);
-      const fade=1-bound((scrollY-innerHeight*.72)/(innerHeight*.42),0,1);
-      const paragraph=transitionCopyGlobal.querySelector('p');
-      if(!paragraph)return;
-      transitionCopyGlobal.style.opacity=String(scrollY>0?fade:0);
-      if(!paragraph.dataset.split){
-        paragraph.innerHTML=paragraph.textContent.trim().split(/(\s+)/).map((part,i)=>part.trim()?`<span class="scroll-word" style="--i:${i}">${part}</span>`:part).join('');
-        paragraph.dataset.split='1';
-      }
-      const words=[...paragraph.querySelectorAll('.scroll-word')];
-      words.forEach((word,i)=>{
-        const wordProgress=bound((reveal-(i/Math.max(1,words.length-1))*.72)/.28,0,1);
-        word.style.color=`rgba(26,26,26,${wordProgress})`;
-      });
-    };
-    addEventListener('scroll',updateTransitionCopy,{passive:true});
-    updateTransitionCopy();
-  }
   'use strict';
   const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
   const lerp=(a,b,t)=>a+(b-a)*t;
@@ -233,137 +211,37 @@
     window.dispatchEvent(new Event('scroll'));
   })),{once:true,passive:true});
 
-  /* Hero three-line statement + visible rotating typewriter. */
-  const typeTarget=document.getElementById('heroTypewriter');
-  const metaLines=['20+ YEARS OF XP','DESIGN, LEADERSHIP, COACHING','SUPERPOWER: FINDING YOUR SUPERPOWER'];
-  async function runTypewriter(){
-    if(!typeTarget)return;
-    await wait(reduce?30:650);
-    while(true){
-      for(const line of metaLines){
-        typeTarget.textContent='';
-        for(const ch of line){typeTarget.textContent+=ch;await wait(reduce?1:38)}
-        await wait(reduce?50:1450);
-        while(typeTarget.textContent.length){typeTarget.textContent=typeTarget.textContent.slice(0,-1);await wait(reduce?1:17)}
-        await wait(reduce?20:250);
-      }
-    }
-  }
-  runTypewriter();
-
-  /* TextPressure-inspired hero name. Individual letters respond smoothly to pointer
-     distance using weight + restrained horizontal scale, while the container is
-     optically fitted to the viewport so no letter can spill over the edges. */
   const nameWrap=document.getElementById('heroNameWrap');
   const name=document.getElementById('heroName');
-  const monogram=document.querySelector('.hero-monogram');
   const heroInfo=document.querySelector('.hero-info');
-  const hitbox=document.querySelector('.hero-hitbox');
-  const letters=[...document.querySelectorAll('.name-letter')];
-  const pointer={x:innerWidth/2,y:innerHeight*.78};
-  const eased={x:pointer.x,y:pointer.y};
-  let pressureRaf=0;
-  let nameExitProgress=0;
-
-  function fitName(){
-    if(!nameWrap||!name)return;
-    name.style.transform='none';
-    const pad=getComputedStyle(document.documentElement).getPropertyValue('--pad').trim();
-    const padPx=parseFloat(pad)||32;
-    const available=Math.max(0,Math.min(innerWidth-(padPx*2)-12,innerWidth*.6));
-    name.style.maxWidth=`${available}px`;
-  }
-  addEventListener('resize',fitName,{passive:true});
-  fitName();
-  const alignHeroInfo=()=>{
-    if(!heroInfo||!name)return;
-    heroInfo.style.top=`${name.getBoundingClientRect().top}px`;
-    heroInfo.style.bottom='auto';
+  const heroAvailability=document.querySelector('.hero-availability');
+  const heroRecentCue=document.querySelector('.hero-recent-cue');
+  const alignHeroNameToInfo=()=>{
+    if(!heroInfo||!name||!nameWrap||innerWidth<=900)return;
+    const offset=heroInfo.getBoundingClientRect().top-nameWrap.getBoundingClientRect().top;
+    name.style.top=`${offset}px`;
+    nameWrap.style.setProperty('--hero-name-align-top',`${offset}px`);
   };
-  addEventListener('resize',alignHeroInfo,{passive:true});
-  requestAnimationFrame(alignHeroInfo);
-  document.fonts?.ready?.then(alignHeroInfo);
-  if(monogram){
-    const renderHeroExit=()=>{
-      const infoWipe=clamp(scrollY/(innerHeight*.8),0,1);
-      nameExitProgress=clamp((scrollY-innerHeight*.06)/(innerHeight*.34),0,1);
-      if(nameWrap){
-        nameWrap.classList.add('is-expanded');
-        nameWrap.classList.add('is-hero-pinned');
-        nameWrap.style.setProperty('--hero-name-exit-y','0px');
-        nameWrap.style.setProperty('--hero-name-wipe',String(nameExitProgress));
-        nameWrap.style.setProperty('--hero-name-fade',String(1-nameExitProgress));
-        nameWrap.classList.toggle('is-scroll-wiped',nameExitProgress>0);
-      }
-      if(name){
-        name.style.opacity='';
-      }
-      if(heroInfo){
-        heroInfo.classList.add('is-hero-pinned');
-        const infoFade=1-infoWipe;
-        heroInfo.style.setProperty('--hero-info-scroll-y','0px');
-        heroInfo.style.setProperty('--scroll-fade',String(infoFade));
-        heroInfo.style.setProperty('--hero-info-wipe',String(infoWipe));
-        heroInfo.style.opacity=String(infoFade);
-        heroInfo.style.clipPath=`inset(0 0 ${infoWipe*100}% 0)`;
-        heroInfo.classList.toggle('is-scroll-faded',infoWipe>0);
-      }
-    };
-    addEventListener('scroll',renderHeroExit,{passive:true});
-    renderHeroExit();
-  }
-  const navLogo=document.querySelector('.nav-logo');
-  if(navLogo){
-    navLogo.classList.add('is-scroll-reveal');
-    const revealNavLogo=()=>navLogo.classList.toggle('is-scroll-reveal-active',scrollY>=innerHeight*.06);
-    addEventListener('scroll',revealNavLogo,{passive:true}); revealNavLogo();
-  }
-
-  function pressureTick(){
-    eased.x+=(pointer.x-eased.x)/15;
-    eased.y+=(pointer.y-eased.y)/15;
-    const maxDist=Math.max(innerWidth*.24,260);
-    const padPx=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--pad'))||32;
-    const virtualWidth=Math.max(1,innerWidth-padPx*2);
-    for(const [index,span] of letters.entries()){
-      const r=span.getBoundingClientRect();
-      /* The visible word is optically constrained to 60vw, but its pressure
-         field spans the full viewport: screen edges correspond to its first
-         and last letters before the hero collapses. */
-      const cx=nameWrap?.classList.contains('is-expanded')
-        ?padPx+virtualWidth*((index+.5)/letters.length)
-        :r.left+r.width/2;
-      const cy=r.top+r.height/2;
-      const d=nameWrap?.classList.contains('is-expanded')
-        ?Math.abs(eased.x-cx)
-        :Math.hypot(eased.x-cx,eased.y-cy);
-      const influence=clamp(1-d/maxDist,0,1);
-      const interactiveWeight=380+influence*300;
-      const wght=Math.round(interactiveWeight);
-      const sx=1+influence*.06;
-      span.style.fontVariationSettings=`'wght' ${wght}`;
-      span.style.transform=`scaleX(${sx})`;
-    }
-    pressureRaf=requestAnimationFrame(pressureTick);
-  }
-  addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY},{passive:true});
-  if(!reduce)pressureRaf=requestAnimationFrame(pressureTick);
-
-  /* Accent loop remains the only autonomous character mutation. */
-  const accentLetters=letters.filter(el=>el.dataset.accent);
-  async function accentLoop(){
-    if(reduce||!accentLetters.length)return;
-    await wait(2600);
-    while(true){
-      const el=accentLetters[Math.floor(Math.random()*accentLetters.length)];
-      const base=el.dataset.base||el.textContent;
-      el.textContent=el.dataset.accent;
-      await wait(620);
-      el.textContent=base;
-      await wait(2400+Math.random()*2600);
-    }
-  }
-  accentLoop();
+  addEventListener('resize',alignHeroNameToInfo,{passive:true});
+  requestAnimationFrame(alignHeroNameToInfo);
+  document.fonts?.ready?.then(alignHeroNameToInfo);
+  const updateHeroCopyWipe=()=>{
+    if(!heroInfo)return;
+    const raw=clamp(scrollY/Math.max(1,innerHeight),0,1);
+    const progress=smoothstep(0,1,raw);
+    const pinned=raw<1;
+    const opacity=String(1-progress);
+    const clipPath=`inset(0 0 ${progress*100}% 0)`;
+    [heroInfo,nameWrap,heroAvailability,heroRecentCue].forEach(el=>{
+      if(!el)return;
+      el.classList.toggle('is-hero-pinned',pinned);
+      el.style.opacity=opacity;
+      el.style.clipPath=clipPath;
+    });
+  };
+  addEventListener('scroll',updateHeroCopyWipe,{passive:true});
+  addEventListener('resize',updateHeroCopyWipe,{passive:true});
+  updateHeroCopyWipe();
 
   /* Pinned four-step fullscreen image sequence. */
   const projects=document.getElementById('projects');
@@ -403,7 +281,6 @@
   /* The scroll listener below is the sole owner of detail wipes. An
      IntersectionObserver would toggle the same class independently and
      restart animations whenever its threshold fluctuated. */
-  const projectWipeObserver=null;
   const updateProjectWipes=()=>{
     if(!projectDetailOpen||!caseOverlay)return;
     const currentScrollTop=caseOverlay.scrollTop;
@@ -530,25 +407,27 @@
       target.style.removeProperty('clip-path');
     });
   };
+  /* Same curtain-wipe technique as closing: a solid panel sweeps in to cover
+     the screen, the project swaps underneath while fully covered, then the
+     panel sweeps away to reveal it — two genuine 900ms motions on the same
+     easing, rather than an instant cut followed by a content fade. */
   const switchCaseProject=async index=>{
     if(caseProjectSwitching||!projectDetailOpen||index===activeCaseProjectIndex||!caseProjectContents[index])return;
     caseProjectSwitching=true;
-    const exitingContent=activeCaseProjectContent;
-    const exitAnimation=exitingContent.animate([{opacity:1,clipPath:'inset(0)'},{opacity:0,clipPath:'inset(0 0 100% 0)'}],{duration:900,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
-    const navExit=caseProjectSwitcher?.animate([{opacity:1,clipPath:'inset(0)'},{opacity:0,clipPath:'inset(0 0 100% 0)'}],{duration:700,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
-    await Promise.all([exitAnimation.finished.catch(()=>{}),navExit?.finished.catch(()=>{})]);
-    exitAnimation.cancel();navExit?.cancel();
+    caseOverlay.classList.remove('is-switch-revealing');
+    caseOverlay.classList.add('is-switch-covering');
+    await wait(900);
     setActiveCaseProject(index);
     resetActiveProjectWipes();
     smooth.resetOverlay(0);
     projectDetailScrollTop=0;
-    const enterAnimation=activeCaseProjectContent.animate([{opacity:0,clipPath:'inset(0 0 100% 0)'},{opacity:1,clipPath:'inset(0)'}],{duration:900,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
-    const navEnter=caseProjectSwitcher?.animate([{opacity:0,clipPath:'inset(0 0 100% 0)'},{opacity:1,clipPath:'inset(0)'}],{duration:900,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
-    await Promise.all([enterAnimation.finished.catch(()=>{}),navEnter?.finished.catch(()=>{})]);
-    enterAnimation.cancel();navEnter?.cancel();
-    caseProjectSwitching=false;
     requestAnimationFrame(updateProjectWipes);
     requestAnimationFrame(updateActiveGallery);
+    caseOverlay.classList.remove('is-switch-covering');
+    caseOverlay.classList.add('is-switch-revealing');
+    await wait(900);
+    caseOverlay.classList.remove('is-switch-revealing');
+    caseProjectSwitching=false;
   };
   caseOverlayClose?.addEventListener('click',closeCaseOverlay);
   caseOverlay?.addEventListener('click',event=>{
@@ -707,17 +586,12 @@
     };
     const progressSegments=[...document.querySelectorAll('.projects-progress-segment')];
     const progressBar=document.querySelector('.projects-progress');
-    const projectDetails=[
-      ['MIUNĀE','A skincare brand system built around time, tactility and restraint','Creative Direction'],
-      ['GoBaller','Football coaching app for players of all ages','Brand, iOS App'],
-      ['AIMS','The most advanced AI search for music catalogs','Website, Brand Refresh, Marketing & Sales Assets']
-    ];
     addEventListener('click',event=>{
       const mask=event.target.closest?.('.projects-image-mask');
       if(!mask||!caseOverlay||projectDetailOpen)return;
       const index=masks.indexOf(mask);
       if(index<0||index>2)return;
-      if(!projectDetails[index])return;
+      if(!projectMeta[index])return;
       if(smooth.raf){cancelAnimationFrame(smooth.raf);smooth.raf=0;}
       smooth.current=scrollY;smooth.target=scrollY;
       cursor?.classList.remove('is-open','is-close-target');
@@ -901,7 +775,7 @@
         }
       }
       if(intro) intro.classList.toggle('is-gallery-moving',open>0.01);
-      window.dispatchEvent(new CustomEvent('projects-shader-progress',{detail:{progress:galleryP,index:activeIndex,open,images:images.map(img=>img.currentSrc||img.src)}}));
+      window.dispatchEvent(new CustomEvent('projects-progress',{detail:{progress:galleryP,index:activeIndex,open,images:images.map(img=>img.currentSrc||img.src)}}));
       stage.dataset.step=String(activeIndex);
       progressSegments.forEach((seg,i)=>{
         const segTimeline=clamp((timeline-i*unit)/unit,0,1);
@@ -1146,7 +1020,6 @@
       const sectionTop=postServicesNext.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,postServicesNext.offsetHeight-innerHeight);
       const p=clamp((scrollY-sectionTop)/range,0,1);
-      navLogo?.classList.toggle('is-bio-name',p>=.16&&p<.76);
       bioWipes.forEach((item,index)=>{
         if(item===bioRight&&bioCopySwitching)return;
         const order=Number(item.dataset.bioOrder||index);
@@ -1194,7 +1067,7 @@
       undersurface:{name:'Ūndersurface',image:'media/initiatives/side-quests/side-quests_undersurface.jpg',copy:['Co-founded an enclosed community of entrepreneurs, designers and tinkerers. A peer accountability community that ran for 5+ years on Slack, combining structured goal-pushing sessions, sharing circles and talks to help members grow personally and professionally. Beyond the digital space, Joe and I organized an in-person retreat — including a 3-day trip to Estonia — built around deep-sharing, introspective and task-driven exercises designed to get people sharing honestly and working through personal blocks.','It moved me so much that when I got back, I enrolled in a one-year coaching program to become a certified life coach.'],mentions:[['Joe Pacal','https://www.pac.al/']],sideQuest:true},
       'femme-palette':{name:'Femme Palette',image:'media/initiatives/side-quests/side-quests_femme-palette.jpg',copy:['Femme Palette is a mentoring platform and community built around career development and practical advice, not theory. Network of 1,200+ mentors, community of 5,000+, hubs in Prague, Berlin, Amsterdam, Barcelona, Copenhagen, and Paris.','I mentor in Design, General Career Guidance & Soft Skills, and Management & Leadership.'],sideQuest:true},
       nollie:{name:'Nollie',image:'media/initiatives/side-quests/side-quests_nollie.jpg',copy:['Co-founded this creative studio with a longtime friend and former colleague, Ales Nesetril, before we each pivoted into our own things — all in good spirit. During this time we launched the NEXT WORKOUT iOS app, which you can check out next.','Sharing this to also openly admit that not everything I touch always "works out." Duh! Here, the studio — the app works great! Hehe.'],mentions:[['Ales Nesetril','https://www.instagram.com/alesnesetril']],sideQuest:true},
-      'next-workout':{name:'NEXT.WORKOUT',image:'media/initiatives/side-quests/side-quests_next-workout.jpg',copy:["This was a sweet collab between Next.Move (client), Yiskra Creative Studio (brand) — and my former Creative Studio Nollie (Design & Ops w/ Ales Nesetril).",'I sourced and managed developers, tracked the timeline and reported progress to the client side represented by Veronika Huna.',"The app launched and keeps growing. People work out. Life's good."],mentions:[['Next.Move','https://www.instagram.com/nextmove.cz/'],['Yiskra Creative Studio','https://www.yiskra.studio/'],['Ales Nesetril','https://www.instagram.com/alesnesetril'],['Veronika Huna','https://www.instagram.com/fitveronika']],sideQuest:true}
+      'next-workout':{name:'NEXT.WORKOUT',image:'media/initiatives/side-quests/side-quests_next-workout.jpg',copy:["This was a sweet collab between Next.Move (client), Yiskra Creative Studio (brand) — and my former Creative Studio Nollie (Design & Ops w/ Ales Nesetril).",'I sourced and managed developers, tracked the timeline and reported progress to the client side represented by Veronika Huna.',"The app launched and keeps growing. People work out. Life's good."],projectLink:'https://www.nextworkout.app/en',mentions:[['Next.Move','https://www.instagram.com/nextmove.cz/'],['Yiskra Creative Studio','https://www.yiskra.studio/'],['Ales Nesetril','https://www.instagram.com/alesnesetril'],['Veronika Huna','https://www.instagram.com/fitveronika']],sideQuest:true}
     };
     const initialInitiative=initiativeData['a-void'];
     if(initialInitiative&&initiativeCopy){
@@ -1220,6 +1093,15 @@
           paragraph.textContent=copy;
           return paragraph;
         }));
+        if(next.projectLink){
+          const link=document.createElement('a');
+          link.className='initiatives-copy-link';
+          link.href=next.projectLink;
+          link.target='_blank';
+          link.rel='noopener noreferrer';
+          link.innerHTML='<span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">'+next.name+'</span>';
+          initiativeCopy.append(link);
+        }
         initiativeMentions.replaceChildren();
         if(next.mentions?.length){
           const title=document.createElement('h3');
@@ -1376,7 +1258,7 @@
       cursorProject.classList.add('is-wiping-in');
     },160);
   };
-  addEventListener('projects-shader-progress',event=>{
+  addEventListener('projects-progress',event=>{
     updateCursorProject(cursorProjects[event.detail?.index]);
   });
   let cx=-100,cy=-100,tx=-100,ty=-100,raf=0;

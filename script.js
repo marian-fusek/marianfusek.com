@@ -25,62 +25,6 @@
      each of the dozen `resize` subscribers below. */
   addEventListener('orientationchange',()=>dispatchEvent(new Event('resize')),{passive:true});
 
-  /* Whole-page timing map. Its widths come from the real scroll ranges, so
-     empty or overlong transitions remain visible while section timing is tuned. */
-  const pageScrollProgress=document.getElementById('pageScrollProgress');
-  if(pageScrollProgress){
-    const phases=[
-      {name:'Hero'},
-      {name:'Hero → Recent Works',transition:true},
-      {name:'Recent Works'},
-      {name:'Recent Works → Services',transition:true},
-      {name:'Services'},
-      {name:'Services → Next',transition:true},
-      {name:'Next'}
-    ];
-    const phaseElements=phases.map(phase=>{
-      const segment=document.createElement('span');
-      segment.className=`page-scroll-progress-segment${phase.transition?' is-transition':''}`;
-      segment.dataset.phase=phase.name;
-      pageScrollProgress.append(segment);
-      return segment;
-    });
-    let phaseRanges=[];
-    const measurePageProgress=()=>{
-      const projectsSection=document.getElementById('projects');
-      const projectsStage=document.getElementById('projectsStage');
-      const servicesSection=document.getElementById('postProjectTransition');
-      const nextSection=document.getElementById('postServicesNext');
-      const maxScroll=Math.max(1,document.documentElement.scrollHeight-innerHeight);
-      const projectsTop=projectsSection?projectsSection.getBoundingClientRect().top+scrollY:innerHeight;
-      const projectsRange=Math.max(1,(projectsStage?.offsetHeight||innerHeight)-innerHeight);
-      const servicesTop=servicesSection?servicesSection.getBoundingClientRect().top+scrollY:projectsTop+projectsRange;
-      const servicesRange=Math.max(1,(servicesSection?.offsetHeight||innerHeight)-innerHeight);
-      const nextTop=nextSection?nextSection.getBoundingClientRect().top+scrollY:maxScroll;
-      const rawBoundaries=[0,projectsTop,projectsTop+projectsRange*.08,projectsTop+projectsRange*.88,servicesTop+servicesRange*.2,servicesTop+servicesRange*.58,nextTop,maxScroll];
-      const boundaries=rawBoundaries.map((value,index)=>clamp(Math.max(index?rawBoundaries[index-1]:0,value),0,maxScroll));
-      for(let index=1;index<boundaries.length;index++)boundaries[index]=Math.max(boundaries[index],boundaries[index-1]);
-      phaseRanges=phaseElements.map((element,index)=>{
-        const start=boundaries[index];
-        const end=boundaries[index+1];
-        element.style.flexGrow=String(Math.max(1,end-start));
-        element.style.flexBasis='0';
-        return {start,end};
-      });
-    };
-    const renderPageProgress=()=>{
-      phaseRanges.forEach((range,index)=>{
-        const fill=range.end>range.start?clamp((scrollY-range.start)/(range.end-range.start),0,1):scrollY>=range.end?1:0;
-        phaseElements[index].style.setProperty('--phase-fill',String(fill));
-      });
-    };
-    const updatePageProgress=()=>{renderPageProgress();};
-    measurePageProgress();
-    renderPageProgress();
-    addEventListener('scroll',updatePageProgress,{passive:true});
-    addEventListener('resize',()=>{measurePageProgress();renderPageProgress();},{passive:true});
-  }
-
   /* Automatic text wipes are split into the lines the browser actually lays out.
      This keeps the effect responsive: a resize recalculates the lines instead of
      relying on hard-coded breaks, while scroll-scrubbed animations remain intact. */
@@ -428,7 +372,7 @@
     });
     caseProjectHeroVideo?.setAttribute('aria-label',`Expand ${activeCaseProjectIndex===1?'GoBaller':activeCaseProjectIndex===2?'AIMS':'Miunāe'} video`);
     projectDetailOpen=false;
-    masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.removeProperty('transition');});
+    masks.forEach(mask=>{mask.style.removeProperty('pointer-events');mask.style.removeProperty('transition');});
     caseOverlay.classList.remove('is-reveal-priming','is-switch-revealing','is-switch-covering');
     caseOverlay.classList.add('is-content-exiting');
     caseOverlay.setAttribute('aria-hidden','true');
@@ -446,6 +390,11 @@
         }
         overlayCloseTimer=0;
         closingCaseOverlay=false;
+        /* The pointer may not have moved since before the overlay opened, so
+           resync cursor hover state (is-open, project label) from its actual
+           position now that the homepage is interactive again, instead of
+           leaving whatever state was last computed by a pointermove. */
+        requestCursorSync();
       },900);
     },900);
   };
@@ -798,17 +747,15 @@
   const postServicesRange=document.querySelector('.post-project-services-range');
   const postServicesSummary=document.querySelector('.post-project-services-summary');
   const postServicesNext=document.getElementById('postServicesNext');
+  /* Set true for one update cycle right after menu navigation lands on Bio,
+     so its per-item enter/exit wipe envelope (see updateBio below) is
+     skipped in favor of a flat fully-revealed state — otherwise the nav's
+     landing point (a fixed scroll fraction) can sit inside a later item's
+     still-entering range, showing the section half-wiped right after the
+     menu click instead of at its "max"/settled state. Cleared on the next
+     real scroll input so normal scroll-driven wiping resumes after that. */
+  let bioForceReveal=false;
   const postTransitionItems=[...postServices,...[postServicesRange,postServicesSummary].filter(Boolean)];
-  const alignServicesSummary=()=>{
-    const output=postServices[0]?.querySelector('.post-project-service-output');
-    const stage=postTransition?.querySelector('.post-project-transition-stage');
-    if(!output||!stage||!postServicesSummary)return;
-    const outputRect=output.getBoundingClientRect();
-    const stageRect=stage.getBoundingClientRect();
-    postServicesSummary.style.left=`${outputRect.left-stageRect.left}px`;
-  };
-  requestAnimationFrame(alignServicesSummary);
-  addEventListener('resize',alignServicesSummary,{passive:true});
   const serviceDescriptionDuration=800;
   const serviceRevealStarts=new WeakMap();
   const serviceExitTimers=new WeakMap();
@@ -964,7 +911,7 @@
     const updateBio=()=>{
       const sectionTop=postServicesNext.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,postServicesNext.offsetHeight-innerHeight);
-      const p=clamp((scrollY-sectionTop)/range,0,1);
+      const p=bioForceReveal?.5:clamp((scrollY-sectionTop)/range,0,1);
       bioWipes.forEach((item,index)=>{
         if(item===bioRight&&bioCopySwitching)return;
         const order=Number(item.dataset.bioOrder||index);
@@ -990,6 +937,8 @@
   }
 
   const initiativesSection=document.getElementById('initiatives');
+  /* Same purpose as bioForceReveal above, for Initiatives' matching envelope. */
+  let initiativesForceReveal=false;
   if(initiativesSection){
     const initiativesStage=initiativesSection.querySelector('.initiatives-stage');
     const initiativesGrid=initiativesSection.querySelector('.initiatives-grid');
@@ -1131,7 +1080,7 @@
     const updateInitiatives=()=>{
       const sectionTop=initiativesSection.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,initiativesSection.offsetHeight-innerHeight);
-      const p=clamp((scrollY-sectionTop)/range,0,1);
+      const p=initiativesForceReveal?.5:clamp((scrollY-sectionTop)/range,0,1);
       /* Same enter+exit envelope shape as Bio (updateBio, above) — this used
          to be entrance-only, so once content wiped in it just sat at full
          opacity until the section's sticky pin released and the whole thing
@@ -1376,14 +1325,21 @@
     if(Math.abs(cx-tx)+Math.abs(cy-ty)>.15)raf=requestAnimationFrame(tickCursor);else raf=0;
   }
   const isOverlayOpen=el=>!!el?.classList.contains('is-open')&&!el.classList.contains('is-closing');
-  /* Touch/coarse pointers never get the custom dot — no hover-capable input
-     means nothing meaningfully drives it, and leaving the listeners attached
-     left a ghost cursor artifact on tap (the CSS already assumes this via
-     `body{cursor:auto}` on the mobile layout, but that alone doesn't stop
-     these listeners from running). */
-  if(cursor&&hasHover())addEventListener('pointermove',e=>{
-    const mask=e.target?.closest?.('.projects-slide');
-    const videoTarget=e.target?.closest?.('.case-project-hero-video');
+  /* Cursor hover state (is-open, video/close targets, project label) used to
+     be computed only inside the pointermove handler below — so it went stale
+     any time the content under a *stationary* pointer changed: scrolling past
+     Recent Works without moving the mouse, scrolling back up into the hero,
+     or closing a project overlay without moving the mouse afterward. All of
+     those left the dot showing a hover state (and project name) that no
+     longer matched whatever was actually under the pointer. applyCursorState
+     is the single source of truth for that recompute — pointermove calls it
+     with the live event target, and the scroll/resize listeners below and
+     closeCaseOverlay's teardown call it with document.elementFromPoint(tx,ty)
+     so state resyncs even when the pointer itself never moves. */
+  const applyCursorState=target=>{
+    if(!cursor)return;
+    const mask=target?.closest?.('.projects-slide');
+    const videoTarget=target?.closest?.('.case-project-hero-video');
     const activeOverlay=[
       {overlay:coachingOverlay,close:coachingOverlayClose},
       {overlay:caseOverlay,close:caseOverlayClose},
@@ -1393,14 +1349,9 @@
     const closeRect=closeEl?.getBoundingClientRect();
     const overlayIsOpen=!!activeOverlay;
     const overClose=overlayIsOpen && !!closeRect &&
-      e.clientX>=closeRect.left && e.clientX<=closeRect.right &&
-      e.clientY>=closeRect.top && e.clientY<=closeRect.bottom;
-    const closeTarget=overlayIsOpen&&(e.target?.closest?.('.case-overlay-close,#coachingOverlayClose,#artSupportOverlayClose')||overClose)?closeEl:null;
-    if(closeTarget){
-      const rect=closeTarget.getBoundingClientRect();
-      tx=rect.left+rect.width/2;ty=rect.top+rect.height/2;
-    }else{tx=e.clientX;ty=e.clientY;}
-    if(!raf)raf=requestAnimationFrame(tickCursor);
+      tx>=closeRect.left && tx<=closeRect.right &&
+      ty>=closeRect.top && ty<=closeRect.bottom;
+    const closeTarget=overlayIsOpen&&(target?.closest?.('.case-overlay-close,#coachingOverlayClose,#artSupportOverlayClose')||overClose)?closeEl:null;
     cursor.classList.toggle('is-open',!!mask||!!videoTarget);
     cursor.classList.toggle('is-video-target',!!videoTarget);
     cursor.classList.toggle('is-close-target',!!closeTarget);
@@ -1409,7 +1360,44 @@
     artSupportOverlayClose?.classList.toggle('is-cursor-target',!!closeTarget);
     if(cursorAction)cursorAction.textContent=videoTarget?(videoTarget.classList.contains('is-expanded')?'MINIMIZE':'EXPAND'):'OPEN';
     if(mask)updateCursorProject(cursorProjects[Number(mask.dataset.index)]);
+    return closeTarget;
+  };
+  /* Touch/coarse pointers never get the custom dot — no hover-capable input
+     means nothing meaningfully drives it, and leaving the listeners attached
+     left a ghost cursor artifact on tap (the CSS already assumes this via
+     `body{cursor:auto}` on the mobile layout, but that alone doesn't stop
+     these listeners from running). */
+  if(cursor&&hasHover())addEventListener('pointermove',e=>{
+    const activeOverlay=[
+      {overlay:coachingOverlay,close:coachingOverlayClose},
+      {overlay:caseOverlay,close:caseOverlayClose},
+      {overlay:artSupportOverlay,close:artSupportOverlayClose}
+    ].find(item=>isOverlayOpen(item.overlay));
+    const closeEl=activeOverlay?.close;
+    const closeRect=closeEl?.getBoundingClientRect();
+    const overClose=!!activeOverlay && !!closeRect &&
+      e.clientX>=closeRect.left && e.clientX<=closeRect.right &&
+      e.clientY>=closeRect.top && e.clientY<=closeRect.bottom;
+    const targetIsClose=!!activeOverlay&&(e.target?.closest?.('.case-overlay-close,#coachingOverlayClose,#artSupportOverlayClose')||overClose);
+    if(targetIsClose&&closeEl){
+      const rect=closeEl.getBoundingClientRect();
+      tx=rect.left+rect.width/2;ty=rect.top+rect.height/2;
+    }else{tx=e.clientX;ty=e.clientY;}
+    if(!raf)raf=requestAnimationFrame(tickCursor);
+    applyCursorState(e.target);
   },{passive:true});
+  /* Recompute (without moving the dot) whenever the page moves under a
+     stationary pointer. rAF-throttled the same way the pointermove tick is. */
+  let cursorSyncRaf=0;
+  const syncCursorFromPoint=()=>{
+    cursorSyncRaf=0;
+    if(cursor&&hasHover())applyCursorState(document.elementFromPoint(tx,ty));
+  };
+  const requestCursorSync=()=>{if(!cursorSyncRaf)cursorSyncRaf=requestAnimationFrame(syncCursorFromPoint)};
+  if(cursor&&hasHover()){
+    addEventListener('scroll',requestCursorSync,{passive:true});
+    addEventListener('resize',requestCursorSync,{passive:true});
+  }
   if(cursor&&hasHover())addEventListener('pointerdown',e=>{
     if(e.button!==0)return;
     const ring=document.createElement('span');ring.className='cursor-click';ring.style.left=`${e.clientX}px`;ring.style.top=`${e.clientY}px`;
@@ -1482,6 +1470,16 @@
       const range=Math.max(1,target.offsetHeight-innerHeight);
       const reveal=Number(a.dataset.navReveal||0);
       const y=Math.min(top+range*reveal,Math.max(0,document.documentElement.scrollHeight-innerHeight));
+      if(target===postServicesNext){
+        bioForceReveal=true;
+        addEventListener('wheel',()=>{bioForceReveal=false;},{once:true,passive:true});
+        addEventListener('touchmove',()=>{bioForceReveal=false;},{once:true,passive:true});
+      }
+      if(target===initiativesSection){
+        initiativesForceReveal=true;
+        addEventListener('wheel',()=>{initiativesForceReveal=false;},{once:true,passive:true});
+        addEventListener('touchmove',()=>{initiativesForceReveal=false;},{once:true,passive:true});
+      }
       navigateWithCurtain(y);
       /* Revert to the old visible glide by using this instead:
       document.body.classList.add('is-nav-jump');

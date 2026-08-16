@@ -1097,24 +1097,8 @@ body.case-overlay-open .page-scroll-progress {
     sans-serif;
   color: var(--body);
 }
-.bio-about {
-  left: calc(var(--pad) + (var(--grid-step) * 4));
-  top: 37%;
-  width: calc((var(--grid-column) * 4) + (var(--grid-gap) * 3));
-}
-.bio-style {
-  left: calc(var(--pad) + (var(--grid-step) * 4));
-  top: 55%;
-  width: calc((var(--grid-column) * 4) + (var(--grid-gap) * 3));
-}
-.bio-career {
-  left: calc(var(--pad) + (var(--grid-step) * 9));
-  right: var(--pad);
-  top: 37%;
-}
 .bio-muted,
-.bio-history,
-.bio-links {
+.bio-history {
   color: var(--body);
 }
 .bio-career .bio-muted {
@@ -1122,21 +1106,10 @@ body.case-overlay-open .page-scroll-progress {
 }
 .bio-history {
   position: absolute;
-  left: calc(var(--pad) + (var(--grid-step) * 9));
-  right: var(--pad);
   top: 55%;
   display: grid;
   grid-template-columns: var(--grid-column) 1fr;
   column-gap: var(--grid-gap);
-  font:
-    var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
-    sans-serif;
-}
-.bio-links {
-  position: absolute;
-  left: calc(var(--pad) + (var(--grid-step) * 9));
-  right: var(--pad);
-  top: 78%;
   font:
     var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
     sans-serif;
@@ -1146,12 +1119,8 @@ body.case-overlay-open .page-scroll-progress {
   .bio-career {
     top: 32%;
   }
-  .bio-style,
   .bio-history {
     top: 52%;
-  }
-  .bio-links {
-    top: 76%;
   }
   .bio-copy-block {
     font-size: var(--type-3);
@@ -1165,8 +1134,7 @@ body.case-overlay-open .page-scroll-progress {
   .bio-career .bio-muted {
     margin-top: 24px;
   }
-  .bio-history,
-  .bio-links {
+  .bio-history {
     font-size: var(--type-3);
   }
 }
@@ -1191,14 +1159,12 @@ body.case-overlay-open .page-scroll-progress {
 .bio-history-secondary h2 {
   font-weight: var(--weight-regular);
 }
-.bio-about,
-.bio-style {
+.bio-about {
   left: calc(var(--pad) + (var(--grid-step) * 4));
   width: var(--grid-span-3);
 }
 .bio-career,
-.bio-history,
-.bio-links {
+.bio-history {
   left: var(--grid-i-start);
   right: auto;
   width: var(--grid-span-3);
@@ -1210,7 +1176,7 @@ body.case-overlay-open .page-scroll-progress {
 .bio-middle {
   position: absolute;
   left: calc(var(--pad) + (var(--grid-step) * 4));
-  top: calc(var(--section-copy-start-y, 26.5svh) + 48px);
+  top: calc(var(--section-copy-start-y, 26.5svh) + 12px);
   width: var(--grid-span-3);
   display: flex;
   flex-direction: column;
@@ -1219,8 +1185,7 @@ body.case-overlay-open .page-scroll-progress {
 .bio-copy-row {
   position: relative;
 }
-.bio-middle .bio-about,
-.bio-middle .bio-style {
+.bio-middle .bio-about {
   position: relative;
   left: auto;
   top: auto;
@@ -1324,15 +1289,14 @@ body.case-overlay-open .page-scroll-progress {
 .bio-right {
   position: absolute;
   left: var(--grid-i-start);
-  top: calc(var(--section-copy-start-y, 26.5svh) + 48px);
+  top: calc(var(--section-copy-start-y, 26.5svh) + 12px);
   width: var(--grid-span-3);
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 .bio-right .bio-career,
-.bio-right .bio-history,
-.bio-right .bio-links {
+.bio-right .bio-history {
   position: relative;
   left: auto;
   right: auto;
@@ -1489,9 +1453,11 @@ body.case-overlay-open .page-scroll-progress {
   -ms-overflow-style: none;
 }
 .coaching-overlay-nav {
-  position: sticky;
+  position: fixed;
   z-index: 3;
   top: 0;
+  left: 0;
+  right: 0;
   height: var(--nav-h);
   padding: 0 var(--pad);
   display: flex;
@@ -1838,19 +1804,6 @@ img[src*="/flags/"] {
 .coaching-overlay.is-leadership-reviews .coaching-review-meta {
   display: none;
 }
-.bio-middle,
-.bio-right {
-  top: calc(var(--section-copy-start-y, 26.5svh) + 12px);
-}
-.coaching-overlay-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-}
-.coaching-overlay-grid {
-  position: relative;
-  z-index: 1;
-}
 .coaching-review-parts {
   position: sticky;
   z-index: 1;
@@ -1866,9 +1819,6 @@ img[src*="/flags/"] {
     var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--body);
-  transition:
-    color 0.35s var(--ease),
-    font-weight 0.35s var(--ease);
 }
 .coaching-review-parts button:hover,
 .coaching-review-parts button.is-active {
@@ -1894,6 +1844,7 @@ img[src*="/flags/"] {
     font-weight 0.35s var(--ease),
     transform 0.7s var(--ease);
 }
+
 .coaching-review-parts button:hover {
   transform: translateX(5px);
 }
@@ -1963,9 +1914,6 @@ img[src*="/flags/"] {
     width: calc((var(--grid-column) * 4) + (var(--grid-gap) * 3));
   }
 }
-.bio-links.case-project-links {
-  margin-top: 0;
-}
 .initiatives-section {
   position: relative;
   height: 260svh;
@@ -2001,7 +1949,7 @@ img[src*="/flags/"] {
   left: var(--pad);
   top: calc(var(--section-copy-start-y, 26.5svh) - 32px);
   font:
-    500 var(--type-3) / 1.2 var(--font-family),
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -3301,11 +3249,6 @@ body.is-curtain-active .site-nav {
 .cursor.is-video-target .cursor-project-wrap {
   display: none;
 }
-.initiatives-title {
-  font:
-    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
-    sans-serif;
-}
 .bio-about-lines .bio-copy-switch,
 .initiatives-apps .bio-copy-switch {
   position: relative;
@@ -3860,54 +3803,103 @@ body.is-curtain-active .site-nav {
     clip-path: none !important;
     animation: none !important;
   }
+  /* Mobile Bio: the desktop version is a 3-column absolute-positioned split
+     (portrait / about / career+history) that was squeezing all three into
+     horizontal slices of a narrow phone at 9-12px text. Reorganized into a
+     plain top-to-bottom stack instead, full width throughout, with the one
+     genuinely long piece of copy (the client-name list) collapsed behind a
+     tap — see the .bio-career .bio-muted rules and the click handler in
+     script.js — rather than either cramming it in or cutting it. */
+  .bio-section {
+    height: auto;
+    min-height: 0;
+    margin-top: 0;
+    overflow: visible;
+  }
   .bio-stage {
-    padding: 0 var(--pad);
+    position: relative;
+    height: auto;
+    min-height: 0;
+    padding: calc(var(--section-copy-start-y, 26.5svh) - 6px) var(--pad) 64px;
+    display: block;
   }
   .bio-status {
-    left: var(--pad);
-    right: var(--pad);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    column-gap: 12px;
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
-  .bio-xp {
-    grid-column: 1;
-  }
-  .bio-status-middle {
-    grid-column: 2 / span 2;
-  }
-  .bio-status-right {
-    grid-column: 4;
+  .bio-divider {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    margin: 20px 0;
   }
   .bio-portrait {
-    left: var(--pad);
-    width: calc(25% - var(--pad));
+    position: relative;
+    left: auto;
+    bottom: auto;
+    top: auto;
+    width: 120px;
+    margin-bottom: 20px;
+  }
+  .bio-middle {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    gap: 16px;
   }
   .bio-about,
-  .bio-style {
-    left: calc(25% + 6px);
-    width: calc(50% - 18px);
-  }
   .bio-career,
-  .bio-history,
-  .bio-links {
-    left: calc(75% + 6px);
-    right: var(--pad);
+  .bio-history {
+    position: relative;
+    left: auto;
+    right: auto;
+    top: auto;
+    width: auto;
+  }
+  .bio-right {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    margin-top: 32px;
+    gap: 24px;
   }
   .bio-copy-block {
-    font-size: 12px;
-    line-height: 1.2;
+    font-size: var(--type-3);
+    line-height: 1.3;
   }
   .bio-copy-block p + p,
   .bio-career .bio-muted {
-    margin-top: 24px;
+    margin-top: 16px;
   }
   .bio-copy-block h2,
   .bio-history h2 {
-    margin-bottom: 2px;
+    margin-bottom: 4px;
   }
-  .bio-history,
-  .bio-links {
-    font-size: 9px;
+  .bio-history {
+    font-size: var(--type-3);
+    grid-template-columns: 1fr !important;
+    row-gap: 16px;
+  }
+  .bio-career .bio-muted {
+    max-height: 2.6em;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    mask-image: linear-gradient(to bottom, #000 60%, transparent);
+    transition: max-height 0.4s var(--ease);
+  }
+  .bio-career .bio-muted.is-expanded {
+    max-height: 400px;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {

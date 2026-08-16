@@ -929,6 +929,13 @@
       },{once:true});
     };
     bioCopySwitches.forEach(control=>control.addEventListener('click',()=>switchBioCopy(control.dataset.bioCopy)));
+    /* Mobile only: the client-name list under the career paragraph is
+       clamped to ~2 lines (see .bio-career .bio-muted in style.css) since
+       it's long supplementary copy, not core narrative — tap it to expand.
+       Desktop never clamps it, so this is inert there regardless. */
+    if(!hasHover())postServicesNext.querySelectorAll('.bio-career .bio-muted').forEach(el=>{
+      el.addEventListener('click',()=>el.classList.toggle('is-expanded'));
+    });
     const updateBio=()=>{
       const sectionTop=postServicesNext.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,postServicesNext.offsetHeight-innerHeight);

@@ -860,9 +860,9 @@
     const bioRight=postServicesNext.querySelector('.bio-right');
     const bioCopySwitches=[...postServicesNext.querySelectorAll('[data-bio-copy]')];
     const bioCopy={
-      about:`<p class="type-project-title">What satisfies me isn't another logo on my résumé, a new design approach, or clicking buttons in Figma — and I don't do any of this out of passion either. My process is a fight, with the brief, with the obvious, with anything that comes too easy. That restlessness is where everything starts: design, leadership, coaching, all of it.</p><p class="type-project-title">It's showing up for individuals and teams who need support, finding that rare fit where something real clicks between us. Underneath the polish, there's usually something worth digging for — and when those layers break, the real and beautiful comes alive.</p><p class="bio-about-xp">20+ Years of XP</p>`,
-      leadership:`<p class="type-project-title">My leadership experience comes mostly from my time at STRV. I led team leads and platform experts across iOS, Android, Backend, Frontend, Data Science, Design &amp; QA.</p><p class="type-project-title">Before that, I ran STRV's Design Team — and for a bit, when QA had no lead, ran both teams at once. Good times.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Led</h2><p class="type-project-meta">11 managers</p></div><div><h2 class="type-project-title">Overseeing</h2><p class="type-project-meta">130 people</p></div></div><div class="case-project-links"><button id="openLeadershipReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read my team's reviews</span></button><a href="https://www.eleken.co/blog-posts/managing-a-design-team-interview-with-seasoned-design-leaders" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">My take on leadership in Eleken interview</span></a></div>`,
-      coaching:`<p class="type-project-title">I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No "do it like this." Your style all the way — nothing forced.</p><p class="type-project-title">Coming from tech, clients don't have to explain the day-to-day — I already get it.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Coached</h2><p class="type-project-meta">70+ people (500+ hours)</p></div><div><h2 class="type-project-title">Accreditation</h2><p class="type-project-meta">ICF (ACSTH) &amp; EMCC</p></div></div><div class="case-project-links"><button id="openCoachingReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read all client feedback</span></button></div>`
+      about:`<p class="bio-copy-text">What satisfies me isn't another logo on my résumé, a new design approach, or clicking buttons in Figma — and I don't do any of this out of passion either. My process is a fight, with the brief, with the obvious, with anything that comes too easy. That restlessness is where everything starts: design, leadership, coaching, all of it.</p><p class="bio-copy-text">It's showing up for individuals and teams who need support, finding that rare fit where something real clicks between us. Underneath the polish, there's usually something worth digging for — and when those layers break, the real and beautiful comes alive.</p><p class="bio-about-xp">20+ Years of XP</p>`,
+      leadership:`<p class="bio-copy-text">My leadership experience comes mostly from my time at STRV. I led team leads and platform experts across iOS, Android, Backend, Frontend, Data Science, Design &amp; QA.</p><p class="bio-copy-text">Before that, I ran STRV's Design Team — and for a bit, when QA had no lead, ran both teams at once. Good times.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Led</h2><p class="type-project-meta">11 managers</p></div><div><h2 class="type-project-title">Overseeing</h2><p class="type-project-meta">130 people</p></div></div><div class="case-project-links"><button id="openLeadershipReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read my team's reviews</span></button><a href="https://www.eleken.co/blog-posts/managing-a-design-team-interview-with-seasoned-design-leaders" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">My take on leadership in Eleken interview</span></a></div>`,
+      coaching:`<p class="bio-copy-text">I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No "do it like this." Your style all the way — nothing forced.</p><p class="bio-copy-text">Coming from tech, clients don't have to explain the day-to-day — I already get it.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Coached</h2><p class="type-project-meta">70+ people (500+ hours)</p></div><div><h2 class="type-project-title">Accreditation</h2><p class="type-project-meta">ICF (ACSTH) &amp; EMCC</p></div></div><div class="case-project-links"><button id="openCoachingReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read all client feedback</span></button></div>`
     };
     const bioRightCopy={
       about:(bioRight?.innerHTML||'').replaceAll(' bio-wipe',''),
@@ -900,7 +900,19 @@
         },{once:true});
       },{once:true});
     };
-    bioCopySwitches.forEach(control=>control.addEventListener('click',()=>switchBioCopy(control.dataset.bioCopy)));
+    bioCopySwitches.forEach(control=>control.addEventListener('click',()=>{
+      /* Same fix as the top-nav "Bio" link: clicking one of these switches
+         (About/Leadership/Coaching) while scrolled to a point where the
+         section's per-item wipe envelope hasn't fully settled would leave
+         you looking at half-wiped content right as new copy swaps in.
+         Force it fully revealed and let the next real scroll input hand
+         control back to the normal scroll-driven envelope. */
+      bioForceReveal=true;
+      updateBio();
+      addEventListener('wheel',()=>{bioForceReveal=false;},{once:true,passive:true});
+      addEventListener('touchmove',()=>{bioForceReveal=false;},{once:true,passive:true});
+      switchBioCopy(control.dataset.bioCopy);
+    }));
     /* Mobile only: the client-name list under the career paragraph is
        clamped to ~2 lines (see .bio-career .bio-muted in style.css) since
        it's long supplementary copy, not core narrative — tap it to expand.
@@ -966,7 +978,7 @@
         {label:'Buy MF Art on Redbubble',href:'https://www.redbubble.com/people/Ninlei/shop?asc=u',external:true},
         {label:'Support MF Art Directly',action:'art-support'}
       ]},
-      leftovers:{name:'Leftovers',video:'media/initiatives/remnants/oldies.mp4',copy:'Earlier work, experiments, and pro bono design for an NGO — side projects I kept going while focused on mindset coaching.',noMeta:true},
+      leftovers:{name:'Leftovers',video:'media/initiatives/remnants/oldies.mp4',copy:'Earlier work, experiments, and pro bono design for an NGO — side projects I kept doing while focused on mindset coaching.',note:"Don't judge me. Everybody does this. Nobody shows.",noMeta:true},
       utb:{name:'Tomas Bata Uni.',image:'media/initiatives/side-quests/side-quests_utb.jpg',copy:["I was twice invited to serve on a panel of industry professionals evaluating final bachelor's and master's thesis presentations on the Visual Arts programme at the university.",'On top of this, while leading a design team, we held full-day design talks for students of the Multimedia & Design subject twice over two years. The sessions continued even after I got promoted out of the Design Team Leadership role.','I made friends with the faculty lead. Had students applying to STRV years later. Lovely stuff.'],sideQuest:true},
       undersurface:{name:'Ūndersurface',image:'media/initiatives/side-quests/side-quests_undersurface.jpg',copy:['Co-founded an enclosed community of entrepreneurs, designers and tinkerers. A peer accountability community that ran for 5+ years on Slack, combining structured goal-pushing sessions, sharing circles and talks to help members grow personally and professionally. Beyond the digital space, Joe and I organized an in-person retreat — including a 3-day trip to Estonia — built around deep-sharing, introspective and task-driven exercises designed to get people sharing honestly and working through personal blocks.','It moved me so much that when I got back, I enrolled in a one-year coaching program to become a certified life coach.'],mentions:[['Joe Pacal','https://www.pac.al/']],sideQuest:true},
       'femme-palette':{name:'Femme Palette',image:'media/initiatives/side-quests/side-quests_femme-palette.jpg',copy:['Femme Palette is a mentoring platform and community built around career development and practical advice, not theory. Network of 1,200+ mentors, community of 5,000+, hubs in Prague, Berlin, Amsterdam, Barcelona, Copenhagen, and Paris.','I mentor in Design, General Career Guidance & Soft Skills, and Management & Leadership.'],sideQuest:true},
@@ -1018,6 +1030,12 @@
           paragraph.textContent=copy;
           return paragraph;
         }));
+        if(next.note){
+          const note=document.createElement('p');
+          note.className='initiatives-copy-note';
+          note.textContent=next.note;
+          initiativeCopy.append(note);
+        }
         if(next.projectLink){
           const link=document.createElement('a');
           link.className='initiatives-copy-link';
@@ -1075,7 +1093,16 @@
     };
     initiativesSection.addEventListener('click',event=>{
       const app=event.target.closest('[data-initiative]');
-      if(app)switchInitiative(app.dataset.initiative);
+      if(!app)return;
+      /* Same fix as bioForceReveal above — clicking an initiative/side-quest
+         link while the section's wipe envelope hasn't fully settled would
+         otherwise leave the page looking half-wiped right as new content
+         swaps in. */
+      initiativesForceReveal=true;
+      updateInitiatives();
+      addEventListener('wheel',()=>{initiativesForceReveal=false;},{once:true,passive:true});
+      addEventListener('touchmove',()=>{initiativesForceReveal=false;},{once:true,passive:true});
+      switchInitiative(app.dataset.initiative);
     });
     const updateInitiatives=()=>{
       const sectionTop=initiativesSection.getBoundingClientRect().top+scrollY;

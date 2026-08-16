@@ -1714,35 +1714,56 @@ body.coaching-overlay-open {
 }
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .coaching-overlay-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: 32px;
+    display: block;
+    min-height: 100svh;
+    padding: calc(var(--nav-h) + 44px) var(--pad) 72px;
   }
   .coaching-review-index {
-    grid-column: 1 / -1;
     position: relative;
     top: auto;
+    width: calc(100% + (var(--pad) * 2));
+    margin: 0 calc(var(--pad) * -1) 36px;
+    padding: 0 var(--pad) 14px;
+    flex-direction: row;
+    gap: 22px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .coaching-review-index::-webkit-scrollbar {
+    display: none;
   }
   .coaching-review-profile {
-    grid-column: 1 / -1;
     position: relative;
     top: auto;
+    width: min(46vw, 180px);
+    margin-bottom: 28px;
   }
   .coaching-review-copy {
-    grid-column: 1 / -1;
+    width: 100%;
+    font-size: var(--type-project-title);
+    line-height: 1.32;
   }
-  /* The desktop reviewer-picker row packs number/name/flag into a
-     3-column grid with the name pushed right via `margin-left: 50%` +
-     `white-space: nowrap` inside a single narrow column — clips or
-     overflows once that column is a mobile-width one. Single column,
-     name free to wrap. */
-  .client-review-menu .client-review-menu-item {
-    grid-template-columns: auto 1fr auto;
-    column-gap: 12px;
+  .coaching-overlay .client-review-menu .client-review-menu-item {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
   }
-  .client-review-menu-name {
-    grid-column: 2;
+  .coaching-overlay .client-review-menu-number,
+  .coaching-overlay .client-review-menu-name,
+  .coaching-overlay .client-review-menu-flag {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
     margin-left: 0;
-    white-space: normal;
+  }
+  .coaching-overlay .client-review-menu-flag {
+    width: 15px;
   }
 }
 .coaching-review-copy p + p {
@@ -1901,7 +1922,17 @@ img[src*="/flags/"] {
 }
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .coaching-review-meta {
-    grid-column: 1 / -1;
+    margin-bottom: 28px;
+  }
+  .coaching-review-parts {
+    top: var(--nav-h);
+    margin-bottom: 20px;
+    padding: 10px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .coaching-review-parts::-webkit-scrollbar {
+    display: none;
   }
 }
 @media (min-width: 901px) and ((hover: hover) or (pointer: fine) or (orientation: landscape)) {
@@ -3363,15 +3394,51 @@ body.is-curtain-active .site-nav {
 
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   :root {
-    --pad: 16px;
+    --pad: clamp(16px, 4.6vw, 22px);
     --grid-gap: 12px;
-    --nav-h: 54px;
+    --nav-h: 58px;
+    --mobile-section-space: clamp(88px, 22vw, 124px);
+    --mobile-rule: rgba(12, 12, 12, 0.12);
+    --type-project-title: 16px;
+    --type-project-meta: 16px;
+    --type-project-label: 9px;
   }
   body {
     cursor: auto;
   }
+  * {
+    cursor: auto !important;
+  }
+  a,
+  button,
+  [role="button"] {
+    cursor: pointer !important;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible {
+    outline: 1px solid var(--ink);
+    outline-offset: 4px;
+  }
+  body.is-nav-open,
+  body.case-overlay-open {
+    overflow: hidden;
+  }
+  .layout-grid,
+  .layout-controls,
+  .cursor {
+    display: none !important;
+  }
+  figure:has(> img) > img,
+  figure:has(> video) > video,
+  figure:has(> img) > img:hover,
+  figure:has(> video) > video:hover {
+    transform: none;
+  }
   .site-nav {
     gap: 12px;
+    height: var(--nav-h);
+    padding: 0 var(--pad);
   }
   .nav-hamburger {
     display: flex;
@@ -3379,8 +3446,9 @@ body.is-curtain-active .site-nav {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
+    margin-right: -12px;
     margin-left: auto;
     position: relative;
     z-index: 60;
@@ -3407,12 +3475,12 @@ body.is-curtain-active .site-nav {
     bottom: 0;
     right: 0;
     width: 100%;
-    padding: 0 var(--pad);
+    padding: var(--nav-h) var(--pad) var(--pad);
     background: var(--surface);
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 22px;
+    gap: 12px;
     transform: translateX(-100%);
     transition: transform 0.5s var(--ease);
   }
@@ -3420,75 +3488,67 @@ body.is-curtain-active .site-nav {
     transform: translateX(0);
   }
   .site-menu a {
-    font-size: var(--type-project-title);
+    width: 100%;
+    padding: 8px 0;
+    font-size: clamp(28px, 9vw, 44px);
+    line-height: 1;
+    color: var(--ink);
+    opacity: 1;
   }
   .hero {
-    min-height: 620px;
+    height: 100svh;
+    min-height: 600px;
   }
-  /* Mobile hero order, top to bottom: "Marian Fusek" name, then the role
-     copy, then breathing room, then the Recent Works cue stacked above the
-     availability line (they used to share the same bottom:18px row and
-     collided). The small "MF ⎯ ©'26" nav-bar logo is untouched by any of
-     this — it's a separate element (.nav-logo) that always stays top-left. */
   .hero-info {
     left: var(--pad);
     right: var(--pad);
-    top: 26%;
+    top: 42svh;
     transform: none;
     max-width: none;
   }
   .hero-copy {
-    font-size: clamp(16px, 4.2vw, 24px);
+    font-size: clamp(18px, 5.4vw, 24px);
+    line-height: 1.08;
   }
   .hero-copy span {
     white-space: normal;
   }
+  .hero-meta {
+    margin-top: 18px;
+  }
   .hero-recent-cue {
     width: auto;
     white-space: nowrap;
-    bottom: 56px;
+    bottom: 62px;
   }
   .hero-availability {
-    bottom: 20px;
+    left: var(--pad);
+    right: var(--pad);
+    bottom: 22px;
   }
   .hero-name-wrap {
-    top: 0;
-    bottom: auto;
-    padding: 0 var(--pad);
-    --hero-name-nudge: clamp(0px, 0.5vw, 6px);
-    --hero-scale: 0.996;
+    inset: 0;
+    display: block;
+    padding: 0;
+    transform: none;
   }
-  .hero-monogram {
-    left: calc(var(--hero-name-nudge) - clamp(22px, 1.8vw, 34px));
-  }
+  .hero-hitbox,
   .hero-monogram,
-  .hero-name {
-    line-height: 0.8;
-  }
-  .hero-name {
-    top: 8%;
-    bottom: auto;
-    left: calc(var(--pad) + var(--hero-name-nudge) - clamp(10px, 1vw, 18px));
-  }
   .hero-name-line {
     display: none;
   }
-  :root {
-    --type-project-title: 16px;
-    --type-project-meta: 16px;
-    --type-project-label: 9px;
+  .hero-name {
+    top: calc(var(--nav-h) + 38px);
+    bottom: auto;
+    left: var(--pad);
+    right: var(--pad);
+    font-size: clamp(40px, 13.2vw, 64px);
+    font-weight: 350;
+    font-variation-settings: "wght" 350;
+    line-height: 0.88;
+    letter-spacing: -0.06em;
+    white-space: nowrap;
   }
-  /* Mobile Recent Works: the desktop version pins the viewport
-     (`.projects-stage` sticky) and wipes through the 3 projects over
-     ~4.2 screen-heights of scroll (`renderProjects`/`renderFromScroll` in
-     script.js) — that pin is the site's main "frozen scrolling" complaint.
-     On mobile it's a plain scrolling list instead: all 3 project cards laid
-     out top-to-bottom, forced visible with !important to defeat the JS's
-     per-frame inline opacity/clip-path/transform (same technique already
-     used for Services), tag sitting on the same line as the title instead
-     of its own row. Tapping a card still opens the case overlay — that
-     click handler is DOM-delegated, not scroll-position-dependent, so it
-     needs no change. */
   .projects {
     height: auto;
     min-height: 0;
@@ -3499,14 +3559,14 @@ body.is-curtain-active .site-nav {
     height: auto;
     min-height: 0;
     overflow: visible;
-    padding: calc(var(--section-copy-start-y, 26.5svh) - 6px) 0 48px;
+    padding: var(--mobile-section-space) 0 32px;
   }
   .projects-label {
     position: relative;
     top: auto;
     left: auto;
     width: auto;
-    margin: 0 var(--pad) 32px;
+    margin: 0 var(--pad) 38px;
     opacity: 1 !important;
     clip-path: none !important;
   }
@@ -3523,8 +3583,8 @@ body.is-curtain-active .site-nav {
     display: grid;
     grid-template-columns: 1fr auto;
     column-gap: 12px;
-    row-gap: 6px;
-    margin: 0 var(--pad) 40px;
+    row-gap: 7px;
+    margin: 0 var(--pad) 56px;
     opacity: 1 !important;
     clip-path: none !important;
     transform: none !important;
@@ -3550,6 +3610,7 @@ body.is-curtain-active .site-nav {
     height: 100%;
     opacity: 1 !important;
     clip-path: none !important;
+    object-fit: cover;
   }
   .projects-slide-copy {
     position: relative;
@@ -3567,6 +3628,7 @@ body.is-curtain-active .site-nav {
   .projects-slide-desc {
     grid-column: 1 / -1;
     grid-row: 3;
+    padding-right: 12vw;
   }
   .projects-slide-tag {
     position: relative;
@@ -3580,44 +3642,81 @@ body.is-curtain-active .site-nav {
     opacity: 1 !important;
     clip-path: none !important;
   }
+  .case-overlay {
+    padding: 0 var(--pad) var(--pad);
+    overflow-x: hidden;
+  }
+  .case-overlay-nav {
+    left: 0;
+    right: 0;
+    height: var(--nav-h);
+    padding: 0 var(--pad);
+    background: var(--surface);
+    border-bottom: 1px solid var(--mobile-rule);
+  }
+  .case-project-content {
+    min-height: 100svh;
+    padding-top: calc(var(--nav-h) + 40px);
+    padding-bottom: 64px;
+  }
+  .case-project-content .project-viewport-wipe,
+  .case-project-content .project-viewport-wipe.is-viewport-revealed,
+  .case-project-content .auto-wipe-line {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+  }
+  .case-project-rule {
+    display: none;
+  }
   .case-project-top {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    column-gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-top: 0;
   }
   .case-project-heading {
-    grid-column: 1 / -1;
-    grid-row: auto;
+    display: block;
   }
   .case-project-title {
-    margin-bottom: 24px;
+    margin: 0;
+    font-size: clamp(32px, 10vw, 48px);
+    line-height: 0.95;
   }
   .case-project-strapline {
-    margin-top: 0;
-    margin-bottom: 12px;
+    margin: 8px 0 0;
+    max-width: 82%;
   }
   .case-project-media-links {
-    grid-column: 1 / -1;
-    grid-row: auto;
     width: 100%;
+    margin-top: 32px;
   }
   .case-project-hero-video {
-    width: min(100%, 420px);
+    width: 100%;
     margin-bottom: 0;
   }
+  .case-project-hero-video.is-expanded video {
+    object-fit: contain;
+  }
   .case-project-links {
-    margin: 30px 0 24px;
+    margin: 20px 0 0;
   }
   .case-project-copy {
-    grid-column: 1 / -1;
-    grid-row: auto;
     max-width: none;
+    margin-top: 44px;
   }
   .case-project-copy-title {
-    margin-bottom: 18px;
+    margin-bottom: 20px;
+    font-size: var(--type-project-title);
+    line-height: 1.28;
   }
   .case-project-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 12px;
+    row-gap: 28px;
+    margin-top: 36px;
   }
   .case-project-meta-group:first-child,
   .case-project-meta-group:last-child {
@@ -3626,43 +3725,17 @@ body.is-curtain-active .site-nav {
   .case-project-meta-group:last-child {
     grid-column: 2;
   }
-  .case-project-gallery {
-    --gallery-row-h: clamp(124px, 40.5vw, 300px);
-    height: calc(
-      var(--gallery-row-h) + var(--gallery-row-h) + var(--gallery-row-h) + 24px
-    );
-    margin-top: 90px;
-  }
-  .case-project-gallery--goballer {
-    height: calc((var(--gallery-row-h) * 4) + 36px);
-  }
-  .case-project-gallery-row:nth-child(2) {
-    top: calc(var(--gallery-row-h) + 12px);
-  }
-  .case-project-gallery-row:nth-child(3) {
-    top: calc((var(--gallery-row-h) * 2) + 24px);
-  }
-  .case-project-gallery--goballer .case-project-gallery-row:nth-child(4) {
-    top: calc((var(--gallery-row-h) * 3) + 36px);
-  }
-  .case-project-gallery-track {
-    gap: 12px;
-  }
-  .case-project-gallery-item {
-    flex-basis: 72vw;
-    width: 72vw;
-  }
   .case-project-body-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
-    margin-top: 18px;
+    margin-top: 24px;
   }
   .case-project-body {
     grid-column: 1 / -1;
   }
   .case-project-packaging {
     grid-column: 1 / -1;
-    margin-top: 140px;
+    margin-top: 88px;
   }
   .case-project-web-video {
     grid-column: 1 / -1;
@@ -3678,41 +3751,66 @@ body.is-curtain-active .site-nav {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
     row-gap: 24px;
-    margin-top: 90px;
+    margin-top: 88px;
   }
   .case-aims-web-hero,
   .case-aims-web-sections {
     grid-column: 1 / -1;
   }
   .case-desirae {
-    gap: 24px;
-    padding: 140px 0;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    margin: 88px calc(var(--pad) * -1) 0;
+    padding: 76px var(--pad) 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
-  .case-desirae-note {
-    position: relative;
-    top: auto;
-    left: auto;
-    width: auto;
-    align-self: flex-start;
+  .case-desirae::-webkit-scrollbar {
+    display: none;
+  }
+  .case-desirae-note,
+  .case-desirae-note.is-visible,
+  .case-desirae-note.is-exiting {
+    position: absolute;
+    top: 24px;
+    width: calc(50% - var(--pad));
     transform: none;
     margin: 0;
-    text-align: center;
+    text-align: left;
+    opacity: 1;
+    visibility: visible;
+    clip-path: none;
+    transition: none;
   }
+  .case-desirae-note--left,
+  .case-desirae-note--right,
   .case-desirae-note.is-sticky {
-    position: relative;
-    top: auto;
+    position: absolute;
+    top: 24px;
     transform: none;
   }
+  .case-desirae-note--left {
+    left: var(--pad);
+  }
   .case-desirae-note--right {
-    align-self: flex-end;
+    left: auto;
+    right: var(--pad);
+    text-align: right;
   }
   .case-desirae-card {
-    position: static;
+    position: relative;
+    flex: 0 0 82vw;
     top: auto;
-    width: 100%;
-    height: 78vh;
-    margin-bottom: 16px;
+    width: 82vw;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    margin: 0;
     transform: none !important;
+    scroll-snap-align: start;
   }
   .case-project-instagram-section {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3725,7 +3823,7 @@ body.is-curtain-active .site-nav {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
     row-gap: 24px;
-    margin-top: 64px;
+    margin-top: 88px;
   }
   .case-miunae-launch-copy--left,
   .case-miunae-launch-video,
@@ -3756,7 +3854,7 @@ body.is-curtain-active .site-nav {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
     row-gap: 24px;
-    margin-top: 140px;
+    margin-top: 88px;
   }
   .case-goballer-media--icon,
   .case-goballer-media--figma,
@@ -3775,7 +3873,7 @@ body.is-curtain-active .site-nav {
   .case-goballer-app-video-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
-    margin-top: 180px;
+    margin-top: 88px;
   }
   .case-goballer-app-video {
     grid-column: 1 / -1;
@@ -3796,15 +3894,15 @@ body.is-curtain-active .site-nav {
   .case-goballer-ios-video {
     grid-column: 1 / -1;
   }
-  .case-instagram-gallery {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+  .case-project-switcher {
     width: 100%;
-    max-width: 100%;
-    margin-left: 0;
+    margin-top: 88px;
+    padding-top: 24px;
+    border-top: 1px solid var(--mobile-rule);
   }
-  .cursor {
-    display: none;
+  .case-project-switcher-link {
+    min-height: 32px;
+    align-items: center;
   }
   .post-project-transition-copy {
     font-size: clamp(16px, 5vw, 24px);
@@ -3818,21 +3916,6 @@ body.is-curtain-active .site-nav {
   .post-project-transition-description {
     font-size: var(--type-project-meta);
   }
-  /* Mobile services: the desktop version is a scroll-scrubbed cascade —
-     nine items absolutely stacked ~4.5svh apart, each individually gated
-     visible/invisible by JS as a function of scroll position within a fixed
-     260svh range, sized on the assumption that all nine plus one open
-     description fit inside a single 100svh sticky stage. None of that holds
-     on a narrow viewport: 4.5svh isn't room for a title, let alone a tapped-
-     open description, and gating visibility to a scroll fraction just hides
-     items rather than showing "all this info". So on mobile the section
-     drops the scroll-scrub choreography entirely and becomes a plain
-     scrolling list — every item statically laid out and forced visible
-     (overriding the JS's per-frame inline opacity/clip-path/transform with
-     !important, the same technique already used for the gallery's mobile
-     fallback), with the existing tap-to-reveal (is-hovered, wired in
-     script.js's focusService) as the only thing still gating the
-     description text. */
   .post-project-transition {
     height: auto;
     min-height: 0;
@@ -3843,86 +3926,128 @@ body.is-curtain-active .site-nav {
     position: static;
     height: auto;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow: visible;
-    padding: 72px 0 48px;
+    padding: var(--mobile-section-space) var(--pad) 72px;
   }
   .post-project-transition-line {
     display: none;
   }
   .post-project-services {
     position: static;
+    order: 2;
     margin: 0;
     width: 100%;
     padding-top: 0;
+    pointer-events: auto;
   }
   .post-project-service {
     position: static;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: 12px;
-    row-gap: 4px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 24px;
+    column-gap: 10px;
+    row-gap: 5px;
+    align-items: start;
     left: auto;
     right: auto;
     top: auto;
     margin: 0;
-    padding: 16px 0;
-    border-bottom: 1px solid rgba(12, 12, 12, 0.1);
+    padding: 18px 0;
+    border-bottom: 1px solid var(--mobile-rule);
     opacity: 1 !important;
     clip-path: none !important;
     transform: none !important;
     animation: none !important;
+    touch-action: manipulation;
+  }
+  .post-project-service::after {
+    content: "+";
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    font: var(--weight-regular) 18px/1 var(--font-family), sans-serif;
+    color: var(--body);
+  }
+  .post-project-service.is-hovered::after {
+    content: "−";
+    color: var(--ink);
   }
   .post-project-service:first-child {
-    border-top: 1px solid rgba(12, 12, 12, 0.1);
+    border-top: 1px solid var(--mobile-rule);
   }
   .post-project-service > span.post-project-service-index {
-    flex: 0 0 auto;
+    grid-column: 1;
+    grid-row: 1;
   }
   .post-project-service > div {
-    flex: 1 1 200px;
+    display: contents;
   }
   .post-project-service > .post-project-service-output {
-    flex: 1 1 100%;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: start;
+    margin-top: 2px;
+    font-size: var(--type-3);
+    line-height: 1.2;
+    color: var(--body);
+  }
+  .post-project-service h2 {
+    grid-column: 2;
+    grid-row: 1;
+    padding-right: 8px;
   }
   .post-project-service p {
+    grid-column: 2;
+    grid-row: 3;
     max-height: 0;
+    line-height: 1.3;
   }
   .post-project-service.is-hovered p {
-    max-height: 160px;
+    max-height: 240px;
+    margin-top: 10px;
+  }
+  .post-project-service.is-hovered {
+    --service-hover-shift: 0px;
+  }
+  .post-project-service.is-hovered > .post-project-service-index,
+  .post-project-service.is-hovered > .post-project-service-output {
+    font-size: var(--type-3);
+    line-height: 1.2;
+  }
+  .post-project-transition.is-service-focused
+    .post-project-service:not(.is-pointer-focused) {
+    filter: none;
   }
   .post-project-services-summary-line {
     display: none;
   }
   .post-project-services-range {
     position: static;
+    order: 1;
     left: auto;
     right: auto;
     top: auto;
     width: auto;
-    margin: 28px 0 4px;
+    margin: 0 0 30px;
     opacity: 1 !important;
     clip-path: none !important;
     animation: none !important;
   }
   .post-project-services-summary {
     position: static;
+    order: 3;
     left: auto;
     right: auto;
     top: auto;
     width: auto;
-    margin: 0;
+    margin: 40px 0 0;
+    padding-top: 24px;
+    border-top: 1px solid var(--mobile-rule);
     opacity: 1 !important;
     clip-path: none !important;
     animation: none !important;
   }
-  /* Mobile Bio: the desktop version is a 3-column absolute-positioned split
-     (portrait / about / career+history) that was squeezing all three into
-     horizontal slices of a narrow phone at 9-12px text. Reorganized into a
-     plain top-to-bottom stack instead, full width throughout, with the one
-     genuinely long piece of copy (the client-name list) collapsed behind a
-     tap — see the .bio-career .bio-muted rules and the click handler in
-     script.js — rather than either cramming it in or cutting it. */
   .bio-section {
     height: auto;
     min-height: 0;
@@ -3933,26 +4058,16 @@ body.is-curtain-active .site-nav {
     position: relative;
     height: auto;
     min-height: 0;
-    padding: calc(var(--section-copy-start-y, 26.5svh) - 6px) var(--pad) 64px;
+    padding: var(--mobile-section-space) var(--pad) 72px;
     display: flex;
     flex-direction: column;
   }
-  /* The availability/location badge is first in the DOM (it's a fixed
-     bottom-bar on desktop) but reads as the least important thing to see
-     first on a phone — push it to the very end of the stack instead, with
-     its divider following along as the separator right above it. */
   .bio-status {
     order: 10;
   }
   .bio-divider {
     order: 9;
   }
-  /* updateBio() (script.js) still runs unconditionally, writing inline
-     opacity/clip-path/transform based on scroll fraction over the section —
-     sized for the desktop scroll range, not this section's much shorter
-     mobile height. Force every .bio-wipe element visible so content can't
-     render stuck mid-clip depending on scroll position, same technique
-     already used for .post-project-service. */
   .bio-wipe {
     opacity: 1 !important;
     clip-path: none !important;
@@ -3966,29 +4081,78 @@ body.is-curtain-active .site-nav {
     bottom: auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
   }
   .bio-divider {
     position: relative;
     left: auto;
     right: auto;
     top: auto;
-    margin: 20px 0;
+    margin: 48px 0 24px;
+    background: var(--mobile-rule);
   }
   .bio-portrait {
     position: relative;
     left: auto;
     bottom: auto;
     top: auto;
-    width: 120px;
-    margin-bottom: 20px;
+    width: min(38vw, 156px);
+    margin-bottom: 38px;
   }
   .bio-middle {
     position: relative;
     left: auto;
     top: auto;
     width: auto;
-    gap: 16px;
+    display: block;
+  }
+  .bio-copy-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 10px;
+    align-items: start;
+  }
+  .bio-section-label {
+    position: static;
+    grid-column: 1;
+    width: auto;
+  }
+  .bio-about-lines {
+    position: static;
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 10px;
+    width: auto;
+    color: var(--body);
+  }
+  .bio-about-lines p + p {
+    margin-top: 0;
+  }
+  .bio-section-label .bio-copy-switch,
+  .bio-about-lines .bio-copy-switch {
+    display: inline-flex;
+    width: auto;
+    grid-template-columns: none;
+    padding: 0 0 6px;
+    border-bottom: 1px solid transparent;
+  }
+  .bio-section-label .bio-copy-switch.is-active,
+  .bio-about-lines .bio-copy-switch.is-active {
+    border-bottom-color: var(--ink);
+  }
+  .bio-section-label .bio-copy-switch-arrow,
+  .bio-about-lines .bio-copy-switch-arrow,
+  .bio-about-lines .bio-copy-switch-note {
+    display: none;
+  }
+  .bio-section-label .bio-copy-switch-label,
+  .bio-about-lines .bio-copy-switch-label {
+    display: inline;
+    width: auto;
+  }
+  .bio-about-lines .bio-copy-switch-name {
+    padding-left: 0;
   }
   .bio-about,
   .bio-career,
@@ -3999,17 +4163,23 @@ body.is-curtain-active .site-nav {
     top: auto;
     width: auto;
   }
+  .bio-about {
+    grid-column: 1 / -1;
+    margin-top: 34px;
+  }
   .bio-right {
     position: relative;
     left: auto;
     top: auto;
     width: auto;
-    margin-top: 32px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--mobile-rule);
     gap: 24px;
   }
   .bio-copy-block {
-    font-size: var(--type-3);
-    line-height: 1.3;
+    font-size: var(--type-project-title);
+    line-height: 1.32;
   }
   .bio-copy-block p + p,
   .bio-career .bio-muted {
@@ -4021,20 +4191,35 @@ body.is-curtain-active .site-nav {
   }
   .bio-history {
     font-size: var(--type-3);
-    grid-template-columns: 1fr !important;
-    row-gap: 16px;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr) !important;
+    column-gap: 16px;
   }
   .bio-career .bio-muted {
+    position: relative;
     max-height: 2.6em;
     overflow: hidden;
+    padding-right: 28px;
     -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
     mask-image: linear-gradient(to bottom, #000 60%, transparent);
     transition: max-height 0.4s var(--ease);
+    touch-action: manipulation;
+  }
+  .bio-career .bio-muted::after {
+    content: "+";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    color: var(--ink);
+    text-align: right;
   }
   .bio-career .bio-muted.is-expanded {
-    max-height: 400px;
+    max-height: 520px;
     -webkit-mask-image: none;
     mask-image: none;
+  }
+  .bio-career .bio-muted.is-expanded::after {
+    content: "−";
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -4176,8 +4361,6 @@ body.is-curtain-active .site-nav {
   .case-aims-web-copy {
     grid-column: 1 / -1;
   }
-}
-@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-socials-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4188,8 +4371,6 @@ body.is-curtain-active .site-nav {
   .case-aims-social--two {
     grid-column: 1 / -1;
   }
-}
-@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-social-copy-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4198,8 +4379,6 @@ body.is-curtain-active .site-nav {
   .case-aims-social-copy {
     grid-column: 1 / -1;
   }
-}
-@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-deck-copy-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4208,8 +4387,6 @@ body.is-curtain-active .site-nav {
   .case-aims-deck-copy {
     grid-column: 1 / -1;
   }
-}
-@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-merch-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4231,58 +4408,11 @@ body.is-curtain-active .site-nav {
   .case-aims-chat {
     grid-row: 3;
   }
-}
-@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
-  .bio-middle {
-    left: calc(25% + 6px);
-    width: calc(50% - 18px);
-    gap: 24px;
-  }
-  .bio-section-label {
-    right: calc(100% + 6px);
-    width: calc(25vw - var(--pad));
-  }
-  .bio-right {
-    left: calc(75% + 6px);
-    width: calc(25% - var(--pad) - 6px);
-    gap: 24px;
+  .case-project-gallery--aims-deck {
+    margin-top: 88px;
   }
 }
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
-  .initiatives-stage {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    column-gap: var(--grid-gap);
-  }
-  .initiatives-title {
-    left: var(--pad);
-  }
-  .initiatives-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: 32px;
-  }
-  .initiatives-index {
-    grid-column: 1 / -1;
-    display: block;
-  }
-  .initiatives-side-quests {
-    margin-top: 40px;
-  }
-  .initiatives-media {
-    grid-column: 1 / -1;
-  }
-  .initiatives-detail {
-    grid-column: 1 / -1;
-  }
-  .initiatives-side-quests p {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    column-gap: var(--grid-gap);
-  }
-  .initiatives-side-quests p span:first-child {
-    grid-column: 1;
-  }
-  .initiatives-side-quests p span:last-child {
-    grid-column: 2 / -1;
-  }
   .initiatives-section {
     height: auto;
     min-height: 0;
@@ -4292,25 +4422,133 @@ body.is-curtain-active .site-nav {
   .initiatives-stage {
     position: relative;
     height: auto;
-    min-height: 100svh;
-    padding-top: calc(var(--section-copy-start-y, 26.5svh) + 24px);
-    padding-bottom: var(--pad);
+    min-height: 0;
+    display: block;
+    padding: var(--mobile-section-space) var(--pad) 80px;
     overflow: visible;
   }
   .initiatives-title {
-    top: calc(var(--section-copy-start-y, 26.5svh) - 32px);
+    position: relative;
+    left: auto;
+    top: auto;
+    margin: 0 0 18px;
+  }
+  .initiatives-divider {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    margin-bottom: 20px;
+    background: var(--mobile-rule);
   }
   .initiatives-grid {
     position: relative;
     inset: auto;
-    grid-column: 1 / -1;
+    display: block;
   }
-  .initiatives-detail {
-    padding-bottom: 48px;
+  .initiatives-index {
+    display: block;
+    width: 100%;
   }
-  /* Same ungated-JS problem as Bio: updateInitiatives() (script.js) keeps
-     writing inline opacity/clip-path sized for the desktop scroll range.
-     Force every .initiatives-wipe element visible on mobile. */
+  .initiatives-group,
+  .initiatives-group + .initiatives-group,
+  .initiatives-side-quests {
+    margin-top: 0;
+    border-bottom: 1px solid var(--mobile-rule);
+  }
+  .initiatives-group:first-child {
+    border-top: 1px solid var(--mobile-rule);
+  }
+  .initiatives-group > h3 {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    touch-action: manipulation;
+  }
+  .initiatives-index.is-mobile-collapsible .initiatives-group > h3::after {
+    content: "+";
+    font: var(--weight-regular) 18px/1 var(--font-family), sans-serif;
+    color: var(--body);
+  }
+  .initiatives-index.is-mobile-collapsible
+    .initiatives-group.is-mobile-open
+    > h3::after {
+    content: "−";
+    color: var(--ink);
+  }
+  .initiatives-index.is-mobile-collapsible .initiatives-group > .initiatives-apps {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition:
+      max-height 0.65s var(--ease),
+      opacity 0.3s linear;
+  }
+  .initiatives-index.is-mobile-collapsible
+    .initiatives-group.is-mobile-open
+    > .initiatives-apps {
+    max-height: 720px;
+    padding-bottom: 14px;
+    opacity: 1;
+  }
+  .initiatives-apps .bio-copy-switch {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: 0;
+    width: 100%;
+    min-height: 46px;
+    padding: 8px 0;
+    align-items: start;
+    text-align: left;
+  }
+  .initiatives-apps .bio-copy-switch-arrow {
+    position: static;
+    grid-column: 1;
+  }
+  .initiatives-apps .bio-copy-switch-label {
+    grid-column: 2;
+    display: block;
+    width: auto;
+  }
+  .initiatives-apps .bio-copy-switch-name,
+  .initiatives-apps .bio-copy-switch-note {
+    display: block;
+    padding-left: 0;
+  }
+  .initiatives-apps .bio-copy-switch-note {
+    margin-top: 2px;
+    color: var(--body);
+  }
+  .initiatives-media,
+  .initiatives-grid.is-side-quest-active .initiatives-media {
+    width: 100%;
+    margin: 42px 0 0;
+    aspect-ratio: 4 / 3;
+  }
+  .initiatives-detail,
+  .initiatives-grid.is-side-quest-active .initiatives-detail {
+    width: 100%;
+    margin-top: 24px;
+    padding-bottom: 0;
+  }
+  .initiatives-copy {
+    font-size: var(--type-project-title);
+    line-height: 1.32;
+  }
+  .initiatives-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .initiatives-meta > div:first-child,
+  .initiatives-meta > div:last-child {
+    grid-column: auto;
+  }
+  .initiatives-mentions,
+  .initiatives-grid.is-side-quest-active .initiatives-mentions:not(:empty) {
+    position: relative;
+    width: 100%;
+    margin-top: 24px;
+  }
   .initiatives-wipe {
     opacity: 1 !important;
     clip-path: none !important;
@@ -4325,17 +4563,13 @@ body.is-curtain-active .site-nav {
   .footer-stage {
     position: relative;
     height: auto;
-    min-height: calc(100svh + 320px);
-    padding-top: 48px;
-    padding-bottom: var(--pad);
+    min-height: 76svh;
+    padding: var(--mobile-section-space) var(--pad) 24px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     overflow: visible;
   }
-  /* Same ungated-JS problem as Bio/Initiatives: updateFooter() (script.js)
-     keeps writing inline opacity/clip-path sized for the desktop scroll
-     range. Force every .footer-wipe element visible on mobile. */
   .footer-wipe {
     opacity: 1 !important;
     clip-path: none !important;
@@ -4343,8 +4577,11 @@ body.is-curtain-active .site-nav {
   }
   .footer-divider {
     position: relative;
+    inset: auto;
+    width: 100%;
     bottom: auto;
     margin-bottom: 32px;
+    background: var(--mobile-rule);
   }
   .footer-links {
     position: relative;
@@ -4352,6 +4589,7 @@ body.is-curtain-active .site-nav {
     left: auto;
     right: auto;
     bottom: auto;
+    margin-top: 0;
   }
   .footer-copyright {
     position: relative;
@@ -4370,46 +4608,61 @@ body.is-curtain-active .site-nav {
   }
 }
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
-  .case-project-gallery--aims-deck {
-    margin-top: 140px;
-  }
-}
-
-/* Mobile layout: keep every project image legible instead of compressing five
-   cards into a horizontal strip. Directional rows become one vertical stack.
-   Uses the same combined layout gate as everything else (width or portrait
-   tablet), not its own narrower phone-only threshold — a portrait iPad has
-   the same "no room for a horizontal marquee" problem a phone does. */
-@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-project-gallery,
   .case-project-gallery--goballer {
+    display: flex;
+    gap: 12px;
+    width: calc(100% + (var(--pad) * 2));
     height: auto !important;
-    margin-top: 64px;
-    overflow: visible;
-    contain: layout;
+    margin: 88px calc(var(--pad) * -1) 0;
+    padding: 0 var(--pad) 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    contain: layout paint;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--pad);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .case-project-gallery::-webkit-scrollbar {
+    display: none;
   }
   .case-project-gallery-row,
   .case-project-gallery--goballer .case-project-gallery-row {
-    position: static;
-    left: auto;
-    right: auto;
-    height: auto;
-    margin: 0 0 12px;
-    overflow: visible;
+    display: contents;
   }
   .case-project-gallery-track {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: auto;
-    gap: 12px;
+    display: contents;
     transform: none !important;
   }
   .case-project-gallery-item {
-    flex: 0 0 auto;
-    width: 100%;
+    flex: 0 0 min(82vw, 520px);
+    width: min(82vw, 520px);
     height: auto;
     aspect-ratio: 16 / 9;
+    scroll-snap-align: start;
+  }
+  .case-instagram-gallery {
+    display: flex;
+    gap: 10px;
+    width: calc(100% + (var(--pad) * 2));
+    max-width: none;
+    margin: 0 calc(var(--pad) * -1);
+    padding: 0 var(--pad) 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--pad);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .case-instagram-gallery::-webkit-scrollbar {
+    display: none;
+  }
+  .case-instagram-gallery-item {
+    flex: 0 0 min(72vw, 380px);
+    width: min(72vw, 380px);
+    scroll-snap-align: start;
   }
 }
 

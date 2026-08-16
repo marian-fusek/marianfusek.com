@@ -205,17 +205,23 @@
   document.fonts?.ready?.then(alignHeroNameToInfo);
   const updateHeroCopyWipe=()=>{
     if(!heroInfo)return;
+    const heroWipeTargets=[heroInfo,nameWrap,heroAvailability,heroRecentCue].filter(Boolean);
+    if(isMobileLayout()){
+      heroWipeTargets.forEach(el=>{
+        el.classList.remove('is-hero-pinned');
+        el.style.removeProperty('opacity');
+        el.style.removeProperty('clip-path');
+      });
+      return;
+    }
     const raw=clamp(scrollY/Math.max(1,innerHeight),0,1);
     const progress=smoothstep(0,1,raw);
-    /* The fade-out itself is fine on mobile (content still scrolling
-       normally, just fading as it goes) — it's specifically the
-       `position: fixed` pin that reads as "frozen scroll", so that part
-       alone is skipped on mobile. */
+    /* Desktop keeps the original pinned wipe. Mobile returned above with
+       static content so its first viewport reads as a complete composition. */
     const pinned=raw<1&&!isMobileLayout();
     const opacity=String(1-progress);
     const clipPath=`inset(0 0 ${progress*100}% 0)`;
-    [heroInfo,nameWrap,heroAvailability,heroRecentCue].forEach(el=>{
-      if(!el)return;
+    heroWipeTargets.forEach(el=>{
       el.classList.toggle('is-hero-pinned',pinned);
       el.style.opacity=opacity;
       el.style.clipPath=clipPath;
@@ -265,6 +271,23 @@
      restart animations whenever its threshold fluctuated. */
   const updateProjectWipes=()=>{
     if(!projectDetailOpen||!caseOverlay)return;
+    if(isMobileLayout()){
+      projectWipeTargets.forEach(target=>{
+        target._detailWipeAnimation?.cancel();
+        target.dataset.viewportVisible='1';
+        target.classList.add('detail-wipe-controlled','is-viewport-revealed','is-wipe-forward');
+        target.classList.remove('is-wipe-backward');
+        target.style.removeProperty('opacity');
+        target.style.removeProperty('clip-path');
+        target.querySelectorAll('.auto-wipe-line').forEach(line=>{
+          line._detailLineWipeAnimation?.cancel();
+          line.style.removeProperty('opacity');
+          line.style.removeProperty('clip-path');
+          line.style.removeProperty('transform');
+        });
+      });
+      return;
+    }
     const currentScrollTop=caseOverlay.scrollTop;
     projectDetailScrollDirection=currentScrollTop<projectDetailScrollTop-.5?'backward':'forward';
     projectDetailScrollTop=currentScrollTop;
@@ -333,10 +356,12 @@
   const closeNavMenu=()=>{
     document.body.classList.remove('is-nav-open');
     navHamburger?.setAttribute('aria-expanded','false');
+    navHamburger?.setAttribute('aria-label','Open menu');
   };
   navHamburger?.addEventListener('click',()=>{
     const open=document.body.classList.toggle('is-nav-open');
     navHamburger.setAttribute('aria-expanded',String(open));
+    navHamburger.setAttribute('aria-label',open?'Close menu':'Open menu');
   });
   siteMenu?.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeNavMenu));
   addEventListener('keydown',event=>{if(event.key==='Escape')closeNavMenu();});
@@ -505,6 +530,13 @@
     updateActiveGallery=()=>{
       const state=galleryStates[activeCaseProjectIndex];
       if(!state)return;
+      if(isMobileLayout()){
+        if(state.raf){cancelAnimationFrame(state.raf);state.raf=0;}
+        state.current=0;
+        state.target=0;
+        state.rows.forEach(row=>row.querySelector('.case-project-gallery-track')?.style.removeProperty('--gallery-x'));
+        return;
+      }
       const gallery=state.gallery;
       const start=gallery.offsetTop-caseOverlay.clientHeight;
       const end=gallery.offsetTop+gallery.offsetHeight;
@@ -760,6 +792,12 @@
   const serviceRevealStarts=new WeakMap();
   const serviceExitTimers=new WeakMap();
   let pointerFocusedService=null;
+  const syncServiceExpandedState=()=>{
+    postServices.forEach(service=>{
+      if(isMobileLayout())service.setAttribute('aria-expanded',String(service===pointerFocusedService));
+      else service.removeAttribute('aria-expanded');
+    });
+  };
   const revealService=item=>{
     const exitTimer=serviceExitTimers.get(item);
     if(exitTimer){clearTimeout(exitTimer);serviceExitTimers.delete(item);}
@@ -768,6 +806,11 @@
     serviceRevealStarts.set(item,performance.now());
   };
   const hideServiceAfterReveal=item=>{
+    if(isMobileLayout()){
+      item.classList.remove('is-hovered');
+      serviceExitTimers.delete(item);
+      return;
+    }
     const elapsed=performance.now()-(serviceRevealStarts.get(item)||0);
     const remaining=Math.max(0,serviceDescriptionDuration-elapsed);
     const existingTimer=serviceExitTimers.get(item);
@@ -784,9 +827,11 @@
     postTransition?.classList.toggle('is-service-focused',Boolean(item));
     if(previous)hideServiceAfterReveal(previous);
     if(item)revealService(item);
+    syncServiceExpandedState();
   };
   if(hasHover()){
     postTransition?.addEventListener('pointermove',event=>{
+      if(isMobileLayout())return;
       if(!postTransition.classList.contains('is-active'))return focusService(null);
       const centers=postServices.map(item=>{const rect=item.getBoundingClientRect();return rect.top+10;});
       const firstBoundary=centers[0]-(centers[1]-centers[0])/2;
@@ -799,24 +844,59 @@
       }
       focusService(postServices[nearestIndex]);
     });
-    postTransition?.addEventListener('pointerleave',()=>focusService(null));
-  }else{
-    /* No hover to drive the nearest-item tracking above, so a tap just
-       toggles that service's description directly — same reveal/hide
-       machinery (revealService/hideServiceAfterReveal), just triggered by
-       click instead of proximity. */
-    postServices.forEach(item=>{
-      item.addEventListener('click',()=>{
-        focusService(pointerFocusedService===item?null:item);
-      });
-    });
+    postTransition?.addEventListener('pointerleave',()=>{if(!isMobileLayout())focusService(null);});
   }
+  /* Tap/click remains the mobile owner even when a narrow browser still
+     reports a fine pointer (common while testing responsive mode). */
+  postServices.forEach(item=>{
+    item.addEventListener('click',()=>{
+      if(hasHover()&&!isMobileLayout())return;
+      focusService(pointerFocusedService===item?null:item);
+    });
+    item.addEventListener('keydown',event=>{
+      if(!isMobileLayout()||(event.key!=='Enter'&&event.key!==' '))return;
+      event.preventDefault();
+      focusService(pointerFocusedService===item?null:item);
+    });
+  });
+  const syncServiceInteractionMode=()=>{
+    postServices.forEach(item=>{
+      if(isMobileLayout()){
+        item.setAttribute('role','button');
+        item.setAttribute('tabindex','0');
+        item.setAttribute('aria-expanded',String(item===pointerFocusedService));
+      }else{
+        item.removeAttribute('role');
+        item.removeAttribute('tabindex');
+        item.removeAttribute('aria-expanded');
+      }
+    });
+  };
+  addEventListener('resize',syncServiceInteractionMode,{passive:true});
+  syncServiceInteractionMode();
   if(postTransition){
     const verticalLine=postTransition.querySelector('.post-project-transition-line');
     const horizontalLine=postTransition.querySelector('.post-project-services-summary-line');
     postTransition.classList.add('is-scroll-timeline');
     postTransitionItems.forEach(item=>item.classList.remove('is-visible','is-exiting'));
     const updatePostTransition=()=>{
+      if(isMobileLayout()){
+        postTransition.classList.add('is-active');
+        verticalLine?.style.removeProperty('transition');
+        verticalLine?.style.removeProperty('transform-origin');
+        verticalLine?.style.removeProperty('transform');
+        horizontalLine?.style.removeProperty('transition');
+        horizontalLine?.style.removeProperty('opacity');
+        horizontalLine?.style.removeProperty('transform-origin');
+        horizontalLine?.style.removeProperty('transform');
+        postTransitionItems.forEach(item=>{
+          item.style.removeProperty('animation');
+          item.style.removeProperty('opacity');
+          item.style.removeProperty('clip-path');
+          item.style.removeProperty('transform');
+        });
+        return;
+      }
       const top=postTransition.getBoundingClientRect().top+scrollY;
       const p=clamp((scrollY-top)/(Math.max(1,postTransition.offsetHeight-innerHeight)),0,1);
       const verticalIn=smoothstep(.02,.18,p);
@@ -871,6 +951,10 @@
     };
     let activeBioCopy='about';
     let bioCopySwitching=false;
+    const syncBioCopyState=()=>bioCopySwitches.forEach(control=>{
+      control.setAttribute('aria-pressed',String(control.dataset.bioCopy===activeBioCopy));
+    });
+    syncBioCopyState();
     const switchBioCopy=next=>{
       if(!bioAboutCopy||!bioCopy[next]||next===activeBioCopy||bioCopySwitching)return;
       bioCopySwitching=true;
@@ -879,6 +963,7 @@
         bioRight.classList.add('is-copy-wiping-out');
         bioRight.addEventListener('animationend',()=>{
           bioRight.innerHTML=bioRightCopy[next]||'';
+          requestAnimationFrame(syncMobileClientLists);
           bioRight.classList.remove('is-copy-wiping-out');
           void bioRight.offsetWidth;
           bioRight.classList.add('is-copy-wiping-in');
@@ -888,9 +973,10 @@
       bioAboutCopy.classList.remove('is-copy-wiping-in');
       bioAboutCopy.classList.add('is-copy-wiping-out');
       bioAboutCopy.addEventListener('animationend',()=>{
-        bioAboutCopy.innerHTML=bioCopy[next];
-        activeBioCopy=next;
-        bioCopySwitches.forEach(control=>control.classList.toggle('is-active',control.dataset.bioCopy===next));
+          bioAboutCopy.innerHTML=bioCopy[next];
+          activeBioCopy=next;
+          bioCopySwitches.forEach(control=>control.classList.toggle('is-active',control.dataset.bioCopy===next));
+          syncBioCopyState();
         bioAboutCopy.classList.remove('is-copy-wiping-out');
         void bioAboutCopy.offsetWidth;
         bioAboutCopy.classList.add('is-copy-wiping-in');
@@ -913,14 +999,53 @@
       addEventListener('touchmove',()=>{bioForceReveal=false;},{once:true,passive:true});
       switchBioCopy(control.dataset.bioCopy);
     }));
-    /* Mobile only: the client-name list under the career paragraph is
-       clamped to ~2 lines (see .bio-career .bio-muted in style.css) since
-       it's long supplementary copy, not core narrative — tap it to expand.
-       Desktop never clamps it, so this is inert there regardless. */
-    if(!hasHover())postServicesNext.querySelectorAll('.bio-career .bio-muted').forEach(el=>{
-      el.addEventListener('click',()=>el.classList.toggle('is-expanded'));
+    /* Mobile only: the selected-client list is secondary information. Keep
+       it compact until tapped, but use delegation because the Bio switcher
+       replaces this markup when returning to About. */
+    const toggleMobileClientList=el=>{
+      if(!isMobileLayout()||!el)return;
+      const expanded=el.classList.toggle('is-expanded');
+      el.setAttribute('aria-expanded',String(expanded));
+    };
+    postServicesNext.addEventListener('click',event=>{
+      const clientList=event.target.closest?.('.bio-career .bio-muted');
+      if(clientList)toggleMobileClientList(clientList);
     });
+    postServicesNext.addEventListener('keydown',event=>{
+      const clientList=event.target.closest?.('.bio-career .bio-muted');
+      if(!clientList||(event.key!=='Enter'&&event.key!==' '))return;
+      event.preventDefault();
+      toggleMobileClientList(clientList);
+    });
+    const syncMobileClientLists=()=>{
+      postServicesNext.querySelectorAll('.bio-career .bio-muted').forEach(el=>{
+        if(isMobileLayout()){
+          el.setAttribute('role','button');
+          el.setAttribute('tabindex','0');
+          el.setAttribute('aria-expanded',String(el.classList.contains('is-expanded')));
+        }else{
+          el.classList.remove('is-expanded');
+          el.removeAttribute('role');
+          el.removeAttribute('tabindex');
+          el.removeAttribute('aria-expanded');
+        }
+      });
+    };
+    postServicesNext.addEventListener('click',event=>{
+      if(event.target.closest?.('[data-bio-copy]'))requestAnimationFrame(syncMobileClientLists);
+    });
+    addEventListener('resize',syncMobileClientLists,{passive:true});
+    syncMobileClientLists();
     const updateBio=()=>{
+      if(isMobileLayout()){
+        bioWipes.forEach(item=>{
+          item.style.removeProperty('opacity');
+          item.style.removeProperty('clip-path');
+          item.style.removeProperty('transform');
+          item.style.removeProperty('transform-origin');
+        });
+        return;
+      }
       const sectionTop=postServicesNext.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,postServicesNext.offsetHeight-innerHeight);
       const p=bioForceReveal?.5:clamp((scrollY-sectionTop)/range,0,1);
@@ -966,6 +1091,59 @@
     const initiativeStatus=initiativesSection.querySelector('#initiativeStatus');
     const initiativeMentions=initiativesSection.querySelector('#initiativeMentions');
     const initiativeApps=[...initiativesSection.querySelectorAll('[data-initiative]')];
+    const initiativesIndex=initiativesSection.querySelector('.initiatives-index');
+    const initiativeGroups=[...initiativesSection.querySelectorAll('.initiatives-group')];
+    const setMobileInitiativeGroup=group=>{
+      if(!isMobileLayout()||!group)return;
+      initiativeGroups.forEach(item=>{
+        const open=item===group;
+        item.classList.toggle('is-mobile-open',open);
+        item.querySelector(':scope > h3')?.setAttribute('aria-expanded',String(open));
+      });
+    };
+    const syncMobileInitiativeGroups=()=>{
+      if(!initiativesIndex)return;
+      initiativesIndex.classList.toggle('is-mobile-collapsible',isMobileLayout());
+      initiativeGroups.forEach((group,index)=>{
+        const heading=group.querySelector(':scope > h3');
+        const apps=group.querySelector(':scope > .initiatives-apps');
+        if(!heading||!apps)return;
+        if(isMobileLayout()){
+          if(!apps.id)apps.id=`mobileInitiativeGroup${index+1}`;
+          heading.setAttribute('role','button');
+          heading.setAttribute('tabindex','0');
+          heading.setAttribute('aria-controls',apps.id);
+        }else{
+          group.classList.remove('is-mobile-open');
+          if(apps.id===`mobileInitiativeGroup${index+1}`)apps.removeAttribute('id');
+          heading.removeAttribute('role');
+          heading.removeAttribute('tabindex');
+          heading.removeAttribute('aria-controls');
+          heading.removeAttribute('aria-expanded');
+        }
+      });
+      if(isMobileLayout()){
+        const activeGroup=initiativesIndex.querySelector('.initiatives-app.is-active')?.closest('.initiatives-group')||initiativeGroups[0];
+        setMobileInitiativeGroup(activeGroup);
+      }
+    };
+    initiativeGroups.forEach(group=>{
+      const heading=group.querySelector(':scope > h3');
+      const openGroup=()=>{
+        setMobileInitiativeGroup(group);
+        if(isMobileLayout()&&!group.querySelector('.initiatives-app.is-active')){
+          requestAnimationFrame(()=>group.querySelector('[data-initiative]')?.click());
+        }
+      };
+      heading?.addEventListener('click',openGroup);
+      heading?.addEventListener('keydown',event=>{
+        if(event.key!=='Enter'&&event.key!==' ')return;
+        event.preventDefault();
+        openGroup();
+      });
+    });
+    addEventListener('resize',syncMobileInitiativeGroups,{passive:true});
+    syncMobileInitiativeGroups();
     const initiativeData={
       'a-void':{name:'A-Void',image:'media/initiatives/vibe-coding/app_a-void.jpg',copy:'An iOS app for keeping track of the things that quietly become problems when you forget them. Passports, renewals, appointments, birthdays and anything else with a future attached. Instead of treating every date with equal urgency, A-Void understands when something actually starts to matter, gradually shifting its interface, color and personality as pressure builds.',type:'iOS App',status:'Awaiting AppStore Submission'},
       taiki:{name:'Taiki',image:'media/initiatives/vibe-coding/app_taiki.jpg',copy:'Taiki is a quiet place for the links you don’t want to lose. Save something once and it slips into your library with barely any effort, already sorted and easy to find later. Pre-defined folders based on your creative style. The whole thing is built to feel light: visual folders, soft movement, quick search, and none of the usual “organize your life” pressure. It’s less about managing bookmarks and more about keeping a small, useful corner of the internet tidy.',type:'Browser Extension',status:'Waiting For Launch'},
@@ -998,6 +1176,7 @@
       }));
     }
     let activeInitiative='a-void';
+    initiativeApps.forEach(app=>app.setAttribute('aria-pressed',String(app.dataset.initiative===activeInitiative)));
     let initiativeSwitchTimer=0;
     const switchInitiative=key=>{
       const next=initiativeData[key];
@@ -1087,13 +1266,18 @@
           initiativeType.textContent=next.type;
           initiativeStatus.textContent=next.status;
         }
-        initiativeApps.forEach(app=>app.classList.toggle('is-active',app.dataset.initiative===key));
+        initiativeApps.forEach(app=>{
+          const active=app.dataset.initiative===key;
+          app.classList.toggle('is-active',active);
+          app.setAttribute('aria-pressed',String(active));
+        });
         requestAnimationFrame(()=>initiativesStage.classList.remove('is-switching'));
       },300);
     };
     initiativesSection.addEventListener('click',event=>{
       const app=event.target.closest('[data-initiative]');
       if(!app)return;
+      setMobileInitiativeGroup(app.closest('.initiatives-group'));
       /* Same fix as bioForceReveal above — clicking an initiative/side-quest
          link while the section's wipe envelope hasn't fully settled would
          otherwise leave the page looking half-wiped right as new content
@@ -1105,6 +1289,15 @@
       switchInitiative(app.dataset.initiative);
     });
     const updateInitiatives=()=>{
+      if(isMobileLayout()){
+        initiativesWipes.forEach(item=>{
+          item.style.removeProperty('opacity');
+          item.style.removeProperty('clip-path');
+          item.style.removeProperty('transform');
+          item.style.removeProperty('transform-origin');
+        });
+        return;
+      }
       const sectionTop=initiativesSection.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,initiativesSection.offsetHeight-innerHeight);
       const p=initiativesForceReveal?.5:clamp((scrollY-sectionTop)/range,0,1);
@@ -1143,6 +1336,14 @@
   if(footerSection){
     const footerWipes=[...footerSection.querySelectorAll('.footer-wipe')];
     const updateFooter=()=>{
+      if(isMobileLayout()){
+        footerWipes.forEach(item=>{
+          item.style.removeProperty('opacity');
+          item.style.removeProperty('clip-path');
+          item.style.removeProperty('transform');
+        });
+        return;
+      }
       const sectionTop=footerSection.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,footerSection.offsetHeight-innerHeight);
       const p=clamp((scrollY-sectionTop)/range,0,1);
@@ -1496,7 +1697,7 @@
       const top=target.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,target.offsetHeight-innerHeight);
       const reveal=Number(a.dataset.navReveal||0);
-      const y=Math.min(top+range*reveal,Math.max(0,document.documentElement.scrollHeight-innerHeight));
+      const y=Math.min(top+(isMobileLayout()?0:range*reveal),Math.max(0,document.documentElement.scrollHeight-innerHeight));
       if(target===postServicesNext){
         bioForceReveal=true;
         addEventListener('wheel',()=>{bioForceReveal=false;},{once:true,passive:true});

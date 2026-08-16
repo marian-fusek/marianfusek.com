@@ -141,21 +141,6 @@
     layoutGridToggle.addEventListener('click',()=>setGrid(!layoutGrid.classList.contains('is-visible')));
   }
 
-  /* Font switcher: swaps the whole site's typeface between Geist and Nollie Oracle. */
-  const fontSwitchGeist=document.getElementById('fontSwitchGeist');
-  const fontSwitchNollie=document.getElementById('fontSwitchNollie');
-  if(fontSwitchGeist&&fontSwitchNollie){
-    const setFont=(nollie)=>{
-      document.documentElement.classList.toggle('font-nollie',nollie);
-      fontSwitchGeist.classList.toggle('is-active',!nollie);
-      fontSwitchGeist.setAttribute('aria-pressed',String(!nollie));
-      fontSwitchNollie.classList.toggle('is-active',nollie);
-      fontSwitchNollie.setAttribute('aria-pressed',String(nollie));
-    };
-    fontSwitchGeist.addEventListener('click',()=>setFont(false));
-    fontSwitchNollie.addEventListener('click',()=>setFont(true));
-  }
-
   /* Single smooth-scroll owner. Sections never intercept or snap independently. */
   class SmoothScroll{
     constructor(){
@@ -651,13 +636,36 @@
     const CONTENT_FRACTION=1;
     const wipeIn=r=>`inset(${(1-clamp(r,0,1))*100}% 0 0 0)`;
     const wipeOut=r=>`inset(0 0 ${clamp(r,0,1)*100}% 0)`;
+    /* Every non-last slide holds fully visible from local .42 (copy done)
+       to local 1, with no exit of its own — the next slide's wipe-IN covers
+       it instead, at the same speed as every wipe-in (WIPE_WIDTH, .34 of
+       local). The last slide has no next slide to be covered by, so it
+       needs a real exit of its own — and that exit should take the same
+       amount of *absolute* scroll as a wipe-in does, not just reuse a
+       narrow leftover sliver of local space (that's what made it look
+       rushed: it was ~.14 of local vs a wipe-in's .34). Solve the last
+       slide's own hold/exit split, plus its timeline weight, so that both
+       its hold and its exit match the other slides' hold/wipe-in in
+       absolute scroll distance simultaneously. */
+    const ENTER_END=.42;
+    const WIPE_WIDTH=.34;
+    const HOLD_FRACTION=1-ENTER_END;
+    const LAST_EXIT_WIDTH=HOLD_FRACTION*WIPE_WIDTH/(HOLD_FRACTION+WIPE_WIDTH);
+    const LAST_HOLD_WIDTH=HOLD_FRACTION-LAST_EXIT_WIDTH;
+    const LAST_EXIT_START=ENTER_END+LAST_HOLD_WIDTH;
+    const SLIDE_WEIGHTS=slides.map((_,i)=>i===SLIDE_COUNT-1?HOLD_FRACTION/LAST_HOLD_WIDTH:1);
+    const TOTAL_WEIGHT=SLIDE_WEIGHTS.reduce((a,b)=>a+b,0);
+    const WEIGHT_START=SLIDE_WEIGHTS.reduce((acc,w)=>{acc.list.push(acc.sum);acc.sum+=w;return acc;},{list:[],sum:0}).list;
     let activeIndex=-1;
     const renderProjects=raw=>{
       const p=clamp(raw,0,1);
       const contentP=clamp(p/CONTENT_FRACTION,0,1);
-      const timeline=contentP*SLIDE_COUNT;
-      const index=Math.min(SLIDE_COUNT-1,Math.floor(timeline));
-      const local=timeline-index;
+      const timelineW=contentP*TOTAL_WEIGHT;
+      let index=SLIDE_COUNT-1;
+      for(let i=0;i<SLIDE_COUNT;i++){
+        if(timelineW<WEIGHT_START[i]+SLIDE_WEIGHTS[i]){index=i;break;}
+      }
+      const local=clamp((timelineW-WEIGHT_START[index])/SLIDE_WEIGHTS[index],0,1);
       if(index!==activeIndex){
         activeIndex=index;
         slides.forEach((slide,i)=>slide.classList.toggle('is-active',i===index));
@@ -670,7 +678,7 @@
          project to be covered by. Every other project is simply left sitting
          fully visible once its own wipe-in finishes; the *next* project's
          wipe-in is what covers it, so each transition is one wipe, not two. */
-      const exitR=isLast?smoothstep(.86,1,local):0;
+      const exitR=isLast?smoothstep(LAST_EXIT_START,1,local):0;
       /* The previous slide stays fully visible, unclipped, directly beneath
          the active slide's image while local is low — whether we just
          arrived here forward (local rising from 0) or are about to leave
@@ -1124,17 +1132,29 @@
       const sectionTop=initiativesSection.getBoundingClientRect().top+scrollY;
       const range=Math.max(1,initiativesSection.offsetHeight-innerHeight);
       const p=clamp((scrollY-sectionTop)/range,0,1);
+      /* Same enter+exit envelope shape as Bio (updateBio, above) — this used
+         to be entrance-only, so once content wiped in it just sat at full
+         opacity until the section's sticky pin released and the whole thing
+         was carried off-screen by the next section's own entrance, with no
+         wipe-out of its own. That read as a shorter/inconsistent hold
+         compared to sections that do wipe out (Bio, Services); matching the
+         same enter/exit math (and the same per-item stagger) makes every
+         middle section's hold length consistent. */
       initiativesWipes.forEach((item,index)=>{
         const order=Number(item.dataset.initiativesOrder||index);
-        const visible=smoothstep(.02+order*.018,.18+order*.018,p);
+        const enter=smoothstep(.02+order*.018,.16+order*.018,p);
+        const reverseOrder=initiativesWipes.length-1-order;
+        const exit=smoothstep(.76+reverseOrder*.018,.91+reverseOrder*.018,p);
+        const visible=enter*(1-exit);
         if(item.classList.contains('initiatives-divider')){
           item.style.opacity=String(visible>.001?1:0);
           item.style.clipPath='none';
+          item.style.transformOrigin=exit>0?'right center':'left center';
           item.style.transform=`scaleX(${visible})`;
           return;
         }
         item.style.opacity=String(visible);
-        item.style.clipPath=`inset(0 0 ${(1-visible)*100}% 0)`;
+        item.style.clipPath=exit>0?`inset(0 0 ${exit*100}% 0)`:`inset(0 0 ${(1-enter)*100}% 0)`;
         item.style.transform='none';
       });
     };

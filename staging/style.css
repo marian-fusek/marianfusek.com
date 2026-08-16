@@ -1,90 +1,90 @@
 @font-face {
   font-family: Geist;
-  src: url("../fonts/Geist[wght].woff2") format("woff2");
+  src: url("fonts/Geist[wght].woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-Thin.woff2") format("woff2");
+  src: url("fonts/NollieOracle-Thin.woff2") format("woff2");
   font-weight: 100;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-ThinItalic.woff2") format("woff2");
+  src: url("fonts/NollieOracle-ThinItalic.woff2") format("woff2");
   font-weight: 100;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-Light.woff2") format("woff2");
+  src: url("fonts/NollieOracle-Light.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-LightItalic.woff2") format("woff2");
+  src: url("fonts/NollieOracle-LightItalic.woff2") format("woff2");
   font-weight: 300;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-Book.woff2") format("woff2");
+  src: url("fonts/NollieOracle-Book.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-BookItalic.woff2") format("woff2");
+  src: url("fonts/NollieOracle-BookItalic.woff2") format("woff2");
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-Regular.woff2") format("woff2");
+  src: url("fonts/NollieOracle-Regular.woff2") format("woff2");
   font-weight: 450;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-RegularItalic.woff2") format("woff2");
+  src: url("fonts/NollieOracle-RegularItalic.woff2") format("woff2");
   font-weight: 450;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-Medium.woff2") format("woff2");
+  src: url("fonts/NollieOracle-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-MediumItalic.woff2") format("woff2");
+  src: url("fonts/NollieOracle-MediumItalic.woff2") format("woff2");
   font-weight: 500;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-Bold.woff2") format("woff2");
+  src: url("fonts/NollieOracle-Bold.woff2") format("woff2");
   font-weight: 600 900;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: "Nollie Oracle";
-  src: url("../fonts/NollieOracle-BoldItalic.woff2") format("woff2");
+  src: url("fonts/NollieOracle-BoldItalic.woff2") format("woff2");
   font-weight: 600 900;
   font-style: italic;
   font-display: swap;
@@ -494,8 +494,8 @@ figure:has(> video) > video:hover {
 
 .projects {
   position: relative;
-  height: 500svh;
-  min-height: calc(720px + 400svh);
+  height: 350svh;
+  min-height: calc(720px + 250svh);
   background: transparent;
 }
 .projects-stage {
@@ -701,8 +701,8 @@ body.case-overlay-open .page-scroll-progress {
 }
 .post-project-transition {
   position: relative;
-  height: 260svh;
-  min-height: 260svh;
+  height: 220svh;
+  min-height: 220svh;
   margin-top: -100svh;
   background: transparent;
   padding: 0;
@@ -983,11 +983,10 @@ body.case-overlay-open .page-scroll-progress {
 }
 .post-services-next {
   position: relative;
-  height: 240svh;
-  min-height: calc(720px + 140svh);
+  height: 280svh;
+  min-height: 280svh;
   margin-top: -100svh;
   background: transparent;
-  overflow: clip;
 }
 .bio-stage {
   position: sticky;
@@ -1930,11 +1929,10 @@ img[src*="/flags/"] {
 }
 .initiatives-section {
   position: relative;
-  height: 260svh;
-  min-height: calc(720px + 160svh);
+  height: 280svh;
+  min-height: 280svh;
   margin-top: -100svh;
   background: var(--surface);
-  overflow: clip;
 }
 .initiatives-stage {
   position: sticky;
@@ -2162,7 +2160,6 @@ img[src*="/flags/"] {
   min-height: calc(720px + 40svh);
   margin-top: -100svh;
   background: var(--surface);
-  overflow: clip;
 }
 .footer-stage {
   position: sticky;
@@ -4456,38 +4453,6 @@ body.is-curtain-active .site-nav {
 }
 .layout-grid-toggle:hover,
 .layout-grid-toggle[aria-pressed="true"] {
-  opacity: 1;
-  background: var(--ink);
-  color: var(--surface);
-}
-.font-switch {
-  display: flex;
-  gap: 4px;
-}
-.font-switch-btn {
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(26, 26, 26, 0.2);
-  border-radius: 999px;
-  background: rgba(247, 245, 242, 0.88);
-  backdrop-filter: blur(8px);
-  font: var(--weight-regular) 13px/1 Geist, sans-serif;
-  color: var(--ink);
-  opacity: 0.72;
-  cursor: pointer !important;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    opacity 0.2s ease;
-}
-.font-switch-btn--nollie {
-  font-family: "Nollie Oracle", Geist, sans-serif;
-}
-.font-switch-btn:hover,
-.font-switch-btn.is-active {
   opacity: 1;
   background: var(--ink);
   color: var(--surface);

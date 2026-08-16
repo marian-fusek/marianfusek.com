@@ -278,7 +278,11 @@
     if(!heroInfo)return;
     const raw=clamp(scrollY/Math.max(1,innerHeight),0,1);
     const progress=smoothstep(0,1,raw);
-    const pinned=raw<1;
+    /* The fade-out itself is fine on mobile (content still scrolling
+       normally, just fading as it goes) — it's specifically the
+       `position: fixed` pin that reads as "frozen scroll", so that part
+       alone is skipped on mobile. */
+    const pinned=raw<1&&!isMobileLayout();
     const opacity=String(1-progress);
     const clipPath=`inset(0 0 ${progress*100}% 0)`;
     [heroInfo,nameWrap,heroAvailability,heroRecentCue].forEach(el=>{
@@ -584,6 +588,15 @@
     const desiraeNotes=desiraeSection?[...desiraeSection.querySelectorAll('.case-desirae-note')]:[];
     let desiraeRaf=0;
     const renderDesirae=()=>{
+      /* Mobile drops the scale/rotate/sticky-note choreography entirely —
+         style.css forces the cards into a plain static stack there, and
+         leaving this scroll-driven transform math running against it was
+         both wasted work and, worse, the actual site default before this
+         gate existed: cards start at `transform: scale(0.5)` in the base
+         CSS and nothing but this function ever grows them back to full
+         size, so without the gate mobile would render them permanently
+         half-scale. */
+      if(isMobileLayout())return;
       const overlayRect=caseOverlay.getBoundingClientRect();
       const viewportHeight=caseOverlay.clientHeight;
       const startPad=caseOverlay.clientHeight*.1;
@@ -711,10 +724,14 @@
     };
     let seqRaf=0;
     const updateSequence=()=>{seqRaf=0;renderFromScroll();};
-    const requestSequenceUpdate=()=>{if(!seqRaf)seqRaf=requestAnimationFrame(updateSequence)};
+    /* The mobile layout drops the pin/scrub entirely (all 3 slides are
+       forced visible via !important CSS instead — see style.css), so this
+       per-frame scroll math has nothing left to drive there; skip it rather
+       than compute it uselessly on every scroll frame. */
+    const requestSequenceUpdate=()=>{if(!isMobileLayout()&&!seqRaf)seqRaf=requestAnimationFrame(updateSequence)};
     addEventListener('scroll',requestSequenceUpdate,{passive:true});
     addEventListener('resize',requestSequenceUpdate,{passive:true});
-    requestSequenceUpdate();
+    if(!isMobileLayout())requestSequenceUpdate();
 
     addEventListener('click',event=>{
       const slide=event.target.closest?.('.projects-slide');

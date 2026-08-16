@@ -1716,6 +1716,20 @@ body.coaching-overlay-open {
   .coaching-review-copy {
     grid-column: 1 / -1;
   }
+  /* The desktop reviewer-picker row packs number/name/flag into a
+     3-column grid with the name pushed right via `margin-left: 50%` +
+     `white-space: nowrap` inside a single narrow column — clips or
+     overflows once that column is a mobile-width one. Single column,
+     name free to wrap. */
+  .client-review-menu .client-review-menu-item {
+    grid-template-columns: auto 1fr auto;
+    column-gap: 12px;
+  }
+  .client-review-menu-name {
+    grid-column: 2;
+    margin-left: 0;
+    white-space: normal;
+  }
 }
 .coaching-review-copy p + p {
   margin-top: 24px;
@@ -3386,10 +3400,15 @@ body.is-curtain-active .site-nav {
   .hero {
     min-height: 620px;
   }
+  /* Mobile hero order, top to bottom: "Marian Fusek" name, then the role
+     copy, then breathing room, then the Recent Works cue stacked above the
+     availability line (they used to share the same bottom:18px row and
+     collided). The small "MF ⎯ ©'26" nav-bar logo is untouched by any of
+     this — it's a separate element (.nav-logo) that always stays top-left. */
   .hero-info {
     left: var(--pad);
     right: var(--pad);
-    top: 18%;
+    top: 26%;
     transform: none;
     max-width: none;
   }
@@ -3402,10 +3421,14 @@ body.is-curtain-active .site-nav {
   .hero-recent-cue {
     width: auto;
     white-space: nowrap;
+    bottom: 56px;
+  }
+  .hero-availability {
+    bottom: 20px;
   }
   .hero-name-wrap {
-    top: auto;
-    bottom: 0;
+    top: 0;
+    bottom: auto;
     padding: 0 var(--pad);
     --hero-name-nudge: clamp(0px, 0.5vw, 6px);
     --hero-scale: 0.996;
@@ -3418,12 +3441,9 @@ body.is-curtain-active .site-nav {
     line-height: 0.8;
   }
   .hero-name {
-    top: auto;
+    top: 8%;
+    bottom: auto;
     left: calc(var(--pad) + var(--hero-name-nudge) - clamp(10px, 1vw, 18px));
-    /* Same vertical offset from the hero's bottom edge as .hero-info's `top:
-       18%` is from the top — keeps the name and the role copy visually
-       symmetric instead of the name crowding the bottom edge. */
-    bottom: 18%;
   }
   .hero-name-line {
     display: none;
@@ -3433,42 +3453,101 @@ body.is-curtain-active .site-nav {
     --type-project-meta: 16px;
     --type-project-label: 9px;
   }
+  /* Mobile Recent Works: the desktop version pins the viewport
+     (`.projects-stage` sticky) and wipes through the 3 projects over
+     ~4.2 screen-heights of scroll (`renderProjects`/`renderFromScroll` in
+     script.js) — that pin is the site's main "frozen scrolling" complaint.
+     On mobile it's a plain scrolling list instead: all 3 project cards laid
+     out top-to-bottom, forced visible with !important to defeat the JS's
+     per-frame inline opacity/clip-path/transform (same technique already
+     used for Services), tag sitting on the same line as the title instead
+     of its own row. Tapping a card still opens the case overlay — that
+     click handler is DOM-delegated, not scroll-position-dependent, so it
+     needs no change. */
   .projects {
-    height: 420svh;
-    min-height: calc(720px + 320svh);
+    height: auto;
+    min-height: 0;
+    margin-top: 0;
   }
   .projects-stage {
-    min-height: 640px;
+    position: relative;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    padding: calc(var(--section-copy-start-y, 26.5svh) - 6px) 0 48px;
   }
-  /* Mobile Recent Works header: label, tag/metadata and the XX/03 counter
-     all live together above the title+description, instead of the tag
-     sitting between the title block and the image — that's what was
-     colliding, since a wrapped two-line description had no room before the
-     next fixed-position row started. Grouping the short persistent chrome
-     up top and giving the title+description its own generous, uncontested
-     block below fixes the overlap without needing real flow layout. */
   .projects-label {
-    left: var(--pad);
-    width: calc(100% - (var(--pad) * 2) - 70px);
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    margin: 0 var(--pad) 32px;
+    opacity: 1 !important;
+    clip-path: none !important;
   }
   .projects-counter {
-    width: 60px;
+    display: none;
   }
-  .projects-slide-tag {
-    left: var(--pad);
-    top: calc(var(--section-copy-start-y, 26.5svh) + 22px);
-    width: calc(100% - (var(--pad) * 2));
+  .projects-frame {
+    position: relative;
+    inset: auto;
   }
-  .projects-slide-copy {
-    left: var(--pad);
-    top: calc(var(--section-copy-start-y, 26.5svh) + 70px);
-    width: calc(100% - (var(--pad) * 2));
+  .projects-slide {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 12px;
+    row-gap: 6px;
+    margin: 0 var(--pad) 40px;
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+  .projects-slide:last-child {
+    margin-bottom: 0;
   }
   .projects-slide-image {
-    top: calc(var(--section-copy-start-y, 26.5svh) + 170px);
-    height: calc(
-      100% - (var(--section-copy-start-y, 26.5svh) + 170px) - var(--pad)
-    );
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    opacity: 1 !important;
+    clip-path: none !important;
+  }
+  .projects-slide-copy {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    display: contents;
+    opacity: 1 !important;
+    clip-path: none !important;
+  }
+  .projects-slide-title {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .projects-slide-desc {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+  .projects-slide-tag {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    text-align: right;
+    opacity: 1 !important;
+    clip-path: none !important;
   }
   .case-project-top {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3597,9 +3676,12 @@ body.is-curtain-active .site-nav {
     align-self: flex-end;
   }
   .case-desirae-card {
-    top: 8vh;
+    position: static;
+    top: auto;
     width: 100%;
     height: 78vh;
+    margin-bottom: 16px;
+    transform: none !important;
   }
   .case-project-instagram-section {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3821,7 +3903,29 @@ body.is-curtain-active .site-nav {
     height: auto;
     min-height: 0;
     padding: calc(var(--section-copy-start-y, 26.5svh) - 6px) var(--pad) 64px;
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+  /* The availability/location badge is first in the DOM (it's a fixed
+     bottom-bar on desktop) but reads as the least important thing to see
+     first on a phone — push it to the very end of the stack instead, with
+     its divider following along as the separator right above it. */
+  .bio-status {
+    order: 10;
+  }
+  .bio-divider {
+    order: 9;
+  }
+  /* updateBio() (script.js) still runs unconditionally, writing inline
+     opacity/clip-path/transform based on scroll fraction over the section —
+     sized for the desktop scroll range, not this section's much shorter
+     mobile height. Force every .bio-wipe element visible so content can't
+     render stuck mid-clip depending on scroll position, same technique
+     already used for .post-project-service. */
+  .bio-wipe {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
   }
   .bio-status {
     position: relative;
@@ -4173,6 +4277,14 @@ body.is-curtain-active .site-nav {
   .initiatives-detail {
     padding-bottom: 48px;
   }
+  /* Same ungated-JS problem as Bio: updateInitiatives() (script.js) keeps
+     writing inline opacity/clip-path sized for the desktop scroll range.
+     Force every .initiatives-wipe element visible on mobile. */
+  .initiatives-wipe {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
   .footer-section {
     height: auto;
     min-height: 0;
@@ -4189,6 +4301,14 @@ body.is-curtain-active .site-nav {
     flex-direction: column;
     justify-content: flex-end;
     overflow: visible;
+  }
+  /* Same ungated-JS problem as Bio/Initiatives: updateFooter() (script.js)
+     keeps writing inline opacity/clip-path sized for the desktop scroll
+     range. Force every .footer-wipe element visible on mobile. */
+  .footer-wipe {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
   }
   .footer-divider {
     position: relative;

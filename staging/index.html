@@ -4,18 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Marian Fusek — Staging V182</title>
-  <link rel="stylesheet" href="./style.css?v=657">
+  <link rel="stylesheet" href="./style.css?v=679">
 </head>
 <body>
   <nav class="site-nav" aria-label="Primary">
     <a class="nav-logo" href="#hero" aria-label="Marian Fusek">MF ⎯ ©’26</a>
-    <div class="site-menu">
-      <a href="#projectsStage">Index</a>
-      <a href="#guidance">Guidance</a>
-      <a href="#xp">Xp</a>
-      <a href="#bio">Bio</a>
-      <a href="#art">Art</a>
-      <a href="#contact">Attack Me</a>
+    <button class="nav-hamburger" id="navHamburger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="siteMenu">
+      <span class="nav-hamburger-line"></span>
+      <span class="nav-hamburger-line"></span>
+    </button>
+    <div class="site-menu" id="siteMenu">
+      <a href="#projects" data-nav-target data-nav-reveal="0.13"><span class="nav-link-fill" aria-hidden="true">Work</span>Work</a>
+      <a href="#postProjectTransition" data-nav-target data-nav-reveal="0.28"><span class="nav-link-fill" aria-hidden="true">Services</span>Services</a>
+      <a href="#postServicesNext" data-nav-target data-nav-reveal="0.28"><span class="nav-link-fill" aria-hidden="true">Bio</span>Bio</a>
+      <a href="#initiatives" data-nav-target data-nav-reveal="0.28"><span class="nav-link-fill" aria-hidden="true">Initiatives</span>Initiatives</a>
+      <a href="#footer" data-nav-target data-nav-reveal="0.22"><span class="nav-link-fill" aria-hidden="true">Connect</span>Connect</a>
     </div>
   </nav>
 
@@ -32,7 +35,7 @@
         </div>
       </div>
       <p class="hero-availability bio-availability"><span aria-hidden="true"></span>Open to relocation</p>
-      <p class="hero-recent-cue"><span class="hero-recent-cue-arrow" aria-hidden="true">↓</span>Recent Works <span class="hero-recent-cue-period">(〜1y)</span></p>
+      <a class="hero-recent-cue" href="#projects" data-nav-target data-nav-reveal="0.13"><span class="hero-recent-cue-arrow" aria-hidden="true">↓</span>Recent Works <span class="hero-recent-cue-period">(〜1y)</span></a>
 
       <div class="hero-name-wrap is-expanded" id="heroNameWrap" tabindex="0" role="group" aria-label="Marian Fusek">
         <span class="hero-name-line hero-name-line--left" aria-hidden="true"></span>
@@ -43,23 +46,34 @@
       </div>
     </section>
 
-    <section class="projects" id="projects">
+    <section class="projects" id="projects" aria-label="Recent Works">
       <div class="projects-stage" id="projectsStage">
-        <div class="projects-shell projects-shell--sequence">
-      <div class="projects-sweep-line" id="projectsSweepLine" aria-hidden="true"></div>
-      <div class="projects-intro projects-intro--overlay" id="projectsIntro" aria-hidden="true">
-        <span class="projects-intro-piece">Recent Works <span class="recent-period">(〜1y)</span></span>
-        <span class="projects-info" id="projectsInfo">No Fake — identity / digital experience</span>
-      </div>
-      <div class="projects-frame" id="projectsFrame">
-        <div class="projects-image-mask"><img class="projects-image is-active" data-step="0" src="media/miunae/01-miunae-intro.jpg" alt="Miunāe project image"></div>
-        <div class="projects-image-mask"><img class="projects-image" data-step="1" src="media/goballer/01-goballer-intro.jpg" alt="GoBaller project image"></div>
-        <div class="projects-image-mask"><img class="projects-image" data-step="2" src="media/aims/01-aims-intro.jpg" alt="AIMS API project image"></div>
+        <div class="projects-label projects-fade" id="projectsLabel">Recent Works <span class="recent-period">(〜1y)</span></div>
+        <div class="projects-counter projects-fade" id="projectsCounter" aria-hidden="true">01 / 03</div>
+        <div class="projects-frame" id="projectsFrame">
+          <div class="projects-slide" data-index="0">
+            <img class="projects-slide-image" src="media/miunae/01-miunae-intro.jpg" alt="Miunāe project image">
+            <div class="projects-slide-copy">
+              <h2 class="projects-slide-title">MIUNĀE</h2>
+              <p class="projects-slide-desc">A skincare brand system built around time, tactility and restraint</p>
+            </div>
+            <div class="projects-slide-tag">Creative Direction</div>
           </div>
-          <div class="projects-progress" aria-hidden="true">
-            <span class="projects-progress-segment"></span>
-            <span class="projects-progress-segment"></span>
-            <span class="projects-progress-segment"></span>
+          <div class="projects-slide" data-index="1">
+            <img class="projects-slide-image" src="media/goballer/01-goballer-intro.jpg" alt="GoBaller project image">
+            <div class="projects-slide-copy">
+              <h2 class="projects-slide-title">GoBaller</h2>
+              <p class="projects-slide-desc">Football coaching app for players of all ages</p>
+            </div>
+            <div class="projects-slide-tag">Brand, iOS App</div>
+          </div>
+          <div class="projects-slide" data-index="2">
+            <img class="projects-slide-image" src="media/aims/01-aims-intro.jpg" alt="AIMS API project image">
+            <div class="projects-slide-copy">
+              <h2 class="projects-slide-title">AIMS</h2>
+              <p class="projects-slide-desc">The most advanced AI search for music catalogs</p>
+            </div>
+            <div class="projects-slide-tag">Website, Brand Refresh, Marketing &amp; Sales Assets</div>
           </div>
         </div>
       </div>
@@ -174,6 +188,13 @@
                 <button class="initiatives-app bio-copy-switch" type="button" data-initiative="terracoda"><span class="bio-copy-switch-arrow" aria-hidden="true">→</span><span class="bio-copy-switch-label"><span class="bio-copy-switch-name">Terracoda</span><span class="bio-copy-switch-note">Minimal Coding Environment</span></span></button>
               </div>
             </div>
+            <div class="initiatives-group">
+              <h3>Visual Remnants</h3>
+              <div class="initiatives-apps" role="list" aria-label="Visual remnants">
+                <button class="initiatives-app bio-copy-switch" type="button" data-initiative="very-much-art"><span class="bio-copy-switch-arrow" aria-hidden="true">→</span><span class="bio-copy-switch-label"><span class="bio-copy-switch-name">Very Much Art</span><span class="bio-copy-switch-note">30 Day Silly Posters Challenge</span></span></button>
+                <button class="initiatives-app bio-copy-switch" type="button" data-initiative="leftovers"><span class="bio-copy-switch-arrow" aria-hidden="true">→</span><span class="bio-copy-switch-label"><span class="bio-copy-switch-name">Leftovers</span><span class="bio-copy-switch-note">All Kinds Of Randomness</span></span></button>
+              </div>
+            </div>
             <div class="initiatives-group initiatives-side-quests">
               <h3>Side Quests</h3>
               <div class="initiatives-apps" role="list" aria-label="Side quests">
@@ -185,7 +206,7 @@
               </div>
             </div>
           </div>
-          <figure class="initiatives-media initiatives-wipe" data-initiatives-order="3"><img id="initiativeImage" src="media/initiatives/vibe-coding/app_a-void.jpg" alt="A-Void app interface"></figure>
+          <figure class="initiatives-media initiatives-wipe" data-initiatives-order="3"><img id="initiativeImage" src="media/initiatives/vibe-coding/app_a-void.jpg" alt="A-Void app interface"><video id="initiativeVideo" muted loop playsinline hidden></video></figure>
           <div class="initiatives-detail initiatives-wipe" data-initiatives-order="4">
             <div class="initiatives-copy" id="initiativeCopy"><p>An iOS app for keeping track of the things that quietly become problems when you forget them. Passports, renewals, appointments, birthdays and anything else with a future attached. Instead of treating every date with equal urgency, A-Void understands when something actually starts to matter, gradually shifting its interface, color and personality as pressure builds. At the center is A-Void itself — a reactive character that turns reminders, system feedback and the passage of time into a more expressive, spatial experience.</p></div>
             <div class="initiatives-meta">
@@ -197,9 +218,23 @@
         </div>
       </div>
     </section>
+    <section class="footer-section" id="footer" aria-label="Footer">
+      <div class="footer-stage">
+        <div class="footer-divider footer-wipe" data-footer-order="0" aria-hidden="true"></div>
+        <div class="footer-back-top case-project-links footer-wipe" data-footer-order="1">
+          <a href="#hero"><span class="case-project-link-arrow" aria-hidden="true">↑</span><span class="case-project-link-label">Started from the top, now we're at the bottom</span></a>
+        </div>
+        <div class="footer-links case-project-links footer-wipe" data-footer-order="1">
+          <a href="mailto:email@marianfusek.com"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">email@marianfusek.com</span></a>
+          <a href="https://www.linkedin.com/in/marianfusek" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">linkedin.com/in/marianfusek</span></a>
+          <a href="https://www.instagram.com/marianfusek" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">instagram/da_marian</span></a>
+        </div>
+        <div class="footer-copyright footer-wipe" data-footer-order="1">© 2026 Marian Fusek · marianfusek.com</div>
+      </div>
+    </section>
   </main>
 
-  <aside class="coaching-overlay" id="coachingOverlay" aria-hidden="true">
+  <aside class="coaching-overlay curtain-overlay" id="coachingOverlay" aria-hidden="true">
     <header class="coaching-overlay-nav"><span>MF</span><button id="coachingOverlayClose" type="button" aria-label="Close coaching reviews">×</button></header>
     <div class="coaching-overlay-rule" aria-hidden="true"></div>
     <div class="coaching-overlay-grid">
@@ -213,7 +248,7 @@
     </div>
   </aside>
 
-  <aside class="case-overlay" id="caseOverlay" aria-hidden="true">
+  <aside class="case-overlay curtain-overlay" id="caseOverlay" aria-hidden="true">
     <div class="case-overlay-nav"><span>MF</span><button class="case-overlay-close" id="caseOverlayClose" type="button" aria-label="Close case study">×</button></div>
     <article class="case-project-content is-active" aria-label="Miunāe project details">
       <div class="case-project-rule"></div>
@@ -484,6 +519,13 @@
     <nav class="case-project-switcher" id="caseProjectSwitcher" aria-label="Other projects"></nav>
   </aside>
 
+  <aside class="art-support-overlay curtain-overlay" id="artSupportOverlay" aria-hidden="true">
+    <header class="art-support-overlay-nav"><span>MF</span><button id="artSupportOverlayClose" type="button" aria-label="Close support">×</button></header>
+    <div class="art-support-overlay-body"><iframe id="artSupportFrame" title="Support MF Art on Ko-fi" loading="lazy"></iframe></div>
+  </aside>
+
+  <div class="nav-curtain" id="navCurtain" aria-hidden="true"></div>
+
   <div class="cursor" id="cursor" aria-hidden="true">
     <span class="cursor-dot"></span>
     <span class="cursor-label"><span>OPEN</span><span class="cursor-project-wrap"><span class="cursor-project">MIUNĀE</span></span></span>
@@ -494,8 +536,14 @@
   <div class="layout-grid" id="layoutGrid" aria-hidden="true">
     <span class="layout-grid-column" data-column="A"></span><span class="layout-grid-column" data-column="B"></span><span class="layout-grid-column" data-column="C"></span><span class="layout-grid-column" data-column="D"></span><span class="layout-grid-column" data-column="E"></span><span class="layout-grid-column" data-column="F"></span><span class="layout-grid-column" data-column="G"></span><span class="layout-grid-column" data-column="H"></span><span class="layout-grid-column" data-column="I"></span><span class="layout-grid-column" data-column="J"></span><span class="layout-grid-column" data-column="K"></span><span class="layout-grid-column" data-column="L"></span>
   </div>
-  <button class="layout-grid-toggle" id="layoutGridToggle" type="button" aria-pressed="false">GRID</button>
+  <div class="layout-controls">
+    <button class="layout-grid-toggle" id="layoutGridToggle" type="button" aria-pressed="false">GRID</button>
+    <div class="font-switch" role="group" aria-label="Font switcher">
+      <button class="font-switch-btn is-active" id="fontSwitchGeist" type="button" data-font="geist" aria-pressed="true">Aa</button>
+      <button class="font-switch-btn font-switch-btn--nollie" id="fontSwitchNollie" type="button" data-font="nollie" aria-pressed="false">Aa</button>
+    </div>
+  </div>
 
-  <script src="./script.js?v=521"></script>
+  <script src="./script.js?v=546"></script>
 </body>
 </html>

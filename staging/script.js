@@ -9,6 +9,22 @@
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* The two responsive gates, shared everywhere so no section invents its own
+     threshold: layout (grid/type composition) is orthogonal to interaction
+     (hover-capable pointer vs touch). A landscape tablet or a touchscreen
+     laptop with a mouse can be desktop layout + desktop interaction, desktop
+     layout + touch interaction, or (portrait, coarse) mobile layout + touch
+     interaction — never mobile layout with a fine/hover pointer. Mirrors the
+     CSS media queries `(max-width:900px), ((pointer:coarse) and (hover:none)
+     and (orientation:portrait))` and `(hover:none), (pointer:coarse)`. */
+  const isMobileLayout=()=>matchMedia('(max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait))').matches;
+  const hasHover=()=>matchMedia('(hover: hover) and (pointer: fine)').matches;
+  /* Every scroll-scrubbed section recomputes its ranges on `resize` already;
+     a tablet rotation doesn't reliably fire that on its own, so re-dispatch
+     it on `orientationchange` rather than adding a second listener next to
+     each of the dozen `resize` subscribers below. */
+  addEventListener('orientationchange',()=>dispatchEvent(new Event('resize')),{passive:true});
+
   /* Whole-page timing map. Its widths come from the real scroll ranges, so
      empty or overlong transitions remain visible while section timing is tuned. */
   const pageScrollProgress=document.getElementById('pageScrollProgress');
@@ -68,7 +84,7 @@
   /* Automatic text wipes are split into the lines the browser actually lays out.
      This keeps the effect responsive: a resize recalculates the lines instead of
      relying on hard-coded breaks, while scroll-scrubbed animations remain intact. */
-  const autoTextLineSelector='.projects-info-col,.case-project-title,.case-project-strapline,.case-project-copy-title,.case-project-body,.case-project-web-caption,.case-project-instagram-copy,.case-goballer-process,.case-miunae-launch-copy,.case-aims-web-copy,.case-aims-social-copy,.case-aims-deck-copy';
+  const autoTextLineSelector='.case-project-title,.case-project-strapline,.case-project-copy-title,.case-project-body,.case-project-web-caption,.case-project-instagram-copy,.case-goballer-process,.case-miunae-launch-copy,.case-aims-web-copy,.case-aims-social-copy,.case-aims-deck-copy';
   const prepareAutoTextLines=(root=document)=>{
     const targets=[];
     if(root.matches?.(autoTextLineSelector))targets.push(root);
@@ -125,11 +141,26 @@
     layoutGridToggle.addEventListener('click',()=>setGrid(!layoutGrid.classList.contains('is-visible')));
   }
 
+  /* Font switcher: swaps the whole site's typeface between Geist and Nollie Oracle. */
+  const fontSwitchGeist=document.getElementById('fontSwitchGeist');
+  const fontSwitchNollie=document.getElementById('fontSwitchNollie');
+  if(fontSwitchGeist&&fontSwitchNollie){
+    const setFont=(nollie)=>{
+      document.documentElement.classList.toggle('font-nollie',nollie);
+      fontSwitchGeist.classList.toggle('is-active',!nollie);
+      fontSwitchGeist.setAttribute('aria-pressed',String(!nollie));
+      fontSwitchNollie.classList.toggle('is-active',nollie);
+      fontSwitchNollie.setAttribute('aria-pressed',String(nollie));
+    };
+    fontSwitchGeist.addEventListener('click',()=>setFont(false));
+    fontSwitchNollie.addEventListener('click',()=>setFont(true));
+  }
+
   /* Single smooth-scroll owner. Sections never intercept or snap independently. */
   class SmoothScroll{
     constructor(){
-      this.enabled=!reduce&&matchMedia('(pointer:fine)').matches;
-      this.current=window.scrollY;this.target=window.scrollY;this.raf=0;
+      this.enabled=!reduce&&hasHover();
+      this.current=window.scrollY;this.target=window.scrollY;this.raf=0;this.slowRaf=0;
       this.pageMin=0;this.pageMax=Infinity;
       this.overlayCurrent=0;this.overlayTarget=0;this.overlayRaf=0;
       if(!this.enabled)return;
@@ -140,6 +171,7 @@
     max(){return Math.max(0,document.documentElement.scrollHeight-innerHeight)}
     overlayMax(overlay){return Math.max(0,overlay.scrollHeight-overlay.clientHeight)}
     onWheel(e){
+      if(this.slowRaf){cancelAnimationFrame(this.slowRaf);this.slowRaf=0;document.body.classList.remove('is-nav-jump');}
       if(document.body.classList.contains('case-overlay-open')){
         const overlay=document.getElementById('caseOverlay');
         if(!overlay||!e.target?.closest?.('.case-overlay')){e.preventDefault();return;}
@@ -154,6 +186,7 @@
       this.target=clamp(this.target+d,this.pageMin,Math.min(this.pageMax,this.max()));this.start();
     }
     onKey(e){
+      if(this.slowRaf){cancelAnimationFrame(this.slowRaf);this.slowRaf=0;document.body.classList.remove('is-nav-jump');}
       if(document.body.classList.contains('case-overlay-open')){
         if(e.metaKey||e.ctrlKey)return;
         const overlay=document.getElementById('caseOverlay');
@@ -190,6 +223,22 @@
     }
     resetOverlay(y=0){this.overlayCurrent=y;this.overlayTarget=y;const overlay=document.getElementById('caseOverlay');if(overlay)overlay.scrollTop=y}
     goTo(y){this.target=clamp(y,this.pageMin,Math.min(this.pageMax,this.max()));this.start()}
+    goToSlow(y,duration=2000,onDone){
+      if(this.slowRaf)cancelAnimationFrame(this.slowRaf);
+      if(this.raf){cancelAnimationFrame(this.raf);this.raf=0;}
+      const clampedY=clamp(y,this.pageMin,Math.min(this.pageMax,this.max()));
+      const startY=this.current;
+      const startTime=performance.now();
+      const easeOut=t=>1-(1-t)**3;
+      const step=now=>{
+        const t=clamp((now-startTime)/duration,0,1);
+        this.current=lerp(startY,clampedY,easeOut(t));
+        this.target=this.current;
+        scrollTo(0,this.current);
+        if(t<1)this.slowRaf=requestAnimationFrame(step);else{this.slowRaf=0;onDone?.();}
+      };
+      this.slowRaf=requestAnimationFrame(step);
+    }
     setPageBounds(min=0,max=Infinity){
       this.pageMin=min;this.pageMax=max;
       this.target=clamp(this.target,min,Math.min(max,this.max()));
@@ -217,7 +266,7 @@
   const heroAvailability=document.querySelector('.hero-availability');
   const heroRecentCue=document.querySelector('.hero-recent-cue');
   const alignHeroNameToInfo=()=>{
-    if(!heroInfo||!name||!nameWrap||innerWidth<=900)return;
+    if(!heroInfo||!name||!nameWrap||isMobileLayout())return;
     const offset=heroInfo.getBoundingClientRect().top-nameWrap.getBoundingClientRect().top;
     name.style.top=`${offset}px`;
     nameWrap.style.setProperty('--hero-name-align-top',`${offset}px`);
@@ -343,6 +392,21 @@
   };
   caseOverlay?.addEventListener('scroll',updateProjectWipes,{passive:true});
   const siteMenu=document.querySelector('.site-menu');
+  /* Mobile hamburger: only meaningful on the mobile layout (on desktop the
+     button is hidden by CSS and this is inert). Two lines <-> X is a pure
+     CSS transform driven by the same is-nav-open class that slides the menu
+     panel in, so there's one flag, not two things to keep in sync. */
+  const navHamburger=document.getElementById('navHamburger');
+  const closeNavMenu=()=>{
+    document.body.classList.remove('is-nav-open');
+    navHamburger?.setAttribute('aria-expanded','false');
+  };
+  navHamburger?.addEventListener('click',()=>{
+    const open=document.body.classList.toggle('is-nav-open');
+    navHamburger.setAttribute('aria-expanded',String(open));
+  });
+  siteMenu?.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeNavMenu));
+  addEventListener('keydown',event=>{if(event.key==='Escape')closeNavMenu();});
   let projectDetailOpen=false;
   let lockedPageScroll=0;
   let closingCaseOverlay=false;
@@ -376,6 +440,7 @@
     caseProjectHeroVideo?.setAttribute('aria-label',`Expand ${activeCaseProjectIndex===1?'GoBaller':activeCaseProjectIndex===2?'AIMS':'Miunāe'} video`);
     projectDetailOpen=false;
     masks.forEach(mask=>{mask.style.pointerEvents='auto';mask.style.removeProperty('transition');});
+    caseOverlay.classList.remove('is-reveal-priming','is-switch-revealing','is-switch-covering');
     caseOverlay.classList.add('is-content-exiting');
     caseOverlay.setAttribute('aria-hidden','true');
     siteMenu?.classList.remove('is-wiping-in');
@@ -417,6 +482,14 @@
     caseOverlay.classList.remove('is-switch-revealing');
     caseOverlay.classList.add('is-switch-covering');
     await wait(900);
+    /* Reset any expanded hero video from the outgoing project — otherwise
+       is-video-expanded (which force-hides the X via !important) stays
+       stuck on caseOverlay forever, since it's keyed to the shared overlay
+       element rather than to whichever project set it. */
+    caseProjectHeroVideo?.classList.remove('is-expanded','is-video-visible','is-video-closing','is-video-returning','is-video-returning-play','is-video-backdrop','is-animating');
+    caseProjectMediaLinks?.classList.remove('is-video-expanded');
+    caseProjectMediaLinks?.style.removeProperty('--video-placeholder-height');
+    caseOverlay.classList.remove('is-video-expanded');
     setActiveCaseProject(index);
     resetActiveProjectWipes();
     smooth.resetOverlay(0);
@@ -425,7 +498,7 @@
     requestAnimationFrame(updateActiveGallery);
     caseOverlay.classList.remove('is-switch-covering');
     caseOverlay.classList.add('is-switch-revealing');
-    await wait(900);
+    await wait(1300);
     caseOverlay.classList.remove('is-switch-revealing');
     caseProjectSwitching=false;
   };
@@ -547,63 +620,127 @@
   const stage=document.getElementById('projectsStage');
   const postTransition=document.getElementById('postProjectTransition');
   const frame=document.getElementById('projectsFrame');
-  const intro=document.getElementById('projectsIntro');
-  const images=frame?[...frame.querySelectorAll('.projects-image')]:[];
-  const masks=images.map(img=>img.parentElement);
-  if(projects&&stage&&frame&&images.length){
-    const sweepLine=document.getElementById('projectsSweepLine');
-    let seqRaf=0;
-    let projectsTop=0;
-    let projectProgress=0;
-    let projectScrollDirection='forward';
-    let projectExitLatched=false;
-    let infoPositionRaf=0;
-    const projectMeta=[
-      ['MIUNĀE','A skincare brand system built around time, tactility and restraint','Creative Direction'],
-      ['GoBaller','Football coaching app for players of all ages','Brand, iOS App'],
-      ['AIMS','The most advanced AI search for music catalogs','Website, Brand Refresh, Marketing & Sales Assets']
-    ];
-    const projectsInfo=document.getElementById('projectsInfo');
-    if(projectsInfo){
-      projectsInfo.innerHTML=projectMeta.map((meta,setIndex)=>`<span class="projects-info-set" data-project-info="${setIndex}">${meta.map((text,i)=>`<span class="projects-info-col projects-info-col--${i} ${i===0?'type-project-title':i===1?'type-project-meta':'type-project-tag'}">${text}</span>`).join('')}</span>`).join('');
-      prepareAutoTextLines(projectsInfo);
-    }
-    const wipeProjectFrame=direction=>{
-      frame._sectionWipeAnimation?.cancel();
-      const revealing=direction==='backward';
-      const hiddenEdge=revealing?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
-      const from=revealing?hiddenEdge:'inset(0)';
-      const to=revealing?'inset(0)':hiddenEdge;
-      frame._sectionWipeAnimation=frame.animate(
-        [{clipPath:from},{clipPath:to}],
-        {duration:1500,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'}
-      );
-      frame._sectionWipeAnimation.onfinish=()=>{
-        frame.style.clipPath=to;
-        frame._sectionWipeAnimation?.cancel();
-        frame._sectionWipeAnimation=null;
-      };
+  const projectsLabel=document.getElementById('projectsLabel');
+  const projectsCounter=document.getElementById('projectsCounter');
+  const slides=frame?[...frame.querySelectorAll('.projects-slide')]:[];
+  const masks=slides;
+  /* Recent Works, redone: a single continuous function of scroll position (p),
+     no CSS transitions, no Web Animations — every frame writes the full truth
+     directly, so there is never mid-flight animation state for a scroll jump
+     (or fast scrubbing in either direction) to catch out of sync. Each of the
+     3 projects gets an equal slice of the content timeline: image wipes in
+     from the bottom up, then the title/description/tag (same direction),
+     holds, then wipes back out — same bottom-up sweep, never a fade — as the
+     next project's wipe-in begins. One direction only, no axis rotation, no
+     leftover scroll range after the last project (CONTENT_FRACTION is 1). */
+  if(projects&&stage&&frame&&slides.length){
+    const SLIDE_COUNT=slides.length;
+    const CONTENT_FRACTION=1;
+    const wipeIn=r=>`inset(${(1-clamp(r,0,1))*100}% 0 0 0)`;
+    const wipeOut=r=>`inset(0 0 ${clamp(r,0,1)*100}% 0)`;
+    let activeIndex=-1;
+    const renderProjects=raw=>{
+      const p=clamp(raw,0,1);
+      const contentP=clamp(p/CONTENT_FRACTION,0,1);
+      const timeline=contentP*SLIDE_COUNT;
+      const index=Math.min(SLIDE_COUNT-1,Math.floor(timeline));
+      const local=timeline-index;
+      if(index!==activeIndex){
+        activeIndex=index;
+        slides.forEach((slide,i)=>slide.classList.toggle('is-active',i===index));
+        if(projectsCounter)projectsCounter.textContent=`${String(index+1).padStart(2,'0')} / ${String(SLIDE_COUNT).padStart(2,'0')}`;
+      }
+      const isLast=index===SLIDE_COUNT-1;
+      const imageR=smoothstep(0,.34,local);
+      const copyR=smoothstep(.1,.42,local);
+      /* Only the last project actually exits by wiping out — it has no next
+         project to be covered by. Every other project is simply left sitting
+         fully visible once its own wipe-in finishes; the *next* project's
+         wipe-in is what covers it, so each transition is one wipe, not two. */
+      const exitR=isLast?smoothstep(.86,1,local):0;
+      /* The previous slide stays fully visible, unclipped, directly beneath
+         the active slide's image while local is low — whether we just
+         arrived here forward (local rising from 0) or are about to leave
+         backward toward it (local falling to 0), it's the same underlying
+         pixels either way, so there's no direction branch: index-1 is always
+         correct, and naturally absent (-1) for the very first project, which
+         is what keeps its reverse-exit toward the hero showing nothing. */
+      const underIndex=index-1;
+      slides.forEach((slide,i)=>{
+        const img=slide.querySelector('.projects-slide-image');
+        const copy=slide.querySelector('.projects-slide-copy');
+        const tag=slide.querySelector('.projects-slide-tag');
+        if(i===index){
+          slide.style.opacity='1';
+          slide.style.zIndex='2';
+          if(img){img.style.opacity='1';img.style.clipPath=exitR>0?wipeOut(exitR):wipeIn(imageR);}
+          if(copy){copy.style.opacity='1';copy.style.clipPath=exitR>0?wipeOut(exitR):wipeIn(copyR);}
+          if(tag){tag.style.opacity='1';tag.style.clipPath=exitR>0?wipeOut(exitR):wipeIn(copyR);}
+          return;
+        }
+        if(i===underIndex&&imageR<1&&underIndex>=0&&underIndex<SLIDE_COUNT){
+          slide.style.opacity='1';
+          slide.style.zIndex='1';
+          if(img){img.style.opacity='1';img.style.clipPath='inset(0 0 0 0)';}
+          if(copy){copy.style.opacity='0';}
+          if(tag){tag.style.opacity='0';}
+          return;
+        }
+        slide.style.opacity='0';
+      });
+      /* "Recent Works" and the counter are persistent for the whole section —
+         they don't change per project, so they only wipe in once on entry.
+         They exit together with the last slide's own bottom-up wipe (same
+         exitR), rather than waiting for a separate later scroll point — so
+         there's no dead gap before the next section appears. */
+      const chromeIn=smoothstep(.015,.05,p);
+      const chromeExitR=isLast?exitR:0;
+      if(projectsLabel){
+        projectsLabel.style.opacity=String(chromeIn);
+        projectsLabel.style.clipPath=chromeExitR>0?wipeOut(chromeExitR):wipeIn(chromeIn);
+      }
+      if(projectsCounter){
+        projectsCounter.style.opacity=String(chromeIn);
+        projectsCounter.style.clipPath=chromeExitR>0?wipeOut(chromeExitR):'none';
+      }
     };
-    const progressSegments=[...document.querySelectorAll('.projects-progress-segment')];
-    const progressBar=document.querySelector('.projects-progress');
+    const projectRange=()=>Math.max(1,projects.offsetHeight-innerHeight);
+    const renderFromScroll=()=>{
+      const top=projects.getBoundingClientRect().top+scrollY;
+      renderProjects(clamp((scrollY-top)/projectRange(),0,1));
+    };
+    let seqRaf=0;
+    const updateSequence=()=>{seqRaf=0;renderFromScroll();};
+    const requestSequenceUpdate=()=>{if(!seqRaf)seqRaf=requestAnimationFrame(updateSequence)};
+    addEventListener('scroll',requestSequenceUpdate,{passive:true});
+    addEventListener('resize',requestSequenceUpdate,{passive:true});
+    requestSequenceUpdate();
+
     addEventListener('click',event=>{
-      const mask=event.target.closest?.('.projects-image-mask');
-      if(!mask||!caseOverlay||projectDetailOpen)return;
-      const index=masks.indexOf(mask);
-      if(index<0||index>2)return;
-      if(!projectMeta[index])return;
+      const slide=event.target.closest?.('.projects-slide');
+      if(!slide||!caseOverlay||projectDetailOpen)return;
+      const index=slides.indexOf(slide);
+      if(index<0||index>=SLIDE_COUNT)return;
       if(smooth.raf){cancelAnimationFrame(smooth.raf);smooth.raf=0;}
       smooth.current=scrollY;smooth.target=scrollY;
       cursor?.classList.remove('is-open','is-close-target');
       caseOverlayClose?.classList.remove('is-cursor-target');
       projectDetailOpen=true;
+      /* Closing re-enables the slides and clears projectDetailOpen immediately
+         (see closeCaseOverlay), before its own 1.8s close animation actually
+         finishes — so a project can be reopened while a previous close is
+         still mid-flight. That cancels overlayCloseTimer below, which is the
+         only place that ever resets closingCaseOverlay back to false —
+         leaving it stuck true and permanently disabling the X. Reset it here
+         too whenever we override a pending close by opening again. */
+      closingCaseOverlay=false;
       clearTimeout(overlayRevealTimer);overlayRevealTimer=0;
       clearTimeout(overlayCloseTimer);overlayCloseTimer=0;
       setActiveCaseProject(index);
       projectDetailScrollTop=0;
       projectDetailScrollDirection='forward';
-      caseOverlay.classList.remove('is-cleaning','is-content-reveal','is-content-exiting','is-closing','is-close-visible');
-      masks.forEach(item=>item.style.pointerEvents='none');
+      caseOverlay.classList.remove('is-cleaning','is-content-reveal','is-content-exiting','is-closing','is-close-visible','is-reveal-priming','is-switch-revealing','is-switch-covering');
+      slides.forEach(item=>item.style.pointerEvents='none');
       smooth.resetOverlay(0);
       requestAnimationFrame(updateActiveGallery);
       lockPage();
@@ -615,258 +752,22 @@
         /* Phase two immediately wipes the detail content back in. */
         overlayRevealTimer=setTimeout(()=>{
           caseOverlay.classList.remove('is-cleaning');
-          caseOverlay.classList.add('is-content-reveal','is-close-visible');
+          /* Content becomes instantly ready (opacity only, no clip-path —
+             see .case-project-content CSS for why), then the viewport-sized
+             ::after curtain performs the actual top-down wipe-in over it:
+             parked fully-covering with no transition (invisible, still
+             behind ::before's opaque backdrop from phase one), then swapped
+             to the same retreat used by the project switcher. */
+          caseOverlay.classList.add('is-content-reveal','is-close-visible','is-reveal-priming');
+          void caseOverlay.offsetWidth;
+          caseOverlay.classList.remove('is-reveal-priming');
+          caseOverlay.classList.add('is-switch-revealing');
+          setTimeout(()=>caseOverlay.classList.remove('is-switch-revealing'),1300);
           requestAnimationFrame(updateProjectWipes);
           overlayRevealTimer=0;
         },900);
       },0);
     });
-    const applyProjectWipeState=(element,visible,direction)=>{
-      if(!element)return;
-      const wipeDirection=visible?direction:(element.dataset.wipeDirection||direction);
-      const nextVisible=visible?'1':'0';
-      /* Visibility is the state machine. Direction is only chosen when a
-         state change actually happens; changing scroll direction while an
-         element is already hidden must not replay its wipe. */
-      if(element.dataset.wipeVisible===nextVisible)return;
-      element.dataset.wipeVisible=nextVisible;
-      element.dataset.wipeDirection=wipeDirection;
-      element.classList.add('wipe-controlled');
-      element.classList.toggle('is-wipe-backward',wipeDirection==='backward');
-      element.classList.toggle('is-wipe-forward',wipeDirection==='forward');
-      element.classList.toggle('is-visible',visible);
-      element.classList.toggle('is-wiping-out',!visible);
-      element._projectWipeAnimation?.cancel();
-      const edge=wipeDirection==='backward'?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
-      const from=visible?edge:'inset(0)';
-      const to=visible?'inset(0)':edge;
-      element.style.opacity=visible?'0':'1';
-      element.style.clipPath=from;
-      element._projectWipeAnimation=element.animate(
-        [{opacity:visible?0:1,clipPath:from,transform:'none'},{opacity:visible?1:0,clipPath:to,transform:'none'}],
-        {duration:1500,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'}
-      );
-      element._projectWipeAnimation.onfinish=()=>{
-        if(element.dataset.wipeVisible===nextVisible){
-          element.style.opacity=visible?'1':'0';
-          element.style.clipPath=visible?'inset(0)':edge;
-        }
-      };
-      const lines=[...element.querySelectorAll('.auto-wipe-line')];
-      lines.forEach((line,index)=>{
-        line._projectLineWipeAnimation?.cancel();
-        const lineEdge=wipeDirection==='backward'?'inset(100% 0 0 0)':'inset(0 0 100% 0)';
-        line.style.opacity=visible?'0':'1';
-        line.style.clipPath=visible?lineEdge:'inset(0)';
-        line._projectLineWipeAnimation=line.animate(
-          [{opacity:visible?0:1,clipPath:visible?lineEdge:'inset(0)',transform:visible?'translateY(8px)':'none'},
-           {opacity:visible?1:0,clipPath:visible?'inset(0)':lineEdge,transform:'none'}],
-          {duration:1100,easing:'cubic-bezier(.22,.61,.36,1)',delay:visible?index*90:(lines.length-1-index)*50,fill:'forwards'}
-        );
-        line._projectLineWipeAnimation.onfinish=()=>{line.style.opacity=visible?'1':'0';line.style.clipPath=visible?'inset(0)':lineEdge;line.style.transform='none';};
-      });
-      [...element.querySelectorAll('.projects-info-col')].forEach((column,index)=>{
-        column._projectColumnWipeAnimation?.cancel();
-        /* The metadata parent owns the wipe. Child masks caused the visible
-           title/description to be clipped mid-line and appear cut off. */
-        column.style.opacity='1';
-        column.style.clipPath='inset(0)';
-        column.style.transform='none';
-      });
-    };
-    const resetProjectWipeState=(element)=>{
-      if(!element)return;
-      element._projectWipeAnimation?.cancel();
-      element._projectWipeAnimation=null;
-      element.querySelectorAll('.auto-wipe-line').forEach(line=>{line._projectLineWipeAnimation?.cancel();line._projectLineWipeAnimation=null;});
-      element.querySelectorAll('.projects-info-col').forEach(column=>{column._projectColumnWipeAnimation?.cancel();column._projectColumnWipeAnimation=null;});
-      delete element.dataset.wipeVisible;
-      delete element.dataset.wipeDirection;
-      element.classList.remove('wipe-controlled','is-visible','is-wiping-out','is-wipe-forward','is-wipe-backward');
-      element.style.removeProperty('opacity');
-      element.style.removeProperty('clip-path');
-      element.style.removeProperty('transform');
-    };
-    const renderSequence=(sequenceP,stageP=sequenceP)=>{
-      if(projectDetailOpen)return;
-      const p=clamp(sequenceP,0,1);
-      const sectionExit=smoothstep(.88,.95,stageP);
-      /* Recent Works hands off through scroll progress alone. Hysteresis only
-         guards the wipe direction; it never locks or moves page scroll. */
-      if(!projectExitLatched&&stageP>=.88){
-        projectExitLatched=true;
-        postTransition?.classList.add('is-project-exit-start');
-        wipeProjectFrame('forward');
-        const exitDirection=projectScrollDirection;
-        applyProjectWipeState(intro?.querySelector('.projects-intro-piece'),false,exitDirection);
-        applyProjectWipeState(document.getElementById('projectsInfo'),false,exitDirection);
-        applyProjectWipeState(progressBar,false,exitDirection);
-      }else if(projectExitLatched&&projectScrollDirection==='backward'&&stageP<=.84){
-        projectExitLatched=false;
-        postTransition?.classList.remove('is-project-exit-start');
-        wipeProjectFrame('backward');
-        resetProjectWipeState(intro?.querySelector('.projects-intro-piece'));
-        resetProjectWipeState(document.getElementById('projectsInfo'));
-        resetProjectWipeState(progressBar);
-      }
-      const finalTextExit=projectExitLatched;
-      const visualExit=projectExitLatched?1:sectionExit;
-      if(frame){
-        const frameClip=projectScrollDirection==='backward'
-          ?`inset(${visualExit*100}% 0 0 0)`
-          :`inset(0 0 ${visualExit*100}% 0)`;
-        frame.style.clipPath=frameClip;
-        frame.style.pointerEvents=visualExit>.99?'none':'';
-      }
-      /* Recent Works and the metadata have independent wipe controllers.
-         Clipping their shared wrapper made the metadata disappear/move early
-         as the project frame exited. */
-      if(intro){intro.style.clipPath='none';}
-      const steps=images.length;
-      const holdRatio=.4;
-      const openRatio=.6;
-      const unit=holdRatio+openRatio;
-      const galleryStart=.08;
-      const galleryP=clamp((p-galleryStart)/(1-galleryStart),0,1);
-      const timeline=galleryP*steps*unit;
-      const activeIndex=Math.min(steps-1,Math.floor(timeline/unit));
-      const within=timeline-activeIndex*unit;
-      const open=smoothstep(0,1,clamp(within/openRatio,0,1));
-      if(intro){
-        const line=intro.querySelector('.projects-intro-piece');
-        if(line){
-          const introVisible=!finalTextExit&&p>=galleryStart&&(activeIndex>0||open>.02);
-          if(!finalTextExit)applyProjectWipeState(line,introVisible,projectScrollDirection);
-        }
-      }
-      const glowDirections=['bottom','left','top'];
-      const travel=clamp(within/unit,0,1);
-      if(sweepLine){
-        const extended=-.06+travel*1.12;
-        sweepLine.dataset.direction=glowDirections[activeIndex]||'bottom';
-        sweepLine.style.setProperty('--sweep-progress',String(extended));
-        sweepLine.style.setProperty('--sweep-color','rgba(12,12,12,.1)');
-        const direction=glowDirections[activeIndex]||'bottom';
-        if(direction==='bottom'||direction==='top'){
-          sweepLine.style.top=`${(direction==='bottom'?1-extended:extended)*100}%`;
-          sweepLine.style.left='0px';
-        }else{
-          sweepLine.style.left=`${(direction==='right'?1-extended:extended)*100}%`;
-          sweepLine.style.top='0px';
-        }
-        sweepLine.style.opacity=p>=galleryStart&&open>0?'1':'0';
-      }
-      const info=document.getElementById('projectsInfo');
-      if(info){
-        [...info.querySelectorAll('.projects-info-set')].forEach((set,index)=>{
-          const local=timeline-index*unit;
-          const enter=smoothstep(0,.16,local);
-          const exit=index===projectMeta.length-1?0:smoothstep(.78,.98,local);
-          const visible=enter*(1-exit);
-          set.style.opacity=String(visible);
-          set.style.clipPath=exit>0?`inset(0 0 ${exit*100}% 0)`:`inset(0 0 ${(1-enter)*100}% 0)`;
-        });
-      }
-      if(info){
-        const infoVisible=!finalTextExit&&p>=galleryStart;
-        if(!finalTextExit){
-          applyProjectWipeState(info,infoVisible,projectScrollDirection);
-          applyProjectWipeState(progressBar,infoVisible,projectScrollDirection);
-        }
-      }
-      if(intro) intro.classList.toggle('is-gallery-moving',open>0.01);
-      window.dispatchEvent(new CustomEvent('projects-progress',{detail:{progress:galleryP,index:activeIndex,open,images:images.map(img=>img.currentSrc||img.src)}}));
-      stage.dataset.step=String(activeIndex);
-      progressSegments.forEach((seg,i)=>{
-        const segTimeline=clamp((timeline-i*unit)/unit,0,1);
-        const segFill=i<activeIndex?1:(i===activeIndex?Math.min(1,segTimeline):0);
-        seg.style.setProperty('--seg-fill',String(segFill));
-      });
-      images.forEach((img,i)=>{
-        const mask=masks[i];
-        const before=i<activeIndex;
-        const active=i===activeIndex;
-        const next=i===activeIndex+1;
-        const settle=before?1:active?open:0;
-        const zoom=before?1:active?lerp(1.05,1,settle):1.05;
-        const revealY=before?0:active?lerp(75,0,smoothstep(0,.96,settle)):75;
-        const galleryVisible=p>=galleryStart;
-        const opacity=!galleryVisible?0:before?1:active?lerp(.35,1,smoothstep(0,.18,settle)):next?0:0;
-        img.classList.toggle('is-active',active||before);
-        img.style.opacity=String(opacity);
-        img.style.transform=`scale(${zoom})`;
-        img.style.transformOrigin='center bottom';
-        img.style.transition=galleryVisible?'opacity 1.275s var(--ease), clip-path 1.275s var(--ease), transform 1.275s var(--ease)':'none';
-        img.style.clipPath='none';
-        if(mask){let maskClip='inset(100% 0 0 0)';if(before)maskClip='inset(0)';else if(active){const r=lerp(100,0,smoothstep(0,.96,settle));maskClip=i===0?`inset(${r}% 0 0 0)`:i===1?`inset(0 ${r}% 0 0)`:projectScrollDirection==='backward'?`inset(${r}% 0 0 0)`:`inset(0 0 ${r}% 0)`;}mask.style.clipPath=maskClip;mask.style.zIndex=String(active?100+i:before?10+i:0);}
-        if(active&&!before){
-          const size=75;
-          img.style.width=`${size}%`;
-          img.style.height='auto';
-          img.style.left=`${100-size}%`;
-          img.style.right='auto';
-          img.style.top='auto';
-          img.style.bottom='var(--pad)';
-          img.style.objectFit='contain';
-        }else{
-          img.style.width='75%';img.style.height='auto';img.style.left='25%';img.style.top='auto';img.style.bottom='var(--pad)';img.style.objectFit='contain';
-        }
-        img.style.filter='saturate(.98) contrast(.98)';
-        img.style.zIndex=String(active?100+i:before?10+i:0);
-        img.style.pointerEvents='none';
-      });
-      if(info&&!sectionExit){
-        cancelAnimationFrame(infoPositionRaf);
-        infoPositionRaf=requestAnimationFrame(()=>{
-          const target=masks[activeIndex],shellRect=frame.parentElement.getBoundingClientRect(),navRect=document.querySelector('.site-nav')?.getBoundingClientRect(),menuRect=document.querySelector('.site-menu')?.getBoundingClientRect(),ir=target&&target.getBoundingClientRect();
-          if(!ir)return;
-          const menuBottom=navRect?.bottom||0;
-          const metadataY=menuBottom+(ir.top-menuBottom)*.6;
-          const localY=metadataY-shellRect.top;
-          info.style.top=`${localY}px`;info.style.left=`${ir.left-shellRect.left}px`;info.style.width=`${ir.width}px`;info.style.transform='none';
-          if(progressBar){
-            const description=info.querySelector('.projects-info-col--1');
-            const descriptionRect=description?.getBoundingClientRect();
-            const progressY=descriptionRect?descriptionRect.top-shellRect.top+(descriptionRect.height-progressBar.offsetHeight)/2:localY;
-            progressBar.style.top=`${progressY}px`;progressBar.style.bottom='auto';progressBar.style.left='auto';progressBar.style.right=`${shellRect.right-ir.right}px`;
-          }
-          const pills=[...info.querySelectorAll('.projects-info-col--2')];
-          if(menuRect&&innerWidth>900)pills.forEach(pill=>{pill.style.left=`${menuRect.left-ir.left}px`;pill.style.right='auto';});
-          const recent=intro?.querySelector('.projects-intro-piece');
-          if(recent){
-            recent.style.top=`${localY}px`;recent.style.bottom='auto';
-            const anchorIsInsideStage=localY>=menuBottom&&localY<=innerHeight*.7;
-            if(anchorIsInsideStage){
-              postTransition?.style.setProperty('--services-start-y',`${localY}px`);
-              document.documentElement.style.setProperty('--section-copy-start-y',`${localY}px`);
-            }
-          }
-        });
-      }
-      stage.classList.toggle('is-exiting',sectionExit>0);
-      stage.classList.toggle('is-released',stageP>=.999);
-    };
-    const projectRange=()=>Math.max(1,stage.offsetHeight-innerHeight);
-    const renderFromScroll=()=>{
-      const projStart=projectsTop;
-      const raw=clamp((scrollY-projStart)/projectRange(),0,1);
-      if(raw<projectProgress-.0005)projectScrollDirection='backward';
-      else if(raw>projectProgress+.0005)projectScrollDirection='forward';
-      projectProgress=raw;
-      const sequenceP=clamp(raw/.88,0,1);
-      renderSequence(sequenceP,raw);
-    };
-    const updateSequence=()=>{
-      seqRaf=0;
-      renderFromScroll();
-    };
-    const requestSequenceUpdate=()=>{if(!seqRaf)seqRaf=requestAnimationFrame(updateSequence)};
-    addEventListener('scroll',requestSequenceUpdate,{passive:true});
-    addEventListener('resize',requestSequenceUpdate,{passive:true});
-    const measure=()=>{projectsTop=projects.getBoundingClientRect().top+scrollY;};
-    measure();
-    addEventListener('resize',measure,{passive:true});
-    requestSequenceUpdate();
   }
   const postServices=[...document.querySelectorAll('.post-project-service')];
   const postServicesRange=document.querySelector('.post-project-services-range');
@@ -912,20 +813,32 @@
     if(previous)hideServiceAfterReveal(previous);
     if(item)revealService(item);
   };
-  postTransition?.addEventListener('pointermove',event=>{
-    if(!postTransition.classList.contains('is-active'))return focusService(null);
-    const centers=postServices.map(item=>{const rect=item.getBoundingClientRect();return rect.top+10;});
-    const firstBoundary=centers[0]-(centers[1]-centers[0])/2;
-    const last=centers.length-1;
-    const lastBoundary=centers[last]+(centers[last]-centers[last-1])/2;
-    if(event.clientY<firstBoundary||event.clientY>lastBoundary)return focusService(null);
-    let nearestIndex=0;
-    for(let index=1;index<centers.length;index++){
-      if(Math.abs(event.clientY-centers[index])<Math.abs(event.clientY-centers[nearestIndex]))nearestIndex=index;
-    }
-    focusService(postServices[nearestIndex]);
-  });
-  postTransition?.addEventListener('pointerleave',()=>focusService(null));
+  if(hasHover()){
+    postTransition?.addEventListener('pointermove',event=>{
+      if(!postTransition.classList.contains('is-active'))return focusService(null);
+      const centers=postServices.map(item=>{const rect=item.getBoundingClientRect();return rect.top+10;});
+      const firstBoundary=centers[0]-(centers[1]-centers[0])/2;
+      const last=centers.length-1;
+      const lastBoundary=centers[last]+(centers[last]-centers[last-1])/2;
+      if(event.clientY<firstBoundary||event.clientY>lastBoundary)return focusService(null);
+      let nearestIndex=0;
+      for(let index=1;index<centers.length;index++){
+        if(Math.abs(event.clientY-centers[index])<Math.abs(event.clientY-centers[nearestIndex]))nearestIndex=index;
+      }
+      focusService(postServices[nearestIndex]);
+    });
+    postTransition?.addEventListener('pointerleave',()=>focusService(null));
+  }else{
+    /* No hover to drive the nearest-item tracking above, so a tap just
+       toggles that service's description directly — same reveal/hide
+       machinery (revealService/hideServiceAfterReveal), just triggered by
+       click instead of proximity. */
+    postServices.forEach(item=>{
+      item.addEventListener('click',()=>{
+        focusService(pointerFocusedService===item?null:item);
+      });
+    });
+  }
   if(postTransition){
     const verticalLine=postTransition.querySelector('.post-project-transition-line');
     const horizontalLine=postTransition.querySelector('.post-project-services-summary-line');
@@ -977,7 +890,7 @@
     const bioCopy={
       about:`<p class="type-project-title">What satisfies me isn't another logo on my résumé, a new design approach, or clicking buttons in Figma — and I don't do any of this out of passion either. My process is a fight, with the brief, with the obvious, with anything that comes too easy. That restlessness is where everything starts: design, leadership, coaching, all of it.</p><p class="type-project-title">It's showing up for individuals and teams who need support, finding that rare fit where something real clicks between us. Underneath the polish, there's usually something worth digging for — and when those layers break, the real and beautiful comes alive.</p><p class="bio-about-xp">20+ Years of XP</p>`,
       leadership:`<p class="type-project-title">My leadership experience comes mostly from my time at STRV. I led team leads and platform experts across iOS, Android, Backend, Frontend, Data Science, Design &amp; QA.</p><p class="type-project-title">Before that, I ran STRV's Design Team — and for a bit, when QA had no lead, ran both teams at once. Good times.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Led</h2><p class="type-project-meta">11 managers</p></div><div><h2 class="type-project-title">Overseeing</h2><p class="type-project-meta">130 people</p></div></div><div class="case-project-links"><button id="openLeadershipReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read my team's reviews</span></button><a href="https://www.eleken.co/blog-posts/managing-a-design-team-interview-with-seasoned-design-leaders" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">My take on leadership in Eleken interview</span></a></div>`,
-      coaching:`<p class="type-project-title">I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No "do it like this." Your style all the way — nothing forced.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Coached</h2><p class="type-project-meta">70+ people (500+ hours)</p></div><div><h2 class="type-project-title">Accreditation</h2><p class="type-project-meta">ICF (ACSTH) &amp; EMCC</p></div></div><div class="case-project-links"><button id="openCoachingReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read all client feedback</span></button></div>`
+      coaching:`<p class="type-project-title">I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No "do it like this." Your style all the way — nothing forced.</p><p class="type-project-title">Coming from tech, clients don't have to explain the day-to-day — I already get it.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Coached</h2><p class="type-project-meta">70+ people (500+ hours)</p></div><div><h2 class="type-project-title">Accreditation</h2><p class="type-project-meta">ICF (ACSTH) &amp; EMCC</p></div></div><div class="case-project-links"><button id="openCoachingReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read all client feedback</span></button></div>`
     };
     const bioRightCopy={
       about:(bioRight?.innerHTML||'').replaceAll(' bio-wipe',''),
@@ -1050,6 +963,11 @@
     const initiativesGrid=initiativesSection.querySelector('.initiatives-grid');
     const initiativesWipes=[...initiativesSection.querySelectorAll('.initiatives-wipe')];
     const initiativeImage=initiativesSection.querySelector('#initiativeImage');
+    const initiativeVideo=initiativesSection.querySelector('#initiativeVideo');
+    const initiativesMedia=initiativesSection.querySelector('.initiatives-media');
+    const applyInitiativeMediaAR=(w,h)=>{
+      if(initiativesMedia&&w&&h)initiativesMedia.style.aspectRatio=`${w} / ${h}`;
+    };
     const initiativeCopy=initiativesSection.querySelector('#initiativeCopy');
     const initiativeType=initiativesSection.querySelector('#initiativeType');
     const initiativeStatus=initiativesSection.querySelector('#initiativeStatus');
@@ -1061,14 +979,23 @@
       'aww-wake':{name:'Aww-wake',image:'media/initiatives/vibe-coding/app_n7-awake.jpg',copy:'A tiny macOS utility for when your Mac just needs to stay awake. Pick 30 minutes, set your own time, or leave it on until you turn it off. That’s basically it — except the app treats the whole thing like a live state instead of a boring system toggle. The glassy interface shifts with the session, the countdown stays quietly visible, and the menu bar keeps everything close without getting in the way. Simple job, slightly obsessive execution.',type:'MacOS App',status:'Final Tweaks'},
       kokoji:{name:'Kokoji',image:'media/initiatives/vibe-coding/app_kokoji.jpg',copy:['Kokoji is a tiny opinionated creature living somewhere on your Mac, mostly concerned with your water intake, the state of his room, and your questionable decisions. You check in, add a drink, poke around, and over time the place starts changing, new things appear, conversations get stranger, and Kokoji develops more reasons to comment on what you’re doing.','There are no streaks, guilt trips, or productivity sermons. Just a weird little world, dry jokes, occasional insults, and a creature who somehow became involved in your hydration.'],type:'MacOS App',status:'Final Tweaks'},
       wezzaa:{name:'Wezzaa',image:'media/initiatives/vibe-coding/app_wezzaa.jpg',copy:'A minimalist weather app for when you just want a clean weather info delivery. Open it, see the temperature, read one useful line, move on with your life. The forecast stays out of the way until you need it, and widgets, alternate icons and shareable weather cards let you dress things up a little. No accounts, no clutter, no pretending weather needs a dashboard.',type:'iOS App',status:'Final Tweaks'},
-      'and-then':{name:'And Then',image:'media/initiatives/vibe-coding/app_and-then.jpg',copy:'A personal journal for everything you watch. Save what you want to see, keep track of what you’re watching, or look back at movies and shows from years ago — with ratings, notes, dates, people, places, collections, and all the little context that made them yours. And Then keeps the whole thing private and personal, then quietly connects the pieces into a timeline you can actually explore. Less streaming tracker, more memory for your movie life.',type:'iOS App',status:'Concept Prototype'},
+      'and-then':{name:'And Then',image:'media/initiatives/vibe-coding/app_and-then.jpg',copy:'A personal journal for everything you watch. Save what you want to see, keep track of what you’re watching, or look back at movies and shows from years ago — with ratings, notes, dates, people, places, collections, and all the little context that made them yours. And Then keeps the whole thing private and personal, then quietly connects the pieces into a timeline you can actually explore. Less streaming tracker, more memory for your movie life.',type:'iOS App',status:'Final Tweaks'},
       terracoda:{name:'Terracoda',image:'media/initiatives/vibe-coding/app_terracoda.jpg',copy:['Terracoda is a stripped-back browser editor for HTML, CSS and JavaScript, built to keep the interface quiet while still doing a lot under the surface. Code updates live as you work, real project folders can be opened or dropped straight in, and larger files stay usable without turning the whole thing into a heavy IDE. There’s syntax highlighting, autocomplete, Emmet, diagnostics, Find + Replace, persistent undo, code-to-preview linking, detached live preview, project recovery, curated frontend libraries, Google Fonts, responsive preview modes, file navigation and a command palette for the rest.','It’s meant to feel closer to a precise creative tool than a development environment — fast, minimal, and only as complex as you need it to be.'],type:'Browser App',status:'Testing With Dev Friends'},
+      'very-much-art':{name:'Very Much Art',video:'media/initiatives/remnants/mf-art.mp4',copy:'Mid-life butterflies got me good and produced some touching harvest. If you catch yourself mesmerized and deeply influenced, consider professional help and supporting MF for future artistic shenanigans.',sideQuest:true,links:[
+        {label:'Buy MF Art on Redbubble',href:'https://www.redbubble.com/people/Ninlei/shop?asc=u',external:true},
+        {label:'Support MF Art Directly',action:'art-support'}
+      ]},
+      leftovers:{name:'Leftovers',video:'media/initiatives/remnants/oldies.mp4',copy:'Earlier work, experiments, and pro bono design for an NGO — side projects I kept going while focused on mindset coaching.',noMeta:true},
       utb:{name:'Tomas Bata Uni.',image:'media/initiatives/side-quests/side-quests_utb.jpg',copy:["I was twice invited to serve on a panel of industry professionals evaluating final bachelor's and master's thesis presentations on the Visual Arts programme at the university.",'On top of this, while leading a design team, we held full-day design talks for students of the Multimedia & Design subject twice over two years. The sessions continued even after I got promoted out of the Design Team Leadership role.','I made friends with the faculty lead. Had students applying to STRV years later. Lovely stuff.'],sideQuest:true},
       undersurface:{name:'Ūndersurface',image:'media/initiatives/side-quests/side-quests_undersurface.jpg',copy:['Co-founded an enclosed community of entrepreneurs, designers and tinkerers. A peer accountability community that ran for 5+ years on Slack, combining structured goal-pushing sessions, sharing circles and talks to help members grow personally and professionally. Beyond the digital space, Joe and I organized an in-person retreat — including a 3-day trip to Estonia — built around deep-sharing, introspective and task-driven exercises designed to get people sharing honestly and working through personal blocks.','It moved me so much that when I got back, I enrolled in a one-year coaching program to become a certified life coach.'],mentions:[['Joe Pacal','https://www.pac.al/']],sideQuest:true},
       'femme-palette':{name:'Femme Palette',image:'media/initiatives/side-quests/side-quests_femme-palette.jpg',copy:['Femme Palette is a mentoring platform and community built around career development and practical advice, not theory. Network of 1,200+ mentors, community of 5,000+, hubs in Prague, Berlin, Amsterdam, Barcelona, Copenhagen, and Paris.','I mentor in Design, General Career Guidance & Soft Skills, and Management & Leadership.'],sideQuest:true},
       nollie:{name:'Nollie',image:'media/initiatives/side-quests/side-quests_nollie.jpg',copy:['Co-founded this creative studio with a longtime friend and former colleague, Ales Nesetril, before we each pivoted into our own things — all in good spirit. During this time we launched the NEXT WORKOUT iOS app, which you can check out next.','Sharing this to also openly admit that not everything I touch always "works out." Duh! Here, the studio — the app works great! Hehe.'],mentions:[['Ales Nesetril','https://www.instagram.com/alesnesetril']],sideQuest:true},
       'next-workout':{name:'NEXT.WORKOUT',image:'media/initiatives/side-quests/side-quests_next-workout.jpg',copy:["This was a sweet collab between Next.Move (client), Yiskra Creative Studio (brand) — and my former Creative Studio Nollie (Design & Ops w/ Ales Nesetril).",'I sourced and managed developers, tracked the timeline and reported progress to the client side represented by Veronika Huna.',"The app launched and keeps growing. People work out. Life's good."],projectLink:'https://www.nextworkout.app/en',mentions:[['Next.Move','https://www.instagram.com/nextmove.cz/'],['Yiskra Creative Studio','https://www.yiskra.studio/'],['Ales Nesetril','https://www.instagram.com/alesnesetril'],['Veronika Huna','https://www.instagram.com/fitveronika']],sideQuest:true}
     };
+    if(initiativeImage){
+      if(initiativeImage.complete&&initiativeImage.naturalWidth)applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight);
+      else initiativeImage.addEventListener('load',()=>applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight),{once:true});
+    }
     const initialInitiative=initiativeData['a-void'];
     if(initialInitiative&&initiativeCopy){
       initiativeCopy.replaceChildren(...(Array.isArray(initialInitiative.copy)?initialInitiative.copy:[initialInitiative.copy]).map(copy=>{
@@ -1086,8 +1013,25 @@
       initiativesStage.classList.add('is-switching');
       initiativeSwitchTimer=setTimeout(()=>{
         activeInitiative=key;
-        initiativeImage.src=next.image;
-        initiativeImage.alt=`${next.name} app interface`;
+        if(next.video){
+          initiativeImage.hidden=true;
+          initiativeImage.removeAttribute('src');
+          initiativeVideo.hidden=false;
+          initiativeVideo.src=next.video;
+          initiativeVideo.setAttribute('aria-label',`${next.name} video`);
+          initiativeVideo.addEventListener('loadedmetadata',()=>applyInitiativeMediaAR(initiativeVideo.videoWidth,initiativeVideo.videoHeight),{once:true});
+          initiativeVideo.play?.().catch(()=>{});
+        }else{
+          initiativeVideo.hidden=true;
+          initiativeVideo.pause();
+          initiativeVideo.removeAttribute('src');
+          initiativeVideo.load();
+          initiativeImage.hidden=false;
+          initiativeImage.src=next.image;
+          initiativeImage.alt=`${next.name} app interface`;
+          if(initiativeImage.complete&&initiativeImage.naturalWidth)applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight);
+          else initiativeImage.addEventListener('load',()=>applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight),{once:true});
+        }
         initiativeCopy.replaceChildren(...(Array.isArray(next.copy)?next.copy:[next.copy]).map(copy=>{
           const paragraph=document.createElement('p');
           paragraph.textContent=copy;
@@ -1102,6 +1046,19 @@
           link.innerHTML='<span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">'+next.name+'</span>';
           initiativeCopy.append(link);
         }
+        next.links?.forEach(item=>{
+          const el=document.createElement(item.action?'button':'a');
+          el.className='initiatives-copy-link';
+          if(item.action){
+            el.type='button';
+            el.dataset.artAction=item.action;
+          }else{
+            el.href=item.href;
+            if(item.external){el.target='_blank';el.rel='noopener noreferrer';}
+          }
+          el.innerHTML=`<span class="case-project-link-arrow" aria-hidden="true">${item.external?'↗':'→'}</span><span class="case-project-link-label">${item.label}</span>`;
+          initiativeCopy.append(el);
+        });
         initiativeMentions.replaceChildren();
         if(next.mentions?.length){
           const title=document.createElement('h3');
@@ -1126,7 +1083,8 @@
           initiativeMentions.append(title,links);
         }
         initiativesGrid.classList.toggle('is-side-quest-active',!!next.sideQuest);
-        if(!next.sideQuest){
+        initiativesGrid.classList.toggle('is-meta-hidden',!!next.sideQuest||!!next.noMeta);
+        if(!next.sideQuest&&!next.noMeta){
           initiativeType.textContent=next.type;
           initiativeStatus.textContent=next.status;
         }
@@ -1159,6 +1117,32 @@
     addEventListener('scroll',updateInitiatives,{passive:true});
     addEventListener('resize',updateInitiatives,{passive:true});
     updateInitiatives();
+  }
+
+  const footerSection=document.getElementById('footer');
+  if(footerSection){
+    const footerWipes=[...footerSection.querySelectorAll('.footer-wipe')];
+    const updateFooter=()=>{
+      const sectionTop=footerSection.getBoundingClientRect().top+scrollY;
+      const range=Math.max(1,footerSection.offsetHeight-innerHeight);
+      const p=clamp((scrollY-sectionTop)/range,0,1);
+      footerWipes.forEach((item,index)=>{
+        const order=Number(item.dataset.footerOrder||index);
+        const visible=smoothstep(.02+order*.018,.18+order*.018,p);
+        if(item.classList.contains('footer-divider')){
+          item.style.opacity=String(visible>.001?1:0);
+          item.style.clipPath='none';
+          item.style.transform=`scaleX(${visible})`;
+          return;
+        }
+        item.style.opacity=String(visible);
+        item.style.clipPath=`inset(0 0 ${(1-visible)*100}% 0)`;
+        item.style.transform='none';
+      });
+    };
+    addEventListener('scroll',updateFooter,{passive:true});
+    addEventListener('resize',updateFooter,{passive:true});
+    updateFooter();
   }
 
   const coachingOverlay=document.getElementById('coachingOverlay');
@@ -1231,13 +1215,96 @@
       return animation;
     });
   };
-  const openCoachingOverlay=(mode='coaching')=>{activeReviewMode=mode;const isLeadership=mode==='leadership';coachingOverlay.classList.toggle('is-leadership-reviews',isLeadership);coachingReviewIndex?.setAttribute('aria-label',isLeadership?'Team leadership reviews':'Coaching reviews');coachingOverlayClose?.setAttribute('aria-label',isLeadership?'Close team leadership reviews':'Close coaching reviews');renderCoachingReview(isLeadership?activeLeadershipReview:activeCoachingReview);coachingOverlay.classList.add('is-open');coachingOverlay.setAttribute('aria-hidden','false');document.body.classList.add('coaching-overlay-open');requestAnimationFrame(playCoachingEntry)};
-  const closeCoachingOverlay=()=>{if(!coachingOverlay?.classList.contains('is-open')||coachingOverlay.classList.contains('is-closing'))return;coachingEntryAnimations.forEach(animation=>animation.cancel());coachingEntryAnimations=[];coachingOverlayClose?.classList.remove('is-cursor-target');cursor?.classList.remove('is-close-target');coachingOverlay.classList.add('is-closing');setTimeout(()=>{coachingOverlay.classList.remove('is-open','is-closing');coachingOverlay.setAttribute('aria-hidden','true');document.body.classList.remove('coaching-overlay-open')},800)};
+  let coachingRevealTimer=0;
+  let coachingCloseTimer=0;
+  const openCoachingOverlay=(mode='coaching')=>{
+    activeReviewMode=mode;
+    const isLeadership=mode==='leadership';
+    coachingOverlay.classList.toggle('is-leadership-reviews',isLeadership);
+    coachingReviewIndex?.setAttribute('aria-label',isLeadership?'Team leadership reviews':'Coaching reviews');
+    coachingOverlayClose?.setAttribute('aria-label',isLeadership?'Close team leadership reviews':'Close coaching reviews');
+    renderCoachingReview(isLeadership?activeLeadershipReview:activeCoachingReview);
+    clearTimeout(coachingRevealTimer);coachingRevealTimer=0;
+    clearTimeout(coachingCloseTimer);coachingCloseTimer=0;
+    coachingOverlay.classList.remove('is-closing','is-content-exiting','is-content-reveal','is-close-visible');
+    coachingOverlay.classList.add('is-open');
+    coachingOverlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('coaching-overlay-open');
+    coachingRevealTimer=setTimeout(()=>{
+      coachingOverlay.classList.add('is-content-reveal','is-close-visible');
+      playCoachingEntry();
+      coachingRevealTimer=0;
+    },900);
+  };
+  const closeCoachingOverlay=()=>{
+    if(!coachingOverlay?.classList.contains('is-open')||coachingOverlay.classList.contains('is-closing'))return;
+    coachingEntryAnimations.forEach(animation=>animation.cancel());
+    coachingEntryAnimations=[];
+    clearTimeout(coachingRevealTimer);coachingRevealTimer=0;
+    clearTimeout(coachingCloseTimer);coachingCloseTimer=0;
+    coachingOverlayClose?.classList.remove('is-cursor-target');
+    cursor?.classList.remove('is-close-target');
+    coachingOverlay.classList.remove('is-content-reveal','is-close-visible');
+    coachingOverlay.classList.add('is-content-exiting');
+    coachingOverlay.setAttribute('aria-hidden','true');
+    coachingCloseTimer=setTimeout(()=>{
+      coachingOverlay.classList.remove('is-content-exiting');
+      coachingOverlay.classList.add('is-closing');
+      coachingCloseTimer=setTimeout(()=>{
+        coachingOverlay.classList.remove('is-open','is-closing','is-content-reveal','is-content-exiting','is-close-visible');
+        document.body.classList.remove('coaching-overlay-open');
+        coachingCloseTimer=0;
+      },900);
+    },900);
+  };
   postServicesNext?.addEventListener('click',event=>{if(event.target.closest('#openCoachingReviews'))openCoachingOverlay();if(event.target.closest('#openLeadershipReviews'))openCoachingOverlay('leadership')});
   coachingReviewIndex?.addEventListener('click',event=>{const button=event.target.closest('[data-review]');if(!button)return;coachingOverlay.classList.add('is-review-switching');setTimeout(()=>{renderCoachingReview(Number(button.dataset.review));coachingOverlay.classList.remove('is-review-switching')},350)});
   coachingReviewCopy?.addEventListener('click',event=>{const button=event.target.closest('[data-review-part]');if(!button||coachingOverlay.classList.contains('is-part-switching'))return;const nextPart=Number(button.dataset.reviewPart);if(nextPart===activeCoachingReviewPart)return;coachingOverlay.classList.add('is-part-switching');setTimeout(()=>{renderCoachingReview(activeCoachingReview,nextPart);coachingOverlay.scrollTo({top:0,behavior:'smooth'});requestAnimationFrame(()=>coachingOverlay.classList.remove('is-part-switching'))},350)});
   coachingOverlayClose?.addEventListener('click',closeCoachingOverlay);
   addEventListener('keydown',event=>{if(event.key==='Escape'&&coachingOverlay?.classList.contains('is-open'))closeCoachingOverlay()});
+
+  /* Support overlay: same curtain-overlay mechanism as case/coaching overlays
+     (open = curtain covers, content reveals; close = curtain covers content,
+     then retreats), holding a single lazily-loaded Ko-fi iframe. */
+  const artSupportOverlay=document.getElementById('artSupportOverlay');
+  const artSupportOverlayClose=document.getElementById('artSupportOverlayClose');
+  const artSupportFrame=document.getElementById('artSupportFrame');
+  let artSupportRevealTimer=0;
+  let artSupportCloseTimer=0;
+  const openArtSupportOverlay=()=>{
+    if(!artSupportOverlay||artSupportOverlay.classList.contains('is-open'))return;
+    if(artSupportFrame&&!artSupportFrame.src)artSupportFrame.src='https://ko-fi.com/marianfusek/?hidefeed=true&widget=true&embed=true&preview=true';
+    clearTimeout(artSupportRevealTimer);artSupportRevealTimer=0;
+    clearTimeout(artSupportCloseTimer);artSupportCloseTimer=0;
+    artSupportOverlay.classList.remove('is-closing','is-content-exiting','is-content-reveal','is-close-visible');
+    artSupportOverlay.classList.add('is-open');
+    artSupportOverlay.setAttribute('aria-hidden','false');
+    document.body.classList.add('art-support-overlay-open');
+    artSupportRevealTimer=setTimeout(()=>{
+      artSupportOverlay.classList.add('is-content-reveal','is-close-visible');
+      artSupportRevealTimer=0;
+    },900);
+  };
+  const closeArtSupportOverlay=()=>{
+    if(!artSupportOverlay?.classList.contains('is-open')||artSupportOverlay.classList.contains('is-closing'))return;
+    clearTimeout(artSupportRevealTimer);artSupportRevealTimer=0;
+    clearTimeout(artSupportCloseTimer);artSupportCloseTimer=0;
+    artSupportOverlay.classList.remove('is-content-reveal','is-close-visible');
+    artSupportOverlay.classList.add('is-content-exiting');
+    artSupportOverlay.setAttribute('aria-hidden','true');
+    artSupportCloseTimer=setTimeout(()=>{
+      artSupportOverlay.classList.remove('is-content-exiting');
+      artSupportOverlay.classList.add('is-closing');
+      artSupportCloseTimer=setTimeout(()=>{
+        artSupportOverlay.classList.remove('is-open','is-closing','is-content-reveal','is-content-exiting','is-close-visible');
+        document.body.classList.remove('art-support-overlay-open');
+        artSupportCloseTimer=0;
+      },900);
+    },900);
+  };
+  artSupportOverlayClose?.addEventListener('click',closeArtSupportOverlay);
+  addEventListener('keydown',event=>{if(event.key==='Escape'&&artSupportOverlay?.classList.contains('is-open'))closeArtSupportOverlay()});
+  initiativesSection?.addEventListener('click',event=>{if(event.target.closest('[data-art-action="art-support"]'))openArtSupportOverlay()});
 
   /* Cursor. */
   const cursor=document.getElementById('cursor');
@@ -1258,26 +1325,33 @@
       cursorProject.classList.add('is-wiping-in');
     },160);
   };
-  addEventListener('projects-progress',event=>{
-    updateCursorProject(cursorProjects[event.detail?.index]);
-  });
   let cx=-100,cy=-100,tx=-100,ty=-100,raf=0;
   function tickCursor(){
     cx=lerp(cx,tx,.42);cy=lerp(cy,ty,.42);
     cursor.style.transform=`translate3d(${cx-7}px,${cy-7}px,0)`;
     if(Math.abs(cx-tx)+Math.abs(cy-ty)>.15)raf=requestAnimationFrame(tickCursor);else raf=0;
   }
-  addEventListener('pointermove',e=>{
-    const mask=e.target?.closest?.('.projects-image-mask');
+  const isOverlayOpen=el=>!!el?.classList.contains('is-open')&&!el.classList.contains('is-closing');
+  /* Touch/coarse pointers never get the custom dot — no hover-capable input
+     means nothing meaningfully drives it, and leaving the listeners attached
+     left a ghost cursor artifact on tap (the CSS already assumes this via
+     `body{cursor:auto}` on the mobile layout, but that alone doesn't stop
+     these listeners from running). */
+  if(cursor&&hasHover())addEventListener('pointermove',e=>{
+    const mask=e.target?.closest?.('.projects-slide');
     const videoTarget=e.target?.closest?.('.case-project-hero-video');
-    const coachingIsOpen=!!coachingOverlay?.classList.contains('is-open')&&!coachingOverlay.classList.contains('is-closing');
-    const closeEl=coachingIsOpen?coachingOverlayClose:caseOverlayClose;
+    const activeOverlay=[
+      {overlay:coachingOverlay,close:coachingOverlayClose},
+      {overlay:caseOverlay,close:caseOverlayClose},
+      {overlay:artSupportOverlay,close:artSupportOverlayClose}
+    ].find(item=>isOverlayOpen(item.overlay));
+    const closeEl=activeOverlay?.close;
     const closeRect=closeEl?.getBoundingClientRect();
-    const overlayIsOpen=coachingIsOpen||(!!caseOverlay?.classList.contains('is-open')&&!caseOverlay.classList.contains('is-closing'));
+    const overlayIsOpen=!!activeOverlay;
     const overClose=overlayIsOpen && !!closeRect &&
       e.clientX>=closeRect.left && e.clientX<=closeRect.right &&
       e.clientY>=closeRect.top && e.clientY<=closeRect.bottom;
-    const closeTarget=overlayIsOpen&&(e.target?.closest?.('.case-overlay-close,#coachingOverlayClose')||overClose)?closeEl:null;
+    const closeTarget=overlayIsOpen&&(e.target?.closest?.('.case-overlay-close,#coachingOverlayClose,#artSupportOverlayClose')||overClose)?closeEl:null;
     if(closeTarget){
       const rect=closeTarget.getBoundingClientRect();
       tx=rect.left+rect.width/2;ty=rect.top+rect.height/2;
@@ -1288,18 +1362,127 @@
     cursor.classList.toggle('is-close-target',!!closeTarget);
     caseOverlayClose?.classList.toggle('is-cursor-target',!!closeTarget);
     coachingOverlayClose?.classList.toggle('is-cursor-target',!!closeTarget);
+    artSupportOverlayClose?.classList.toggle('is-cursor-target',!!closeTarget);
     if(cursorAction)cursorAction.textContent=videoTarget?(videoTarget.classList.contains('is-expanded')?'MINIMIZE':'EXPAND'):'OPEN';
-    if(mask)updateCursorProject(cursorProjects[Number(mask.querySelector('.projects-image')?.dataset.step)]);
+    if(mask)updateCursorProject(cursorProjects[Number(mask.dataset.index)]);
   },{passive:true});
-  addEventListener('pointerdown',e=>{
+  if(cursor&&hasHover())addEventListener('pointerdown',e=>{
     if(e.button!==0)return;
     const ring=document.createElement('span');ring.className='cursor-click';ring.style.left=`${e.clientX}px`;ring.style.top=`${e.clientY}px`;
     document.body.append(ring);setTimeout(()=>ring.remove(),760);
   },{passive:true});
 
+  /* Nav curtain: covers the screen, jumps the scroll position instantly while
+     hidden behind it, then retreats — the destination is already fully
+     settled (is-nav-jump skips the per-frame crossfades/wipe animations so
+     nothing is caught mid-transition) by the time it's revealed. Replaces the
+     older visible 2s glide (smooth.goToSlow, still intact below/unused) —
+     to revert, swap the navigateWithCurtain(y) call for the commented block. */
+  const navCurtain=document.getElementById('navCurtain');
+  let navCurtainCoverTimer=0,navCurtainRevealTimer=0,navCurtainFailsafeTimer=0;
+  const navigateWithCurtain=y=>{
+    clearTimeout(navCurtainCoverTimer);clearTimeout(navCurtainRevealTimer);clearTimeout(navCurtainFailsafeTimer);
+    /* Hard backstop: whatever else happens (an interrupted transition, a
+       missed frame, anything not accounted for above), the page can never be
+       left needing a refresh to recover — worst case it just snaps straight
+       to the destination, fully visible, a few seconds late. */
+    navCurtainFailsafeTimer=setTimeout(()=>{
+      document.body.classList.remove('is-nav-jump','is-curtain-active');
+      navCurtain?.classList.remove('is-covering','is-revealing');
+    },3000);
+    /* Freeze the page the instant the curtain starts covering, not just when
+       the jump actually fires 600ms later — otherwise residual wheel-lerp
+       momentum from whatever scroll got the user down to a far-away section
+       keeps nudging scrollY for the whole cover window, and the jump below
+       ends up landing wherever that drifted to instead of the real target. */
+    if(smooth.enabled){
+      if(smooth.raf){cancelAnimationFrame(smooth.raf);smooth.raf=0;}
+      if(smooth.slowRaf){cancelAnimationFrame(smooth.slowRaf);smooth.slowRaf=0;}
+      smooth.current=scrollY;smooth.target=scrollY;
+    }
+    document.body.classList.add('is-nav-jump','is-curtain-active');
+    if(navCurtain){
+      navCurtain.classList.remove('is-revealing');
+      void navCurtain.offsetWidth;
+      navCurtain.classList.add('is-covering');
+    }
+    const jump=()=>{
+      if(smooth.enabled){
+        if(smooth.raf){cancelAnimationFrame(smooth.raf);smooth.raf=0;}
+        if(smooth.slowRaf){cancelAnimationFrame(smooth.slowRaf);smooth.slowRaf=0;}
+        smooth.current=y;smooth.target=y;
+      }
+      scrollTo(0,y);
+      window.dispatchEvent(new Event('scroll'));
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        document.body.classList.remove('is-nav-jump');
+        if(navCurtain){
+          navCurtain.classList.remove('is-covering');
+          navCurtain.classList.add('is-revealing');
+          navCurtainRevealTimer=setTimeout(()=>{
+            navCurtain.classList.remove('is-revealing');
+            document.body.classList.remove('is-curtain-active');
+            clearTimeout(navCurtainFailsafeTimer);
+          },900);
+        }else{document.body.classList.remove('is-curtain-active');clearTimeout(navCurtainFailsafeTimer);}
+      }));
+    };
+    if(navCurtain)navCurtainCoverTimer=setTimeout(jump,600);else jump();
+  };
+
   document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
     const target=document.querySelector(a.getAttribute('href'));if(!target)return;
-    e.preventDefault();const y=target.getBoundingClientRect().top+scrollY;
+    e.preventDefault();
+    if(a.hasAttribute('data-nav-target')){
+      const top=target.getBoundingClientRect().top+scrollY;
+      const range=Math.max(1,target.offsetHeight-innerHeight);
+      const reveal=Number(a.dataset.navReveal||0);
+      const y=Math.min(top+range*reveal,Math.max(0,document.documentElement.scrollHeight-innerHeight));
+      navigateWithCurtain(y);
+      /* Revert to the old visible glide by using this instead:
+      document.body.classList.add('is-nav-jump');
+      if(smooth.enabled)smooth.goToSlow(y,2000,()=>document.body.classList.remove('is-nav-jump'));
+      else{scrollTo({top:y,behavior:'smooth'});setTimeout(()=>document.body.classList.remove('is-nav-jump'),1200);}
+      */
+      return;
+    }
+    const y=target.getBoundingClientRect().top+scrollY;
     if(smooth.enabled)smooth.goTo(y);else scrollTo({top:y,behavior:'smooth'});
   }));
+
+  /* Nav progress: each menu label fills left-to-right as its section scrolls
+     through its pinned range, reaching full (dark) exactly at the section's
+     own reveal point (data-nav-reveal — the same "settled" fraction the nav
+     click lands on) and holding there for the rest of that section's span,
+     instead of only reaching full at the very end of the scroll range. */
+  const navLinks=[...document.querySelectorAll('.site-menu a[data-nav-target]')];
+  const navSections=navLinks.map(link=>({
+    link,
+    fill:link.querySelector('.nav-link-fill'),
+    reveal:clamp(Number(link.dataset.navReveal||1),.001,1),
+    el:document.querySelector(link.getAttribute('href'))
+  })).filter(item=>item.el&&item.fill);
+  let navRanges=[];
+  const measureNavRanges=()=>{
+    navRanges=navSections.map(({el})=>{
+      const top=el.getBoundingClientRect().top+scrollY;
+      const range=Math.max(1,el.offsetHeight-innerHeight);
+      return {start:top,end:top+range};
+    });
+  };
+  const updateNavProgress=()=>{
+    navSections.forEach((item,index)=>{
+      const {start,end}=navRanges[index];
+      const raw=end>start?clamp((scrollY-start)/(end-start),0,1):(scrollY>=end?1:0);
+      const p=clamp(raw/item.reveal,0,1);
+      item.fill.style.clipPath=`inset(0 ${(1-p)*100}% 0 0)`;
+      item.link.classList.toggle('is-nav-active',raw>0&&raw<1);
+    });
+  };
+  if(navSections.length){
+    measureNavRanges();
+    updateNavProgress();
+    addEventListener('scroll',updateNavProgress,{passive:true});
+    addEventListener('resize',()=>{measureNavRanges();updateNavProgress();},{passive:true});
+  }
 })();

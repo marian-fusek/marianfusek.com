@@ -5,8 +5,94 @@
   font-style: normal;
   font-display: swap;
 }
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-Thin.woff2") format("woff2");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-ThinItalic.woff2") format("woff2");
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-LightItalic.woff2") format("woff2");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-Book.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-BookItalic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-Regular.woff2") format("woff2");
+  font-weight: 450;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-RegularItalic.woff2") format("woff2");
+  font-weight: 450;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-MediumItalic.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-Bold.woff2") format("woff2");
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Nollie Oracle";
+  src: url("../fonts/NollieOracle-BoldItalic.woff2") format("woff2");
+  font-weight: 600 900;
+  font-style: italic;
+  font-display: swap;
+}
 
 :root {
+  --font-family: Geist, Arial, sans-serif;
+  --weight-regular: 400;
   --bg: #f7f5f2;
   --bg-top: var(--bg);
   --surface: var(--bg);
@@ -44,6 +130,13 @@
   --auto-text-wipe-duration: 1.5s;
   --auto-text-wipe-stagger: 0.16s;
 }
+html.font-nollie {
+  --font-family: "Nollie Oracle", Geist, Arial, sans-serif;
+  --weight-regular: 350;
+}
+html.font-nollie * {
+  letter-spacing: -0.02em !important;
+}
 * {
   box-sizing: border-box;
   cursor: none !important;
@@ -60,7 +153,8 @@ body {
   margin: 0;
   background: linear-gradient(180deg, var(--bg-top), var(--bg));
   color: var(--ink);
-  font-family: Geist, Arial, sans-serif;
+  font-family: var(--font-family), Arial, sans-serif;
+  font-weight: var(--weight-regular);
   overflow-x: hidden;
   cursor: none;
 }
@@ -91,9 +185,6 @@ body.case-overlay-open .site-nav .nav-logo {
 .site-menu.is-wiping-in a:nth-child(5) {
   animation-delay: calc(var(--auto-text-wipe-stagger) * 4);
 }
-.site-menu.is-wiping-in a:nth-child(6) {
-  animation-delay: calc(var(--auto-text-wipe-stagger) * 5);
-}
 @keyframes menuTopWipe {
   to {
     opacity: 0.72;
@@ -106,6 +197,7 @@ button {
   color: inherit;
   font: inherit;
   cursor: none !important;
+  outline: none;
 }
 button {
   border: 0;
@@ -135,7 +227,7 @@ figure:has(> video) > video:hover {
   display: flex;
   align-items: center;
   padding: 0 var(--pad);
-  font-family: Geist, sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: 10px;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -156,13 +248,16 @@ figure:has(> video) > video:hover {
 .site-nav .nav-logo {
   position: relative;
   margin-right: auto;
-  font-family: Geist, sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: -0.02em;
   white-space: nowrap;
   color: var(--ink);
   opacity: 1;
+}
+.nav-hamburger {
+  display: none;
 }
 .site-menu {
   position: absolute;
@@ -176,13 +271,23 @@ figure:has(> video) > video:hover {
   gap: var(--grid-gap);
 }
 .site-menu a {
-  font: 400 var(--type-3) / 20px Geist, sans-serif;
+  position: relative;
+  display: inline-block;
+  font: var(--weight-regular) var(--type-3) / 20px var(--font-family), sans-serif;
   letter-spacing: normal;
   color: var(--body);
   text-transform: none;
 }
 .site-menu a:hover {
   color: var(--ink);
+}
+.nav-link-fill {
+  position: absolute;
+  inset: 0;
+  color: var(--ink);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 /* HERO */
@@ -218,7 +323,7 @@ figure:has(> video) > video:hover {
   bottom: 18px;
   margin: 0;
   color: var(--body);
-  font: 400 var(--type-3) / 20px Geist, sans-serif;
+  font: var(--weight-regular) var(--type-3) / 20px var(--font-family), sans-serif;
 }
 .hero > .hero-availability.is-hero-pinned {
   position: fixed;
@@ -237,6 +342,7 @@ figure:has(> video) > video:hover {
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--ink);
+  text-decoration: none;
 }
 .hero-recent-cue-arrow {
   font-size: var(--type-3);
@@ -252,7 +358,7 @@ figure:has(> video) > video:hover {
   margin: 0;
   color: var(--ink);
   font-size: var(--type-project-title);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   line-height: 20px;
   letter-spacing: normal;
 }
@@ -263,7 +369,7 @@ figure:has(> video) > video:hover {
 .hero-meta {
   margin-top: 18px;
   min-height: 1.3em;
-  font-family: Geist, sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: var(--type-3);
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -309,7 +415,7 @@ figure:has(> video) > video:hover {
   white-space: nowrap;
   color: var(--ink);
   font-size: clamp(64px, 8.2vw, 150px);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   line-height: 0.76;
   letter-spacing: -0.075em;
   text-shadow: none;
@@ -340,7 +446,7 @@ figure:has(> video) > video:hover {
   position: absolute;
   font-size: var(--type-project-title);
   letter-spacing: normal;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   font-variation-settings: "wght" 400;
   line-height: 20px;
   left: var(--pad);
@@ -388,420 +494,129 @@ figure:has(> video) > video:hover {
 
 .projects {
   position: relative;
-  min-height: 400svh;
+  height: 500svh;
+  min-height: calc(720px + 400svh);
   background: transparent;
 }
 .projects-stage {
-  position: relative;
-  height: 400svh;
-  min-height: 400svh;
-}
-.projects-shell {
   position: sticky;
   top: 0;
   height: 100svh;
   min-height: 720px;
-  padding: 0 var(--pad);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: clip;
 }
-.projects-shell--sequence {
-  position: sticky;
-}
-.projects-frame {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  overflow: hidden;
-}
-.projects-image-mask {
-  position: absolute;
-  left: 25%;
-  bottom: var(--pad);
-  width: 75%;
-  height: auto;
-  aspect-ratio: 2200 / 1463;
-  overflow: hidden;
-  clip-path: inset(100% 0 0 0);
-  z-index: 0;
-}
-.projects-image-mask .projects-image {
-  position: relative !important;
-  inset: auto !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
-  clip-path: none !important;
-}
-.projects-sweep-line {
-  position: absolute;
-  z-index: 3;
-  pointer-events: none;
+.projects-fade {
   opacity: 0;
-  background: var(--sweep-color, rgba(12, 12, 12, 0.1));
-  transition: opacity 0.12s linear;
-  will-change: transform;
+  clip-path: inset(0 0 100% 0);
+  will-change: opacity, clip-path;
 }
-.projects-sweep-line[data-direction="bottom"],
-.projects-sweep-line[data-direction="top"] {
-  left: 0;
-  width: 100%;
-  height: 1px;
-}
-.projects-sweep-line[data-direction="left"],
-.projects-sweep-line[data-direction="right"] {
-  top: 0;
-  width: 1px;
-  height: 100%;
-}
-.projects-image-mask {
-  transform: none !important;
-}
-.projects-intro {
+.projects-label {
   position: absolute;
-  inset: 0;
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  transform: none;
-  perspective: 700px;
-  pointer-events: none;
-  will-change: opacity, transform;
-}
-.projects-intro--overlay {
-  background: transparent;
-  opacity: 1;
-}
-.projects-intro-line {
-  display: block;
-  overflow: hidden;
-}
-.projects-intro-piece {
-  display: inline-block;
-  position: relative;
+  z-index: 20;
+  top: var(--section-copy-start-y, 26.5svh);
+  left: var(--pad);
+  width: calc((var(--grid-column) * 2) + var(--grid-gap));
   font:
-    400 var(--type-project-title) / 1 Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
-  transform-origin: 50% 100%;
-  transform: rotateX(92deg) translateY(18px);
-  opacity: 0;
-  filter: blur(1px);
-  will-change: transform, opacity, filter;
-  transition:
-    transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1),
-    opacity 0.18s cubic-bezier(0.22, 0.61, 0.36, 1),
-    filter 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-.projects-intro-word {
-  display: block;
+.projects-counter {
   position: absolute;
-  transition:
-    transform 1.6s var(--ease),
-    opacity 1.6s var(--ease);
+  z-index: 20;
+  top: var(--section-copy-start-y, 26.5svh);
+  right: var(--pad);
+  text-align: right;
+  font: var(--weight-regular) var(--type-3) / 1.2 var(--font-family), sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
-.projects-intro-word--recent {
-  top: 10vh;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.projects-intro-word--projects {
-  bottom: 10vh;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.projects-intro-piece.is-gallery-moving .projects-intro-word--recent {
-  opacity: 0;
-  transform: translate(-50%, -8vh);
-}
-.projects-intro-piece.is-gallery-moving .projects-intro-word--projects {
-  opacity: 0;
-  transform: translate(-50%, 8vh);
-}
-.projects-intro-piece {
-  display: block;
+.projects-frame {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
 }
-.projects-intro-piece {
-  clip-path: inset(0 0 100% 0);
+.projects-slide {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   opacity: 0;
+  pointer-events: none;
 }
-.projects-intro-piece.is-visible {
-  animation: recentTopWipe var(--auto-text-wipe-duration) var(--ease) forwards;
+.projects-slide.is-active {
+  z-index: 2;
+  pointer-events: auto;
 }
-.projects-intro-piece.is-wiping-out {
-  animation: recentWipeOut var(--auto-text-wipe-duration) var(--ease) forwards !important;
+.projects-slide-image {
+  position: absolute;
+  top: calc(var(--section-copy-start-y, 26.5svh) + 60px);
+  left: var(--pad);
+  right: var(--pad);
+  bottom: var(--pad);
+  width: calc(100% - (var(--pad) * 2));
+  height: calc(
+    100% - (var(--section-copy-start-y, 26.5svh) + 60px) - var(--pad)
+  );
+  object-fit: cover;
+  clip-path: inset(0 0 100% 0);
+  will-change: opacity, clip-path;
 }
-@keyframes recentWipeOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-    clip-path: inset(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-8px);
-    clip-path: inset(0 0 100% 0);
-  }
+.projects-slide-copy {
+  position: absolute;
+  z-index: 3;
+  left: calc(var(--pad) + (var(--grid-step) * 3));
+  top: var(--section-copy-start-y, 26.5svh);
+  width: calc((var(--grid-column) * 5) + (var(--grid-gap) * 4));
+  color: var(--ink);
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  will-change: opacity, clip-path;
+}
+.projects-slide-tag {
+  position: absolute;
+  z-index: 3;
+  left: var(--grid-i-start);
+  top: var(--section-copy-start-y, 26.5svh);
+  width: var(--grid-span-3);
+  font: var(--weight-regular) var(--type-3) / 1.2 var(--font-family), sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--body);
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  will-change: opacity, clip-path;
+}
+.projects-slide-title {
+  margin: 0;
+  font:
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
+    sans-serif;
+  letter-spacing: normal;
+  color: var(--ink);
+}
+.projects-slide-desc {
+  margin: 2px 0 0;
+  font:
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
+    sans-serif;
+  letter-spacing: normal;
+  color: var(--body);
 }
 .recent-period {
   color: var(--meta);
 }
-@keyframes recentTopWipe {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    clip-path: inset(0);
-  }
-}
-@keyframes recentBottomWipe {
-  from {
-    opacity: 0;
-    transform: none;
-    clip-path: inset(100% 0 0 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0);
-  }
-}
-@keyframes recentTopWipeOut {
-  from {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0);
-  }
-  to {
-    opacity: 0;
-    transform: none;
-    clip-path: inset(0 0 100% 0);
-  }
-}
-@keyframes recentBottomWipeOut {
-  from {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0);
-  }
-  to {
-    opacity: 0;
-    transform: none;
-    clip-path: inset(100% 0 0 0);
-  }
-}
-@keyframes infoBottomWipe {
-  from {
-    opacity: 0;
-    transform: none;
-    clip-path: inset(100% 0 0 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0);
-  }
-}
-.projects-intro {
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 0;
-  box-sizing: border-box;
-}
-.projects-intro-piece {
-  position: absolute !important;
-  left: var(--pad);
-  bottom: calc(var(--pad) + 20px);
-  top: auto;
-  width: auto !important;
-  height: auto !important;
-  display: block !important;
-  filter: none;
-}
-.projects-intro-word {
-  position: static !important;
-  display: inline !important;
-}
-.projects-intro-word--recent::after {
-  content: " ";
-}
-.projects-info {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 42px;
-  min-height: 42px;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
-  row-gap: 2px;
-  align-items: baseline;
-  box-sizing: border-box;
-  font:
-    400 var(--type-project-label) / 1.2 Geist,
-    sans-serif;
-  letter-spacing: var(--tracking-project-meta);
-  color: var(--body);
-  opacity: 0;
-  transform: translateY(8px);
-  clip-path: inset(0 0 100% 0);
-  transition:
-    opacity 0.55s var(--ease),
-    transform 0.55s var(--ease),
-    clip-path 0.7s var(--ease);
-}
-.projects-info-set {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto auto;
-  row-gap: 2px;
-  pointer-events: none;
-  will-change: opacity, clip-path;
-}
-.projects-info-set .auto-wipe-line {
-  opacity: 1 !important;
-  clip-path: none !important;
-  transform: none !important;
-  animation: none !important;
-  transition: none !important;
-}
-.projects-info.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-  clip-path: inset(0 0 0 0);
-}
-.projects-info.is-wiping-out {
-  opacity: 0;
-  transform: translateY(-8px);
-  clip-path: inset(0 0 100% 0);
-  transition:
-    opacity var(--auto-text-wipe-duration) var(--ease),
-    transform var(--auto-text-wipe-duration) var(--ease),
-    clip-path var(--auto-text-wipe-duration) var(--ease);
-}
-.projects-info-col {
-  display: block;
-  opacity: 0;
-  transform: translateY(8px);
-  clip-path: inset(0 0 100% 0);
-}
-.projects-info.is-visible .projects-info-col {
-  animation: infoTopWipe var(--auto-text-wipe-duration) var(--ease) forwards;
-}
-.projects-intro-piece.is-wipe-forward.is-visible {
-  animation-name: recentTopWipe;
-}
-.projects-intro-piece.is-wipe-forward.is-wiping-out {
-  animation-name: recentTopWipeOut !important;
-}
-.projects-intro-piece.is-wipe-backward.is-visible {
-  animation: recentBottomWipe var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-}
-.projects-intro-piece.is-wipe-backward.is-wiping-out {
-  animation: recentBottomWipeOut var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-}
-.projects-info.is-wipe-forward.is-visible {
-  animation: none;
-}
-.projects-info.is-wipe-forward.is-wiping-out {
-  animation: recentTopWipeOut var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-  transition: none !important;
-}
-.projects-info.is-wipe-backward.is-visible {
-  animation: recentBottomWipe var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-  transition: none !important;
-}
-.projects-info.is-wipe-backward.is-wiping-out {
-  animation: recentBottomWipeOut var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-  transition: none !important;
-}
-.projects-info.is-wipe-backward.is-visible .projects-info-col {
-  animation: infoBottomWipe var(--auto-text-wipe-duration) var(--ease) forwards !important;
-}
 .type-project-title {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
 }
 .type-project-meta {
   font:
-    400 var(--type-project-meta) / 20px Geist,
+    var(--weight-regular) var(--type-project-meta) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: #949494;
-}
-.type-project-tag {
-  font:
-    400 var(--type-project-tag) / 20px Geist,
-    sans-serif;
-  letter-spacing: normal;
-  color: #949494;
-}
-.type-project-label {
-  font:
-    400 var(--type-project-label) / 1.2 Geist,
-    sans-serif;
-  letter-spacing: var(--tracking-project-meta);
-}
-.projects-info-col--0 {
-  grid-column: 1;
-  grid-row: 1;
-}
-.projects-info-col--1 {
-  grid-column: 1;
-  grid-row: 2;
-  text-align: left;
-  padding-left: 0;
-  text-transform: none;
-  letter-spacing: -0.015em;
-}
-.projects-info-col--2 {
-  position: absolute;
-  right: auto;
-  top: 22px;
-  width: var(--grid-span-3);
-  max-width: var(--grid-span-3);
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--body);
-  white-space: normal;
-}
-@keyframes infoTopWipe {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    clip-path: inset(0);
-  }
 }
 .auto-wipe-line {
   display: block;
@@ -809,10 +624,6 @@ figure:has(> video) > video:hover {
   transform: translateY(8px);
   clip-path: inset(0 0 100% 0);
   will-change: opacity, transform, clip-path;
-}
-.projects-info.is-visible .auto-wipe-line {
-  animation: autoTextLineWipe var(--auto-text-wipe-duration) var(--ease)
-    calc(var(--line-index, 0) * var(--auto-text-wipe-stagger)) forwards;
 }
 .case-overlay.is-content-reveal
   .case-project-content
@@ -852,74 +663,6 @@ figure:has(> video) > video:hover {
     clip-path: inset(0);
   }
 }
-.projects-image {
-  position: absolute;
-  left: 25%;
-  right: auto;
-  top: auto;
-  bottom: var(--pad);
-  width: 75%;
-  height: auto;
-  object-fit: contain;
-  opacity: 0;
-  transform: scale(1);
-  transform-origin: center center;
-  clip-path: inset(75% 0 0 25%);
-  transition:
-    opacity 1.275s var(--ease),
-    transform 1.275s var(--ease),
-    clip-path 1.275s var(--ease);
-  filter: saturate(0.98) contrast(0.98);
-  will-change: transform, opacity, clip-path;
-}
-.projects-image.is-active {
-  opacity: 1;
-}
-.projects-progress {
-  position: absolute;
-  left: auto;
-  right: var(--pad);
-  bottom: var(--pad);
-  z-index: 1000;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-  width: calc(6.25% - (var(--pad) / 2));
-  padding: 0;
-  pointer-events: none;
-  opacity: 0;
-  clip-path: inset(0 0 100% 0);
-}
-.projects-progress.is-wipe-forward.is-visible {
-  animation: recentTopWipe var(--auto-text-wipe-duration) var(--ease) forwards;
-}
-.projects-progress.is-wipe-forward.is-wiping-out {
-  animation: recentTopWipeOut var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-}
-.projects-progress.is-wipe-backward.is-visible {
-  animation: recentBottomWipe var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-}
-.projects-progress.is-wipe-backward.is-wiping-out {
-  animation: recentBottomWipeOut var(--auto-text-wipe-duration) var(--ease)
-    forwards !important;
-}
-.projects-progress-segment {
-  height: 1px;
-  background: rgba(0, 0, 0, 0.2);
-  overflow: hidden;
-}
-.projects-progress-segment::before {
-  content: "";
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  transform: scaleX(var(--seg-fill, 0));
-  transform-origin: left center;
-  transition: transform 0.63s cubic-bezier(0.22, 0.61, 0.36, 1);
-}
 .page-scroll-progress {
   position: fixed;
   z-index: 6000;
@@ -956,10 +699,6 @@ figure:has(> video) > video:hover {
 body.case-overlay-open .page-scroll-progress {
   opacity: 0;
 }
-.projects-stage.is-released .projects-frame,
-.projects-stage.is-released .projects-intro {
-  pointer-events: none;
-}
 .post-project-transition {
   position: relative;
   height: 260svh;
@@ -993,7 +732,7 @@ body.case-overlay-open .page-scroll-progress {
 }
 .post-project-transition-index {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -1001,7 +740,7 @@ body.case-overlay-open .page-scroll-progress {
 .post-project-transition-copy {
   margin: 0;
   font:
-    400 clamp(16px, 2vw, 30px) / 1.08 Geist,
+    var(--weight-regular) clamp(16px, 2vw, 30px) / 1.08 var(--font-family),
     sans-serif;
   letter-spacing: -0.04em;
   color: var(--ink);
@@ -1014,7 +753,7 @@ body.case-overlay-open .page-scroll-progress {
 .post-project-transition-title {
   margin-top: 4px;
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
 }
@@ -1022,7 +761,7 @@ body.case-overlay-open .page-scroll-progress {
   margin-top: 4px;
   color: var(--body);
   font:
-    400 var(--type-project-meta) / 1.2 Geist,
+    var(--weight-regular) var(--type-project-meta) / 1.2 var(--font-family),
     sans-serif;
   letter-spacing: normal;
 }
@@ -1106,9 +845,9 @@ body.case-overlay-open .page-scroll-progress {
   grid-column: 9 / span 4;
   grid-row: 1;
   justify-self: start;
-  font-family: Geist, sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: var(--type-3);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--body);
@@ -1126,7 +865,7 @@ body.case-overlay-open .page-scroll-progress {
 }
 .post-project-service h2 {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -1136,7 +875,7 @@ body.case-overlay-open .page-scroll-progress {
   margin-top: 0;
   overflow: hidden;
   font:
-    400 var(--type-project-meta) / 1.2 Geist,
+    var(--weight-regular) var(--type-project-meta) / 1.2 var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--body);
@@ -1158,9 +897,9 @@ body.case-overlay-open .page-scroll-progress {
   clip-path: inset(0);
 }
 .post-project-service-index {
-  font-family: Geist, sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: var(--type-3);
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--body);
@@ -1196,7 +935,7 @@ body.case-overlay-open .page-scroll-progress {
   right: auto;
   top: 70%;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   letter-spacing: -0.01em;
   color: var(--body);
@@ -1224,14 +963,14 @@ body.case-overlay-open .page-scroll-progress {
 }
 .post-project-services-summary h2 {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   color: var(--ink);
 }
 .post-project-services-summary p {
   margin-top: 4px;
   font:
-    400 var(--type-project-meta) / 20px Geist,
+    var(--weight-regular) var(--type-project-meta) / 20px var(--font-family),
     sans-serif;
   color: var(--body);
 }
@@ -1282,7 +1021,7 @@ body.case-overlay-open .page-scroll-progress {
   column-gap: var(--grid-gap);
   align-items: start;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1316,6 +1055,8 @@ body.case-overlay-open .page-scroll-progress {
   height: 10px;
   margin-right: 6px;
   vertical-align: middle;
+  position: relative;
+  top: -1px;
 }
 .bio-portrait {
   position: absolute;
@@ -1335,7 +1076,7 @@ body.case-overlay-open .page-scroll-progress {
 .bio-copy-block {
   position: absolute;
   font:
-    400 var(--type-3) / 1.25 Geist,
+    var(--weight-regular) var(--type-3) / 1.25 var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1343,7 +1084,7 @@ body.case-overlay-open .page-scroll-progress {
 .bio-history h2 {
   margin-bottom: 2px;
   font:
-    500 var(--type-3) / 1.2 Geist,
+    500 var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1352,7 +1093,7 @@ body.case-overlay-open .page-scroll-progress {
 }
 .bio-about-xp {
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--body);
 }
@@ -1388,7 +1129,7 @@ body.case-overlay-open .page-scroll-progress {
   grid-template-columns: var(--grid-column) 1fr;
   column-gap: var(--grid-gap);
   font:
-    400 var(--type-3) / 1.35 Geist,
+    var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
     sans-serif;
 }
 .bio-links {
@@ -1397,7 +1138,7 @@ body.case-overlay-open .page-scroll-progress {
   right: var(--pad);
   top: 78%;
   font:
-    400 var(--type-3) / 1.35 Geist,
+    var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
     sans-serif;
 }
 @media (max-height: 850px) and (min-width: 901px) {
@@ -1448,7 +1189,7 @@ body.case-overlay-open .page-scroll-progress {
   margin-top: 24px;
 }
 .bio-history-secondary h2 {
-  font-weight: 400;
+  font-weight: var(--weight-regular);
 }
 .bio-about,
 .bio-style {
@@ -1490,7 +1231,7 @@ body.case-overlay-open .page-scroll-progress {
   right: calc(var(--grid-step) * 4);
   width: calc((var(--grid-column) * 3) + (var(--grid-gap) * 2));
   font:
-    500 var(--type-3) / 1.2 Geist,
+    500 var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1500,7 +1241,7 @@ body.case-overlay-open .page-scroll-progress {
   right: calc(var(--grid-step) * 4);
   width: calc((var(--grid-column) * 3) + (var(--grid-gap) * 2));
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1603,14 +1344,14 @@ body.case-overlay-open .page-scroll-progress {
   color: var(--body);
 }
 .bio-copy-switch {
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--body);
   transition:
     color 0.35s var(--ease),
     font-weight 0.35s var(--ease);
 }
 .bio-copy-switch span {
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--body) !important;
 }
 .bio-copy-switch.is-active {
@@ -1646,7 +1387,7 @@ body.case-overlay-open .page-scroll-progress {
 .bio-copy-switch .bio-copy-switch-note,
 .bio-copy-switch.is-active .bio-copy-switch-note,
 .bio-copy-switch:hover .bio-copy-switch-note {
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   color: var(--body) !important;
 }
 .bio-right.is-copy-wiping-out {
@@ -1689,7 +1430,7 @@ body.case-overlay-open .page-scroll-progress {
 }
 .bio-leadership-meta h2.type-project-title {
   font:
-    500 var(--type-project-title) / 20px Geist,
+    500 var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -1700,7 +1441,7 @@ body.case-overlay-open .page-scroll-progress {
   gap: 6px;
   padding: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1725,7 +1466,7 @@ body.case-overlay-open .page-scroll-progress {
   gap: 6px;
   padding: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -1743,29 +1484,13 @@ body.case-overlay-open .page-scroll-progress {
   z-index: 7000;
   inset: 0;
   overflow: auto;
-  background: var(--surface);
-  opacity: 0;
-  visibility: hidden;
-  clip-path: inset(0 0 100% 0);
-  transition:
-    opacity 0.2s linear,
-    clip-path 0.8s var(--ease),
-    visibility 0s linear 0.8s;
-}
-.coaching-overlay.is-open {
-  opacity: 1;
-  visibility: visible;
-  clip-path: inset(0);
-  transition:
-    opacity 0.2s linear,
-    clip-path 0.8s var(--ease);
-}
-.coaching-overlay.is-closing {
-  clip-path: inset(0 0 100% 0);
+  background: transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .coaching-overlay-nav {
   position: sticky;
-  z-index: 2;
+  z-index: 3;
   top: 0;
   height: var(--nav-h);
   padding: 0 var(--pad);
@@ -1774,7 +1499,7 @@ body.case-overlay-open .page-scroll-progress {
   justify-content: space-between;
   background: var(--surface);
   font:
-    600 13px/1 Geist,
+    600 13px/1 var(--font-family),
     sans-serif;
 }
 .coaching-overlay-nav button {
@@ -1783,11 +1508,22 @@ body.case-overlay-open .page-scroll-progress {
   display: grid;
   place-items: center;
   font:
-    300 28px/1 Geist,
+    300 28px/1 var(--font-family),
     sans-serif;
 }
 .coaching-overlay-nav button.is-cursor-target {
   color: var(--surface);
+}
+#coachingOverlayClose {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s linear;
+}
+.coaching-overlay.is-close-visible #coachingOverlayClose {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 .coaching-overlay-rule {
   position: fixed;
@@ -1802,7 +1538,7 @@ body.case-overlay-open .page-scroll-progress {
   transition: transform 0.8s var(--ease);
   pointer-events: none;
 }
-.coaching-overlay.is-open .coaching-overlay-rule {
+.coaching-overlay.is-content-reveal .coaching-overlay-rule {
   transform: scaleX(1);
 }
 .coaching-overlay.is-closing .coaching-overlay-rule {
@@ -1810,6 +1546,8 @@ body.case-overlay-open .page-scroll-progress {
   transform-origin: right center;
 }
 .coaching-overlay-grid {
+  position: relative;
+  z-index: 1;
   min-height: 100svh;
   padding: calc(var(--nav-h) + 52px) var(--pad) 80px;
   display: grid;
@@ -1825,11 +1563,16 @@ body.case-overlay-open .page-scroll-progress {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
+  opacity: 0;
+  clip-path: inset(0 0 100svh 0);
+  transition:
+    opacity 0.35s linear,
+    clip-path 1.1s var(--ease);
 }
 .coaching-review-index button {
   padding: 0;
   font:
-    400 var(--type-3) / 1.3 Geist,
+    var(--weight-regular) var(--type-3) / 1.3 var(--font-family),
     sans-serif;
   color: var(--body);
   transition: color 0.35s var(--ease);
@@ -1850,8 +1593,13 @@ body.case-overlay-open .page-scroll-progress {
   position: sticky;
   top: calc(var(--nav-h) + 52px);
   font:
-    400 var(--type-3) / 1.25 Geist,
+    var(--weight-regular) var(--type-3) / 1.25 var(--font-family),
     sans-serif;
+  opacity: 0;
+  clip-path: inset(0 0 100svh 0);
+  transition:
+    opacity 0.35s linear,
+    clip-path 1.1s var(--ease);
 }
 .coaching-review-profile img {
   display: block;
@@ -1866,7 +1614,7 @@ body.case-overlay-open .page-scroll-progress {
 }
 .coaching-review-profile h2 {
   font:
-    500 var(--type-3) / 1.2 Geist,
+    500 var(--type-3) / 1.2 var(--font-family),
     sans-serif;
 }
 .coaching-review-profile .type-project-meta {
@@ -1875,26 +1623,116 @@ body.case-overlay-open .page-scroll-progress {
 .coaching-review-copy {
   grid-column: 7 / -1;
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
-  opacity: 1;
-  clip-path: inset(0);
+  opacity: 0;
+  clip-path: inset(0 0 100svh 0);
   transition:
     opacity 0.35s linear,
-    clip-path 0.55s var(--ease);
+    clip-path 1.1s var(--ease);
 }
 .coaching-review-copy p {
   margin: 0;
 }
+.coaching-review-type-heading,
+.coaching-review-duration {
+  opacity: 0;
+  clip-path: inset(0 0 100svh 0);
+  transition:
+    opacity 0.35s linear,
+    clip-path 1.1s var(--ease);
+}
+/* Hidden until the curtain finishes covering and playCoachingEntry() takes
+   over (see .coaching-overlay.is-content-reveal below) — otherwise this
+   content would already be visible under the still-closed curtain. */
+.coaching-overlay.is-content-reveal .coaching-review-index,
+.coaching-overlay.is-content-reveal .coaching-review-profile,
+.coaching-overlay.is-content-reveal .coaching-review-copy,
+.coaching-overlay.is-content-reveal .coaching-review-type-heading,
+.coaching-overlay.is-content-reveal .coaching-review-duration {
+  opacity: 1;
+  clip-path: inset(0);
+}
 .coaching-overlay.is-review-switching .coaching-review-profile,
 .coaching-overlay.is-review-switching .coaching-review-copy {
   opacity: 0;
-  clip-path: inset(0 0 100% 0);
+  clip-path: inset(0 0 100svh 0);
+}
+.art-support-overlay {
+  position: fixed;
+  z-index: 6000;
+  inset: 0;
+  overflow: hidden;
+  background: transparent;
+}
+.art-support-overlay-nav {
+  position: relative;
+  z-index: 3;
+  height: var(--nav-h);
+  padding: 0 var(--pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  font:
+    600 13px/1 var(--font-family),
+    sans-serif;
+}
+.art-support-overlay-nav button.is-cursor-target {
+  color: var(--surface);
+}
+#artSupportOverlayClose {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font:
+    300 28px/1 var(--font-family),
+    sans-serif;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.18s linear;
+}
+.art-support-overlay.is-close-visible #artSupportOverlayClose {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.art-support-overlay-body {
+  position: relative;
+  z-index: 1;
+  height: calc(100% - var(--nav-h));
+  padding: 0 var(--pad) var(--pad);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  clip-path: inset(0 0 100svh 0);
+}
+.art-support-overlay.is-content-reveal .art-support-overlay-body {
+  opacity: 1;
+  clip-path: inset(0);
+  transition:
+    opacity 0.35s linear,
+    clip-path 1.1s var(--ease);
+}
+#artSupportFrame {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  height: 640px;
+  max-height: 100%;
+  border: 0;
+  background: var(--surface);
+}
+body.art-support-overlay-open {
+  overflow: hidden;
 }
 body.coaching-overlay-open {
   overflow: hidden;
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .coaching-overlay-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     row-gap: 32px;
@@ -1963,13 +1801,13 @@ body.coaching-overlay-open {
 }
 .coaching-review-profile .coaching-review-profile-name {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
 }
 .coaching-review-profile-position {
   margin-top: 2px !important;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
 }
 .coaching-review-profile-company {
@@ -1981,7 +1819,7 @@ body.coaching-overlay-open {
   gap: 6px;
   margin-top: 16px;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--body);
 }
@@ -2009,22 +1847,6 @@ img[src*="/flags/"] {
   left: 0;
   right: 0;
 }
-.coaching-overlay {
-  background: transparent;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.coaching-overlay::-webkit-scrollbar {
-  display: none;
-}
-.coaching-overlay::before {
-  content: "";
-  position: fixed;
-  z-index: 0;
-  inset: 0;
-  background: var(--surface);
-  pointer-events: none;
-}
 .coaching-overlay-grid {
   position: relative;
   z-index: 1;
@@ -2041,7 +1863,7 @@ img[src*="/flags/"] {
 }
 .coaching-review-parts button {
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--body);
   transition:
@@ -2066,13 +1888,6 @@ img[src*="/flags/"] {
   opacity: 0;
   clip-path: inset(0 0 100% 0);
 }
-.coaching-review-profile {
-  opacity: 1;
-  clip-path: inset(0);
-  transition:
-    opacity 0.35s linear,
-    clip-path 0.55s var(--ease);
-}
 .coaching-review-parts button {
   transition:
     color 0.35s var(--ease),
@@ -2091,13 +1906,8 @@ img[src*="/flags/"] {
 .coaching-review-duration {
   margin: 0;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
-  opacity: 1;
-  clip-path: inset(0);
-  transition:
-    opacity 0.35s linear,
-    clip-path 0.55s var(--ease);
 }
 .coaching-review-type-heading {
   color: var(--ink);
@@ -2110,12 +1920,12 @@ img[src*="/flags/"] {
   opacity: 0;
   clip-path: inset(0 0 100% 0);
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .coaching-review-meta {
     grid-column: 1 / -1;
   }
 }
-@media (min-width: 901px) {
+@media (min-width: 901px) and ((hover: hover) or (pointer: fine) or (orientation: landscape)) {
   .coaching-overlay-rule {
     top: var(--section-copy-start-y, 26.5svh);
   }
@@ -2158,8 +1968,8 @@ img[src*="/flags/"] {
 }
 .initiatives-section {
   position: relative;
-  height: 200svh;
-  min-height: 1440px;
+  height: 260svh;
+  min-height: calc(720px + 160svh);
   margin-top: -100svh;
   background: var(--surface);
   overflow: clip;
@@ -2191,7 +2001,7 @@ img[src*="/flags/"] {
   left: var(--pad);
   top: calc(var(--section-copy-start-y, 26.5svh) - 32px);
   font:
-    500 var(--type-3) / 1.2 Geist,
+    500 var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -2223,14 +2033,14 @@ img[src*="/flags/"] {
   grid-column: 1 / span 3;
   grid-row: 1;
   font:
-    400 var(--type-3) / 1.35 Geist,
+    var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
     sans-serif;
 }
 .initiatives-group h3,
 .initiatives-meta h3,
 .initiatives-mentions h3 {
   font:
-    500 var(--type-3) / 1.2 Geist,
+    500 var(--type-3) / 1.2 var(--font-family),
     sans-serif;
 }
 .initiatives-group + .initiatives-group {
@@ -2256,7 +2066,8 @@ img[src*="/flags/"] {
   overflow: hidden;
   background: var(--surface-soft);
 }
-.initiatives-media img {
+.initiatives-media img,
+.initiatives-media video {
   display: block;
   width: 100%;
   height: 100%;
@@ -2267,6 +2078,10 @@ img[src*="/flags/"] {
     opacity 0.3s linear,
     clip-path 0.55s var(--ease),
     transform 3.2s var(--ease);
+}
+.initiatives-media img[hidden],
+.initiatives-media video[hidden] {
+  display: none;
 }
 .initiatives-detail {
   grid-column: var(--initiatives-detail-column);
@@ -2283,21 +2098,30 @@ img[src*="/flags/"] {
 }
 .initiatives-copy {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   color: var(--ink);
 }
 .initiatives-copy p + p {
   margin-top: 22px;
 }
+.case-project-link-arrow {
+  display: inline-block;
+  width: 1em;
+  flex-shrink: 0;
+  text-align: center;
+}
 .initiatives-copy-link {
-  display: inline-flex;
+  display: flex;
   align-items: baseline;
   gap: 6px;
   margin-top: 22px;
-  font: 400 var(--type-project-title) / 20px Geist, sans-serif;
+  font: var(--weight-regular) var(--type-project-title) / 20px var(--font-family), sans-serif;
   color: var(--ink);
   text-decoration: none;
+}
+.initiatives-copy-link + .initiatives-copy-link {
+  margin-top: 2px;
 }
 .initiatives-copy-link .case-project-link-label {
   transition: transform 0.35s var(--ease);
@@ -2311,7 +2135,7 @@ img[src*="/flags/"] {
   column-gap: var(--grid-gap);
   margin-top: 28px;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
 }
 .initiatives-meta > div {
@@ -2324,6 +2148,7 @@ img[src*="/flags/"] {
   color: var(--body);
 }
 .initiatives-stage.is-switching .initiatives-media img,
+.initiatives-stage.is-switching .initiatives-media video,
 .initiatives-stage.is-switching .initiatives-detail > *,
 .initiatives-stage.is-switching .initiatives-mentions {
   opacity: 0;
@@ -2357,7 +2182,7 @@ img[src*="/flags/"] {
   margin-top: 2px;
 }
 .initiatives-mentions .case-project-links a {
-  font: 400 var(--type-3) / 1.2 Geist, sans-serif;
+  font: var(--weight-regular) var(--type-3) / 1.2 var(--font-family), sans-serif;
   color: var(--body);
 }
 .initiatives-mentions .case-project-links a:hover {
@@ -2366,8 +2191,69 @@ img[src*="/flags/"] {
 .initiatives-grid.is-side-quest-active .initiatives-mentions:not(:empty) {
   display: block;
 }
-.initiatives-grid.is-side-quest-active .initiatives-meta {
+.initiatives-grid.is-meta-hidden .initiatives-meta {
+  display: none;
+}
+.footer-section {
+  position: relative;
+  height: 140svh;
+  min-height: calc(720px + 40svh);
+  margin-top: -100svh;
+  background: var(--surface);
+  overflow: clip;
+}
+.footer-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 720px;
+  padding: 0 var(--pad);
+  overflow: clip;
+}
+.footer-wipe {
   opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  will-change: opacity, clip-path;
+}
+.footer-divider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(70% - 16px);
+  height: 1px;
+  background: rgba(12, 12, 12, 0.1);
+  clip-path: none;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.footer-links.case-project-links {
+  position: absolute;
+  left: var(--grid-i-start);
+  right: var(--pad);
+  top: 70%;
+  margin-top: 0;
+}
+.footer-back-top.case-project-links {
+  position: absolute;
+  left: var(--pad);
+  width: var(--grid-span-3);
+  top: 70%;
+  margin-top: 0;
+}
+.footer-back-top.case-project-links a {
+  font:
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+.footer-copyright {
+  position: absolute;
+  left: var(--grid-i-start);
+  width: var(--grid-span-3);
+  bottom: var(--pad);
+  font: var(--weight-regular) var(--type-3) / 1.2 var(--font-family), sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--body);
 }
 @keyframes postServiceWipeIn {
   to {
@@ -2392,6 +2278,121 @@ img[src*="/flags/"] {
   animation: postServiceWipeOut var(--auto-text-wipe-duration) var(--ease)
     forwards !important;
 }
+/* Shared two-curtain-sweep mechanism, used by every full-screen overlay on
+   the site (case-overlay's projects, coaching-overlay's reviews). ::before
+   is the persistent session backdrop: it sweeps in once when an overlay
+   opens, stays fully covering the whole time content is shown, and sweeps
+   away once at the very end of closing to reveal whatever was underneath.
+   ::after is the transient curtain: it covers content already on screen
+   (closing's first phase, or an in-session content switch) and is not
+   involved in a fresh open, since nothing is visible yet to cover there. */
+.curtain-overlay {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.15s linear,
+    visibility 0s linear 0.15s;
+}
+.curtain-overlay::-webkit-scrollbar {
+  display: none;
+}
+.curtain-overlay::before,
+.curtain-overlay::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: var(--surface);
+  pointer-events: none;
+}
+.curtain-overlay::before {
+  z-index: 0;
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.9s var(--ease);
+}
+.curtain-overlay::after {
+  z-index: 2;
+  clip-path: inset(100% 0 0 0);
+  transition: none;
+}
+.curtain-overlay.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.15s linear;
+}
+.curtain-overlay.is-open::before {
+  clip-path: inset(0);
+}
+.curtain-overlay.is-closing {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: none;
+}
+.curtain-overlay.is-closing::before {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.9s var(--ease);
+}
+.curtain-overlay.is-content-exiting::after {
+  clip-path: inset(0);
+  transition: clip-path 0.9s var(--ease);
+}
+/* Dedicated curtain wipe for switching content within an already-open
+   overlay (project switcher, review switcher, etc). Reuses the same
+   surface-colored ::after panel/timing as content-exiting above, but is a
+   self-contained pair of states that never touch is-content-reveal/
+   is-close-visible, so it can't disturb the X button or other chrome while
+   the overlay stays open. */
+.curtain-overlay.is-switch-covering::after {
+  clip-path: inset(0);
+  transition: clip-path 0.9s var(--ease);
+}
+.curtain-overlay.is-switch-revealing::after {
+  /* Longer than the 0.9s cover — the reveal is the moment that actually
+     shows the new content, so it gets extra time to feel smoother/slower
+     rather than matching the cover's pace exactly. */
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1.3s var(--ease);
+}
+/* Instantly (no transition) parks ::after in the fully-covering position —
+   used right before is-switch-revealing so that class's own transition has
+   a committed "inset(0)" starting point to animate away from, without ever
+   actually showing a cover motion (this happens while still hidden behind
+   ::before's opaque backdrop from the open sweep). */
+.curtain-overlay.is-reveal-priming::after {
+  clip-path: inset(0);
+  transition: none;
+}
+/* Nav curtain: covers the screen, the page jumps to its target underneath
+   while hidden, then the curtain retreats — same cover/reveal clip-path
+   technique as .curtain-overlay above, just for a plain page-to-page jump
+   instead of an overlay open/close. */
+.nav-curtain {
+  position: fixed;
+  z-index: 9500;
+  inset: 0;
+  background: var(--surface);
+  clip-path: inset(100% 0 0 0);
+  pointer-events: none;
+  transition: none;
+}
+.nav-curtain.is-covering {
+  clip-path: inset(0);
+  transition: clip-path 0.6s var(--ease);
+}
+.nav-curtain.is-revealing {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.9s var(--ease);
+}
+/* The curtain sits above the nav (z-index 50) so it can cover the whole
+   page during a nav jump — but the logo and menu should stay visible through
+   the entire cover→reveal cycle, not just while is-nav-jump is set (that
+   flag drops the moment the reveal starts, well before the curtain has
+   actually finished retreating). */
+body.is-curtain-active .site-nav {
+  z-index: 9600;
+}
 .case-overlay {
   position: fixed;
   z-index: 3000;
@@ -2403,71 +2404,8 @@ img[src*="/flags/"] {
   touch-action: auto;
   background: transparent;
   padding: 0 var(--pad) var(--pad);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  transition:
-    opacity 0.15s linear,
-    visibility 0s linear 0.15s;
-}
-.case-overlay::-webkit-scrollbar {
-  display: none;
-}
-.case-overlay::before,
-.case-overlay::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: var(--surface);
-  pointer-events: none;
-}
-.case-overlay::before {
-  z-index: 0;
-  clip-path: inset(100% 0 0 0);
-  transition: clip-path 0.9s var(--ease);
-}
-.case-overlay::after {
-  z-index: 2;
-  clip-path: inset(0 0 100% 0);
-  transition: none;
-}
-.case-overlay.is-open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity 0.15s linear;
-}
-.case-overlay.is-open::before {
-  clip-path: inset(0);
-}
-.case-overlay.is-closing {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: none;
-  transition: none;
-}
-.case-overlay.is-closing::before {
-  clip-path: inset(100% 0 0 0);
-  transition: clip-path 0.9s var(--ease);
-}
-.case-overlay.is-content-exiting::after {
-  clip-path: inset(0);
-  transition: clip-path 0.9s var(--ease);
-}
-/* Dedicated curtain wipe for switching between an already-open project's
-   details. Reuses the same surface-colored ::after panel, timing and easing
-   as the content-exiting curtain above, but is a self-contained pair of
-   states so it never touches is-content-reveal/is-close-visible and can't
-   disturb the X button or switcher nav while the overlay stays open. */
-.case-overlay.is-switch-covering::after {
-  clip-path: inset(0);
-  transition: clip-path 0.9s var(--ease);
-}
-.case-overlay.is-switch-revealing::after {
-  clip-path: inset(0 0 100% 0);
-  transition: clip-path 0.9s var(--ease);
 }
 .case-overlay-nav {
   position: fixed;
@@ -2480,7 +2418,7 @@ img[src*="/flags/"] {
   align-items: center;
   justify-content: space-between;
   font:
-    600 13px/1 Geist,
+    600 13px/1 var(--font-family),
     sans-serif;
   letter-spacing: -0.02em;
 }
@@ -2490,7 +2428,7 @@ img[src*="/flags/"] {
   display: grid;
   place-items: center;
   font:
-    300 28px/1 Geist,
+    300 28px/1 var(--font-family),
     sans-serif;
   opacity: 0;
   visibility: hidden;
@@ -2502,16 +2440,25 @@ img[src*="/flags/"] {
   display: none;
 }
 .case-overlay.is-open .case-project-content {
-  clip-path: inset(100% 0 0 0);
+  /* No clip-path here: this container is often several viewport-heights
+     tall (a full case study), and percentage clip-path is relative to its
+     own height, so it can't produce a visible, consistently-paced sweep in
+     either direction (tried both — plain %, then a viewport-unit hidden
+     state — neither worked for a box this tall). The wipe-in motion comes
+     from the ::after curtain instead (see is-reveal-priming/
+     is-switch-revealing in the open sequence); this just controls when
+     content is actually ready to be uncovered. */
   opacity: 0;
-  transition: none;
 }
 .case-overlay.is-open.is-content-reveal .case-project-content {
+  /* No clip-path transition of its own — the visible top-down wipe-in
+     motion comes from the viewport-sized ::after curtain retreating over
+     it (is-reveal-priming → is-switch-revealing in the open sequence),
+     since percentage clip-path on this itself-tall container can't produce
+     a consistent sweep. Content just becomes ready to be uncovered. */
   clip-path: inset(0);
   opacity: 1;
-  transition:
-    clip-path 0.9s var(--ease),
-    opacity 0.18s linear;
+  transition: opacity 0.18s linear;
 }
 .case-overlay.is-close-visible .case-overlay-close {
   opacity: 1;
@@ -2602,17 +2549,18 @@ img[src*="/flags/"] {
 .case-project-title {
   margin: 0;
   font:
-    400 clamp(16px, 2vw, 30px) / 1 Geist,
-    sans-serif;
-  letter-spacing: -0.04em;
-}
-.case-project-strapline {
-  margin: 12px 0 0;
-  font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
+}
+.case-project-strapline {
+  margin: 2px 0 0;
+  font:
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
+    sans-serif;
+  letter-spacing: normal;
+  color: var(--body);
 }
 .case-project-media-links {
   grid-column: 7 / span 3;
@@ -2695,7 +2643,7 @@ img[src*="/flags/"] {
   gap: 6px;
   pointer-events: auto;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -2728,7 +2676,7 @@ img[src*="/flags/"] {
   pointer-events: none;
   transition:
     opacity 0.18s linear,
-    clip-path 0.9s var(--ease);
+    clip-path 1.3s var(--ease);
 }
 .case-overlay.is-open.is-content-reveal .case-project-switcher {
   opacity: 1;
@@ -2747,7 +2695,7 @@ img[src*="/flags/"] {
 .case-project-switcher-link {
   margin: 0;
   font:
-    400 var(--type-3) / 1.2 Geist,
+    var(--weight-regular) var(--type-3) / 1.2 var(--font-family),
     sans-serif;
   letter-spacing: normal;
 }
@@ -2783,7 +2731,7 @@ img[src*="/flags/"] {
 .case-project-copy-title {
   margin: 0 0 22px;
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
   color: var(--ink);
 }
@@ -2907,7 +2855,7 @@ img[src*="/flags/"] {
   grid-column: 4 / span 3;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -2921,7 +2869,7 @@ img[src*="/flags/"] {
 .case-goballer-process {
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3036,7 +2984,7 @@ img[src*="/flags/"] {
   grid-row: 3;
   margin: clamp(20px, 2.5vw, 40px) 0 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3052,7 +3000,7 @@ img[src*="/flags/"] {
   grid-column: 4 / span 3;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3092,7 +3040,7 @@ img[src*="/flags/"] {
 .case-miunae-launch-copy {
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3129,7 +3077,7 @@ img[src*="/flags/"] {
   width: 8.3333%;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3192,27 +3140,6 @@ img[src*="/flags/"] {
   object-fit: cover;
   pointer-events: none;
   user-select: none;
-}
-
-/* Desktop gallery rhythm: image geometry is driven by the vertical stage, not viewport width. */
-@media (min-width: 901px) {
-  .projects-shell {
-    --gallery-top-space: clamp(260px, 27svh, 360px);
-    --gallery-bottom-space: var(--pad);
-  }
-  .projects-image-mask {
-    left: auto;
-    right: 0;
-    top: auto;
-    bottom: var(--gallery-bottom-space);
-    width: auto;
-    height: min(
-      calc(100svh - var(--gallery-top-space) - var(--gallery-bottom-space)),
-      49vw
-    );
-    max-width: 75%;
-    aspect-ratio: 2200 / 1463;
-  }
 }
 
 .u-bg {
@@ -3299,7 +3226,7 @@ img[src*="/flags/"] {
   place-items: center;
   color: #050505;
   font:
-    300 28px/1 Geist,
+    300 28px/1 var(--font-family),
     sans-serif;
 }
 .cursor.is-close-target .cursor-label {
@@ -3319,7 +3246,7 @@ img[src*="/flags/"] {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
   color: #050505;
-  font-family: Geist, sans-serif;
+  font-family: var(--font-family), sans-serif;
   font-size: 9px;
   line-height: 1;
   letter-spacing: 0.085em;
@@ -3376,7 +3303,7 @@ img[src*="/flags/"] {
 }
 .initiatives-title {
   font:
-    400 var(--type-project-title) / 20px Geist,
+    var(--weight-regular) var(--type-project-title) / 20px var(--font-family),
     sans-serif;
 }
 .bio-about-lines .bio-copy-switch,
@@ -3452,7 +3379,7 @@ img[src*="/flags/"] {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   :root {
     --pad: 16px;
     --grid-gap: 12px;
@@ -3463,11 +3390,55 @@ img[src*="/flags/"] {
   }
   .site-nav {
     gap: 12px;
-    font-size: 8px;
-    overflow: hidden;
   }
-  .site-nav a:nth-of-type(n + 5) {
-    display: none;
+  .nav-hamburger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 32px;
+    height: 32px;
+    margin-left: auto;
+    position: relative;
+    z-index: 60;
+  }
+  .nav-hamburger-line {
+    width: 20px;
+    height: 1px;
+    background: var(--ink);
+    transition:
+      transform 0.4s var(--ease),
+      opacity 0.2s var(--ease);
+  }
+  body.is-nav-open .nav-hamburger-line:nth-child(1) {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  body.is-nav-open .nav-hamburger-line:nth-child(2) {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+  .site-menu {
+    position: fixed;
+    z-index: 55;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: auto;
+    width: min(78vw, 320px);
+    padding: calc(var(--nav-h) + 24px) var(--pad) 24px;
+    background: var(--surface);
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 22px;
+    transform: translateX(-100%);
+    transition: transform 0.5s var(--ease);
+  }
+  body.is-nav-open .site-menu {
+    transform: translateX(0);
+  }
+  .site-menu a {
+    font-size: var(--type-project-title);
   }
   .hero {
     min-height: 620px;
@@ -3485,17 +3456,14 @@ img[src*="/flags/"] {
   .hero-copy span {
     white-space: normal;
   }
-  .site-menu {
-    position: static;
-    transform: none;
-    justify-content: flex-end;
-    gap: 12px;
-    overflow: hidden;
+  .hero-recent-cue {
+    width: auto;
+    white-space: nowrap;
   }
   .hero-name-wrap {
     top: auto;
     bottom: 0;
-    padding: 0 var(--pad) 14px;
+    padding: 0 var(--pad);
     --hero-name-nudge: clamp(0px, 0.5vw, 6px);
     --hero-scale: 0.996;
   }
@@ -3509,7 +3477,10 @@ img[src*="/flags/"] {
   .hero-name {
     top: auto;
     left: calc(var(--pad) + var(--hero-name-nudge) - clamp(10px, 1vw, 18px));
-    bottom: 14px;
+    /* Same vertical offset from the hero's bottom edge as .hero-info's `top:
+       18%` is from the top — keeps the name and the role copy visually
+       symmetric instead of the name crowding the bottom edge. */
+    bottom: 18%;
   }
   .hero-name-line {
     display: none;
@@ -3520,50 +3491,41 @@ img[src*="/flags/"] {
     --type-project-label: 9px;
   }
   .projects {
-    min-height: 480svh;
+    height: 420svh;
+    min-height: calc(720px + 320svh);
   }
   .projects-stage {
-    min-height: 2400px;
+    min-height: 640px;
   }
-  .projects-shell {
-    min-height: 720px;
+  /* Mobile Recent Works header: label, tag/metadata and the XX/03 counter
+     all live together above the title+description, instead of the tag
+     sitting between the title block and the image — that's what was
+     colliding, since a wrapped two-line description had no room before the
+     next fixed-position row started. Grouping the short persistent chrome
+     up top and giving the title+description its own generous, uncontested
+     block below fixes the overlap without needing real flow layout. */
+  .projects-label {
+    left: var(--pad);
+    width: calc(100% - (var(--pad) * 2) - 70px);
   }
-  .projects-image-mask {
-    left: 0;
-    right: auto;
-    top: auto;
-    bottom: var(--pad);
-    width: 100%;
-    height: auto;
-    max-width: none;
-    aspect-ratio: 2200 / 1463;
+  .projects-counter {
+    width: 60px;
   }
-  .projects-info {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    gap: 7px;
+  .projects-slide-tag {
+    left: var(--pad);
+    top: calc(var(--section-copy-start-y, 26.5svh) + 22px);
+    width: calc(100% - (var(--pad) * 2));
   }
-  .projects-info-col--0,
-  .projects-info-col--1,
-  .projects-info-col--2 {
-    grid-column: 1;
-    grid-row: auto;
-    text-align: left;
-    align-self: auto;
+  .projects-slide-copy {
+    left: var(--pad);
+    top: calc(var(--section-copy-start-y, 26.5svh) + 70px);
+    width: calc(100% - (var(--pad) * 2));
   }
-  .projects-info-col--2 {
-    position: static;
-    justify-self: start;
-    width: auto;
-    max-width: none;
-  }
-  .projects-progress {
-    bottom: 16px;
-    padding: 0 var(--pad);
-    width: calc(12.5% - var(--pad));
-  }
-  .projects-intro-piece {
-    font-size: clamp(14px, 5vw, 24px);
+  .projects-slide-image {
+    top: calc(var(--section-copy-start-y, 26.5svh) + 170px);
+    height: calc(
+      100% - (var(--section-copy-start-y, 26.5svh) + 170px) - var(--pad)
+    );
   }
   .case-project-top {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -3800,51 +3762,103 @@ img[src*="/flags/"] {
   .post-project-transition-description {
     font-size: var(--type-project-meta);
   }
+  /* Mobile services: the desktop version is a scroll-scrubbed cascade —
+     nine items absolutely stacked ~4.5svh apart, each individually gated
+     visible/invisible by JS as a function of scroll position within a fixed
+     260svh range, sized on the assumption that all nine plus one open
+     description fit inside a single 100svh sticky stage. None of that holds
+     on a narrow viewport: 4.5svh isn't room for a title, let alone a tapped-
+     open description, and gating visibility to a scroll fraction just hides
+     items rather than showing "all this info". So on mobile the section
+     drops the scroll-scrub choreography entirely and becomes a plain
+     scrolling list — every item statically laid out and forced visible
+     (overriding the JS's per-frame inline opacity/clip-path/transform with
+     !important, the same technique already used for the gallery's mobile
+     fallback), with the existing tap-to-reveal (is-hovered, wired in
+     script.js's focusService) as the only thing still gating the
+     description text. */
+  .post-project-transition {
+    height: auto;
+    min-height: 0;
+    margin-top: 0;
+    pointer-events: auto !important;
+  }
+  .post-project-transition-stage {
+    position: static;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    padding: 72px 0 48px;
+  }
+  .post-project-transition-line {
+    display: none;
+  }
   .post-project-services {
+    position: static;
     margin: 0;
     width: 100%;
     padding-top: 0;
   }
   .post-project-service {
-    left: var(--pad);
-    right: var(--pad);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
     column-gap: 12px;
+    row-gap: 4px;
+    left: auto;
+    right: auto;
+    top: auto;
     margin: 0;
-    transform: none;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(12, 12, 12, 0.1);
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+    animation: none !important;
   }
-  .post-project-service > span {
-    grid-column: 1;
-    justify-self: start;
-    text-align: left;
+  .post-project-service:first-child {
+    border-top: 1px solid rgba(12, 12, 12, 0.1);
+  }
+  .post-project-service > span.post-project-service-index {
+    flex: 0 0 auto;
   }
   .post-project-service > div {
-    grid-column: 2 / -1;
+    flex: 1 1 200px;
   }
   .post-project-service > .post-project-service-output {
-    grid-column: 4;
-    grid-row: 1;
-    justify-self: start;
-    text-align: left;
+    flex: 1 1 100%;
+  }
+  .post-project-service p {
+    max-height: 0;
+  }
+  .post-project-service.is-hovered p {
+    max-height: 160px;
   }
   .post-project-services-summary-line {
-    left: 0;
-    right: 0;
-    top: calc(68% - 16px);
-    transform: scaleX(0);
+    display: none;
   }
   .post-project-services-range {
-    left: var(--pad);
+    position: static;
+    left: auto;
     right: auto;
-    top: 68%;
-    width: calc(50% - var(--pad));
+    top: auto;
+    width: auto;
+    margin: 28px 0 4px;
+    opacity: 1 !important;
+    clip-path: none !important;
+    animation: none !important;
   }
   .post-project-services-summary {
-    left: calc(
-      var(--pad) + (((100% - (var(--pad) * 2) - 36px) / 4 + 12px) * 3)
-    );
-    right: var(--pad);
-    top: 68%;
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    width: auto;
+    margin: 0;
+    opacity: 1 !important;
+    clip-path: none !important;
+    animation: none !important;
   }
   .bio-stage {
     padding: 0 var(--pad);
@@ -3910,10 +3924,9 @@ img[src*="/flags/"] {
     transform: none !important;
     clip-path: none !important;
   }
-  .projects-image,
-  .projects-frame,
-  .projects-progress-segment::before,
-  .projects-intro-piece {
+  .projects-slide-image,
+  .projects-slide-copy,
+  .projects-frame {
     transition: none !important;
     opacity: 1 !important;
     transform: scale(1) !important;
@@ -3931,7 +3944,7 @@ img[src*="/flags/"] {
   grid-column: 1 / span 3;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3967,7 +3980,7 @@ img[src*="/flags/"] {
   grid-column: 5 / span 3;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -3982,7 +3995,7 @@ img[src*="/flags/"] {
   grid-column: 10 / span 3;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -4015,7 +4028,7 @@ img[src*="/flags/"] {
   align-self: start;
   margin: 0;
   font:
-    400 var(--type-project-body) / 20px Geist,
+    var(--weight-regular) var(--type-project-body) / 20px var(--font-family),
     sans-serif;
   letter-spacing: normal;
   color: var(--ink);
@@ -4027,7 +4040,7 @@ img[src*="/flags/"] {
 .case-project-gallery--aims-deck {
   margin-top: clamp(180px, 18vw, 300px);
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-web-copy-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4037,7 +4050,7 @@ img[src*="/flags/"] {
     grid-column: 1 / -1;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-socials-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4049,7 +4062,7 @@ img[src*="/flags/"] {
     grid-column: 1 / -1;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-social-copy-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4059,7 +4072,7 @@ img[src*="/flags/"] {
     grid-column: 1 / -1;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-deck-copy-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4069,7 +4082,7 @@ img[src*="/flags/"] {
     grid-column: 1 / -1;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-aims-merch-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: 12px;
@@ -4092,7 +4105,7 @@ img[src*="/flags/"] {
     grid-row: 3;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .bio-middle {
     left: calc(25% + 6px);
     width: calc(50% - 18px);
@@ -4108,7 +4121,7 @@ img[src*="/flags/"] {
     gap: 24px;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .initiatives-stage {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: var(--grid-gap);
@@ -4168,16 +4181,63 @@ img[src*="/flags/"] {
   .initiatives-detail {
     padding-bottom: 48px;
   }
+  .footer-section {
+    height: auto;
+    min-height: 0;
+    margin-top: 0;
+    overflow: visible;
+  }
+  .footer-stage {
+    position: relative;
+    height: auto;
+    min-height: calc(100svh + 320px);
+    padding-top: 48px;
+    padding-bottom: var(--pad);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: visible;
+  }
+  .footer-divider {
+    position: relative;
+    bottom: auto;
+    margin-bottom: 32px;
+  }
+  .footer-links {
+    position: relative;
+    inset: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+  }
+  .footer-copyright {
+    position: relative;
+    inset: auto;
+    left: auto;
+    width: auto;
+    bottom: auto;
+    margin-top: 24px;
+  }
+  .footer-back-top {
+    position: relative;
+    inset: auto;
+    left: auto;
+    width: auto;
+    margin-bottom: 24px;
+  }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-project-gallery--aims-deck {
     margin-top: 140px;
   }
 }
 
-/* Phone layout: keep every project image legible instead of compressing five
-   cards into a horizontal strip. Directional rows become one vertical stack. */
-@media (max-width: 600px) {
+/* Mobile layout: keep every project image legible instead of compressing five
+   cards into a horizontal strip. Directional rows become one vertical stack.
+   Uses the same combined layout gate as everything else (width or portrait
+   tablet), not its own narrower phone-only threshold — a portrait iPad has
+   the same "no room for a horizontal marquee" problem a phone does. */
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   .case-project-gallery,
   .case-project-gallery--goballer {
     height: auto !important;
@@ -4245,29 +4305,37 @@ img[src*="/flags/"] {
   left: 50%;
   transform: translateX(-50%);
   font:
-    400 9px/1 Geist,
+    400 9px/1 var(--font-family),
     sans-serif;
   letter-spacing: 0.08em;
   color: rgba(61, 90, 254, 0.72);
 }
-.layout-grid-toggle {
+.layout-controls {
   position: fixed;
   z-index: 5001;
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.layout-controls > * {
+  pointer-events: auto;
+}
+.layout-grid-toggle {
   padding: 6px 10px;
   border: 1px solid rgba(26, 26, 26, 0.2);
   border-radius: 999px;
   background: rgba(247, 245, 242, 0.88);
   backdrop-filter: blur(8px);
   font:
-    400 9px/1 Geist,
+    400 9px/1 var(--font-family),
     sans-serif;
   letter-spacing: 0.1em;
   color: var(--ink);
   opacity: 0.72;
-  pointer-events: auto;
   cursor: pointer !important;
   transition:
     background 0.2s ease,
@@ -4280,65 +4348,45 @@ img[src*="/flags/"] {
   background: var(--ink);
   color: var(--surface);
 }
+.font-switch {
+  display: flex;
+  gap: 4px;
+}
+.font-switch-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(26, 26, 26, 0.2);
+  border-radius: 999px;
+  background: rgba(247, 245, 242, 0.88);
+  backdrop-filter: blur(8px);
+  font: var(--weight-regular) 13px/1 Geist, sans-serif;
+  color: var(--ink);
+  opacity: 0.72;
+  cursor: pointer !important;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+.font-switch-btn--nollie {
+  font-family: "Nollie Oracle", Geist, sans-serif;
+}
+.font-switch-btn:hover,
+.font-switch-btn.is-active {
+  opacity: 1;
+  background: var(--ink);
+  color: var(--surface);
+}
 body.coaching-overlay-open .layout-grid {
   z-index: 8000;
 }
-body.coaching-overlay-open .layout-grid-toggle {
+body.coaching-overlay-open .layout-controls {
   z-index: 8001;
 }
 
-/* Recent Works has one animation owner: applyProjectWipeState in script.js.
-   Keep the semantic classes for layout, but prevent the older CSS keyframes
-   from competing with (or replaying over) the stateful Web Animations. */
-.projects-intro-piece.wipe-controlled,
-.projects-info.wipe-controlled,
-.projects-progress.wipe-controlled,
-.projects-intro-piece.wipe-controlled .projects-info-col,
-.projects-info.wipe-controlled .projects-info-col,
-.projects-info.wipe-controlled .auto-wipe-line {
-  animation: none !important;
-  transition: none !important;
-}
-/* Directional legacy selectors are more specific, so neutralize every
-   combination explicitly. Web Animations on the element remain unaffected. */
-.projects-intro-piece.wipe-controlled.is-visible,
-.projects-intro-piece.wipe-controlled.is-wiping-out,
-.projects-intro-piece.wipe-controlled.is-wipe-forward.is-visible,
-.projects-intro-piece.wipe-controlled.is-wipe-forward.is-wiping-out,
-.projects-intro-piece.wipe-controlled.is-wipe-backward.is-visible,
-.projects-intro-piece.wipe-controlled.is-wipe-backward.is-wiping-out,
-.projects-info.wipe-controlled.is-visible,
-.projects-info.wipe-controlled.is-wiping-out,
-.projects-info.wipe-controlled.is-wipe-forward.is-visible,
-.projects-info.wipe-controlled.is-wipe-forward.is-wiping-out,
-.projects-info.wipe-controlled.is-wipe-backward.is-visible,
-.projects-info.wipe-controlled.is-wipe-backward.is-wiping-out,
-.projects-progress.wipe-controlled.is-wipe-forward.is-visible,
-.projects-progress.wipe-controlled.is-wipe-forward.is-wiping-out,
-.projects-progress.wipe-controlled.is-wipe-backward.is-visible,
-.projects-progress.wipe-controlled.is-wipe-backward.is-wiping-out,
-.projects-info.wipe-controlled.is-visible .projects-info-col,
-.projects-info.wipe-controlled.is-wipe-backward.is-visible .projects-info-col {
-  animation: none !important;
-  transition: none !important;
-}
-.projects-intro {
-  clip-path: none !important;
-}
-.projects-info.wipe-controlled {
-  position: absolute !important;
-  transform: none !important;
-}
-.projects-info.wipe-controlled.is-visible .projects-info-col,
-.projects-info.wipe-controlled.is-wiping-out .projects-info-col {
-  opacity: 1 !important;
-  clip-path: inset(0) !important;
-  transform: none !important;
-}
-.projects-info.wipe-controlled .projects-info-col {
-  animation: none !important;
-  transition: none !important;
-}
 .case-project-content .project-viewport-wipe.detail-wipe-controlled {
   animation: none !important;
   transition: none !important;

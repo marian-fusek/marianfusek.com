@@ -255,6 +255,24 @@
     caseProjectSwitcher.innerHTML=`<p class="case-project-switcher-title">Check the other:</p>${otherProjects.map(project=>`<button class="case-project-switcher-link" type="button" data-case-project-index="${project.index}"><span aria-hidden="true">→</span><span>${project.name}</span></button>`).join('')}`;
   };
   allProjectWipeTargets.forEach(target=>target.classList.add('project-viewport-wipe'));
+  /* Case-study videos default to data-src/preload="none" so the ~220MB of
+     project footage never downloads until its overlay is actually opened —
+     otherwise all three projects' videos load in the background on every
+     page visit regardless of whether any overlay is ever opened, which is
+     the main reason the page reads as slow to load. Called only from the
+     real open/switch sites below, never from the silent init call. */
+  const loadCaseVideos=container=>{
+    if(!container)return;
+    container.querySelectorAll('video[data-src]').forEach(video=>{
+      const host=video.closest('.case-project-hero-video, figure');
+      host?.classList.add('is-video-loading');
+      video.addEventListener('loadeddata',()=>{host?.classList.remove('is-video-loading');},{once:true});
+      video.src=video.dataset.src;
+      delete video.dataset.src;
+      video.load();
+      video.play?.().catch(()=>{});
+    });
+  };
   const setActiveCaseProject=index=>{
     activeCaseProjectIndex=index;
     activeCaseProjectContent=caseProjectContents[index]||caseProjectContents[0]||null;
@@ -454,6 +472,7 @@
     caseProjectMediaLinks?.style.removeProperty('--video-placeholder-height');
     caseOverlay.classList.remove('is-video-expanded');
     setActiveCaseProject(index);
+    loadCaseVideos(activeCaseProjectContent);
     resetActiveProjectWipes();
     smooth.resetOverlay(0);
     projectDetailScrollTop=0;
@@ -743,6 +762,7 @@
       clearTimeout(overlayRevealTimer);overlayRevealTimer=0;
       clearTimeout(overlayCloseTimer);overlayCloseTimer=0;
       setActiveCaseProject(index);
+      loadCaseVideos(activeCaseProjectContent);
       projectDetailScrollTop=0;
       projectDetailScrollDirection='forward';
       caseOverlay.classList.remove('is-cleaning','is-content-reveal','is-content-exiting','is-closing','is-close-visible','is-reveal-priming','is-switch-revealing','is-switch-covering');

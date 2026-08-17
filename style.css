@@ -2602,6 +2602,29 @@ body.is-curtain-active .site-nav {
   cursor: none !important;
   z-index: 1;
 }
+.is-video-loading {
+  position: relative;
+}
+.is-video-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 5;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border: 2px solid rgba(26, 26, 26, 0.15);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: caseVideoSpin 0.8s linear infinite;
+  pointer-events: none;
+}
+@keyframes caseVideoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .case-project-hero-video video {
   display: block;
   width: 100%;
@@ -4096,7 +4119,7 @@ body.is-curtain-active .site-nav {
     bottom: auto;
     top: auto;
     width: min(38vw, 156px);
-    margin-bottom: 88px;
+    margin-bottom: 40px;
   }
   .bio-middle {
     position: relative;
@@ -4111,7 +4134,7 @@ body.is-curtain-active .site-nav {
   .bio-section-label.bio-wipe {
     position: static;
     width: auto;
-    margin: 0 0 16px;
+    margin: 0 0 6px;
   }
   .bio-about-lines {
     position: static;
@@ -4120,7 +4143,7 @@ body.is-curtain-active .site-nav {
     color: var(--body);
   }
   .bio-about-lines p + p {
-    margin-top: 16px;
+    margin-top: 6px;
   }
   .bio-section-label .bio-copy-switch,
   .bio-about-lines .bio-copy-switch {
@@ -4809,7 +4832,7 @@ body.coaching-overlay-open .layout-grid {
     top: 15svh;
   }
   .initiatives-grid {
-    transform: translateY(-11.5svh);
+    top: calc(15svh + 24px);
   }
   .initiatives-index {
     grid-column: 1 / span 5;

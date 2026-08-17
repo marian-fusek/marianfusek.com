@@ -1460,7 +1460,7 @@ figure:has(> video) > video:hover {
   z-index: 7000;
   inset: 0;
   overflow: auto;
-  background: transparent;
+  background: var(--surface);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -1729,7 +1729,15 @@ body.coaching-overlay-open {
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
-    border-bottom: 1px solid var(--line);
+  }
+  .coaching-review-index::after {
+    content: "";
+    position: absolute;
+    left: var(--pad);
+    right: var(--pad);
+    bottom: 0;
+    height: 1px;
+    background: var(--line);
   }
   .coaching-review-index::-webkit-scrollbar {
     display: none;
@@ -2417,7 +2425,7 @@ body.is-curtain-active .site-nav {
   overflow-x: visible;
   overscroll-behavior: contain;
   touch-action: auto;
-  background: transparent;
+  background: var(--surface);
   padding: 0 var(--pad) var(--pad);
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -3541,12 +3549,6 @@ body.is-curtain-active .site-nav {
     bottom: auto;
     left: var(--pad);
     right: var(--pad);
-    font-size: clamp(32px, 10.5vw, 48px);
-    font-weight: 350;
-    font-variation-settings: "wght" 350;
-    line-height: 0.88;
-    letter-spacing: -0.06em;
-    white-space: nowrap;
   }
   .projects {
     height: auto;
@@ -4089,7 +4091,7 @@ body.is-curtain-active .site-nav {
     bottom: auto;
     top: auto;
     width: min(38vw, 156px);
-    margin-bottom: 60px;
+    margin-bottom: 72px;
   }
   .bio-middle {
     position: relative;
@@ -4117,14 +4119,22 @@ body.is-curtain-active .site-nav {
   }
   .bio-section-label .bio-copy-switch,
   .bio-about-lines .bio-copy-switch {
-    display: inline-flex;
+    position: static;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    column-gap: 6px;
     width: auto;
-    grid-template-columns: none;
     padding: 0;
+  }
+  .bio-section-label .bio-copy-switch-arrow,
+  .bio-about-lines .bio-copy-switch-arrow {
+    position: static;
+    grid-column: 1;
   }
   .bio-section-label .bio-copy-switch-label,
   .bio-about-lines .bio-copy-switch-label {
-    display: inline;
+    grid-column: 2;
+    display: block;
     width: auto;
   }
   .bio-about-lines .bio-copy-switch-name {
@@ -4506,6 +4516,7 @@ body.is-curtain-active .site-nav {
   .initiatives-grid.is-side-quest-active .initiatives-detail {
     width: 100%;
     margin-top: 24px;
+    margin-bottom: 32px;
     padding-bottom: 0;
   }
   .initiatives-copy {
@@ -4524,6 +4535,7 @@ body.is-curtain-active .site-nav {
     position: relative;
     width: 100%;
     margin-top: 24px;
+    margin-bottom: 32px;
   }
   .initiatives-wipe {
     opacity: 1 !important;

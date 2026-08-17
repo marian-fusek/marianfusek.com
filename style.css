@@ -1117,6 +1117,7 @@ figure:has(> video) > video:hover {
   display: grid;
   grid-template-columns: var(--grid-column) 1fr;
   column-gap: var(--grid-gap);
+  row-gap: 10px;
   font:
     var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
     sans-serif;

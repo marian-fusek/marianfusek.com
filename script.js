@@ -1109,10 +1109,16 @@
       });
       if(!initiativesPreview)return;
       if(group){
+        initiativesPreview.classList.remove('is-mobile-hidden');
         const appsList=group.querySelector(':scope > .initiatives-apps');
         appsList?.insertAdjacentElement('afterend',initiativesPreview);
       }else{
-        restoreInitiativesPreviewHome();
+        /* On mobile, closing every group should just hide the shared
+           preview — moving it back to its DOM "home" (after all three
+           groups) would leave it visible sitting under every category,
+           which reads as broken. Desktop never calls this with group=null,
+           so its always-visible layout is unaffected. */
+        initiativesPreview.classList.add('is-mobile-hidden');
       }
     };
     const syncMobileInitiativeGroups=()=>{
@@ -1140,6 +1146,7 @@
         const activeGroup=initiativesIndex.querySelector('.initiatives-app.is-active')?.closest('.initiatives-group')||initiativeGroups[0];
         setMobileInitiativeGroup(activeGroup);
       }else{
+        initiativesPreview?.classList.remove('is-mobile-hidden');
         restoreInitiativesPreviewHome();
       }
     };

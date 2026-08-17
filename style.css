@@ -1123,16 +1123,6 @@ figure:has(> video) > video:hover {
     sans-serif;
 }
 @media (max-height: 850px) and (min-width: 901px) {
-  /* Compact-height mode: the numbered service list, bio copy, and the
-     Initiatives list all start higher (15svh) so they don't run into the
-     content anchored lower on the page (the Services divider/summary, the
-     bio portrait/status, and the Initiatives preview panel), which don't
-     move and keep their normal position. */
-  .bio-divider,
-  .bio-middle,
-  .bio-right {
-    top: 15svh;
-  }
   .bio-copy-block {
     font-size: var(--type-3);
     line-height: 1.2;
@@ -1147,18 +1137,6 @@ figure:has(> video) > video:hover {
   }
   .bio-history {
     font-size: var(--type-3);
-  }
-  .post-project-services {
-    --services-start-y: 15svh;
-  }
-  .initiatives-title {
-    top: calc(15svh - 32px);
-  }
-  .initiatives-divider {
-    top: 15svh;
-  }
-  .initiatives-index {
-    transform: translateY(-11.5svh);
   }
 }
 .bio-status {
@@ -3773,11 +3751,13 @@ body.is-curtain-active .site-nav {
     display: flex;
     flex-direction: row;
     gap: 12px;
+    width: calc(100% + (var(--pad) * 2));
     margin: 88px calc(var(--pad) * -1) 0;
     padding: 76px var(--pad) 12px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--pad);
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -3842,6 +3822,7 @@ body.is-curtain-active .site-nav {
   .case-miunae-launch-copy--right {
     grid-column: 1 / -1;
   }
+  .case-miunae-launch-copy--left,
   .case-miunae-launch-copy--right {
     text-align: left;
   }
@@ -3913,8 +3894,7 @@ body.is-curtain-active .site-nav {
     border-top: 1px solid var(--mobile-rule);
   }
   .case-project-switcher-link {
-    min-height: 22px;
-    align-items: center;
+    align-items: baseline;
   }
   .post-project-transition-copy {
     font-size: clamp(16px, 5vw, 24px);
@@ -4559,6 +4539,9 @@ body.is-curtain-active .site-nav {
     margin-top: 24px;
     margin-bottom: 32px;
   }
+  .initiatives-preview.is-mobile-hidden {
+    display: none;
+  }
   .initiatives-wipe {
     opacity: 1 !important;
     clip-path: none !important;
@@ -4762,4 +4745,61 @@ body.coaching-overlay-open .layout-grid {
   .auto-wipe-line {
   animation: none !important;
   transition: none !important;
+}
+
+/* Compact-height mode (short desktop windows): the numbered service list,
+   bio copy, and the Initiatives list all start higher (15svh) so they
+   don't run into the content anchored lower on the page (the Services
+   divider/summary, the bio portrait/status, and the Initiatives preview
+   panel), which don't move and keep their normal position. Kept at the
+   end of the file: .bio-divider/.bio-middle/.bio-right/.initiatives-title/
+   .initiatives-divider all have unconditional base rules elsewhere of the
+   same specificity, and equal-specificity ties go to whichever rule is
+   later in source order — regardless of media query — so this block has
+   to stay last to actually win. */
+@media (max-height: 850px) and (min-width: 901px) {
+  .bio-divider,
+  .bio-middle,
+  .bio-right {
+    top: 15svh;
+  }
+  .post-project-services {
+    --services-start-y: 15svh;
+  }
+  .post-project-services .post-project-service:nth-child(1) {
+    --service-offset: 0svh;
+  }
+  .post-project-services .post-project-service:nth-child(2) {
+    --service-offset: 6svh;
+  }
+  .post-project-services .post-project-service:nth-child(3) {
+    --service-offset: 12svh;
+  }
+  .post-project-services .post-project-service:nth-child(4) {
+    --service-offset: 18svh;
+  }
+  .post-project-services .post-project-service:nth-child(5) {
+    --service-offset: 24svh;
+  }
+  .post-project-services .post-project-service:nth-child(6) {
+    --service-offset: 30svh;
+  }
+  .post-project-services .post-project-service:nth-child(7) {
+    --service-offset: 36svh;
+  }
+  .post-project-services .post-project-service:nth-child(8) {
+    --service-offset: 42svh;
+  }
+  .post-project-services .post-project-service:nth-child(9) {
+    --service-offset: 48svh;
+  }
+  .initiatives-title {
+    top: calc(15svh - 32px);
+  }
+  .initiatives-divider {
+    top: 15svh;
+  }
+  .initiatives-index {
+    transform: translateY(-11.5svh);
+  }
 }

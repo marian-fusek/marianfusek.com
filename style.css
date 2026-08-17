@@ -4808,7 +4808,23 @@ body.coaching-overlay-open .layout-grid {
   .initiatives-divider {
     top: 15svh;
   }
+  .initiatives-grid {
+    transform: translateY(-11.5svh);
+  }
   .initiatives-index {
-    margin-top: -11.5svh;
+    grid-column: 1 / span 5;
+  }
+  .initiatives-apps .bio-copy-switch-label {
+    grid-template-columns: 3fr 1fr 6fr;
+  }
+  .initiatives-apps .bio-copy-switch-name {
+    grid-column: 1;
+  }
+  .initiatives-apps .bio-copy-switch-note {
+    grid-column: 3;
+  }
+  .initiatives-copy {
+    font-size: var(--type-3);
+    line-height: 1.2;
   }
 }

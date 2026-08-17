@@ -1050,7 +1050,7 @@
       const range=Math.max(1,postServicesNext.offsetHeight-innerHeight);
       const p=bioForceReveal?.5:clamp((scrollY-sectionTop)/range,0,1);
       bioWipes.forEach((item,index)=>{
-        if(item===bioRight&&bioCopySwitching)return;
+        if(item===bioRight&&bioCopySwitching&&!bioForceReveal)return;
         const order=Number(item.dataset.bioOrder||index);
         const enter=smoothstep(.02+order*.018,.16+order*.018,p);
         const reverseOrder=bioWipes.length-1-order;

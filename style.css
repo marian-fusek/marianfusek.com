@@ -4808,7 +4808,7 @@ body.coaching-overlay-open .layout-grid {
   .initiatives-divider {
     top: 15svh;
   }
-  .initiatives-grid {
-    transform: translateY(-11.5svh);
+  .initiatives-index {
+    margin-top: -11.5svh;
   }
 }

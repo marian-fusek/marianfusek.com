@@ -1093,13 +1093,27 @@
     const initiativeApps=[...initiativesSection.querySelectorAll('[data-initiative]')];
     const initiativesIndex=initiativesSection.querySelector('.initiatives-index');
     const initiativeGroups=[...initiativesSection.querySelectorAll('.initiatives-group')];
+    const initiativesPreview=initiativesSection.querySelector('.initiatives-preview');
+    const initiativesPreviewHome=initiativesPreview?{parent:initiativesPreview.parentNode,next:initiativesPreview.nextSibling}:null;
+    const restoreInitiativesPreviewHome=()=>{
+      if(!initiativesPreview||!initiativesPreviewHome)return;
+      if(initiativesPreviewHome.next&&initiativesPreviewHome.next.isConnected)initiativesPreviewHome.parent.insertBefore(initiativesPreview,initiativesPreviewHome.next);
+      else initiativesPreviewHome.parent.appendChild(initiativesPreview);
+    };
     const setMobileInitiativeGroup=group=>{
-      if(!isMobileLayout()||!group)return;
+      if(!isMobileLayout())return;
       initiativeGroups.forEach(item=>{
         const open=item===group;
         item.classList.toggle('is-mobile-open',open);
         item.querySelector(':scope > h3')?.setAttribute('aria-expanded',String(open));
       });
+      if(!initiativesPreview)return;
+      if(group){
+        const appsList=group.querySelector(':scope > .initiatives-apps');
+        appsList?.insertAdjacentElement('afterend',initiativesPreview);
+      }else{
+        restoreInitiativesPreviewHome();
+      }
     };
     const syncMobileInitiativeGroups=()=>{
       if(!initiativesIndex)return;
@@ -1125,11 +1139,17 @@
       if(isMobileLayout()){
         const activeGroup=initiativesIndex.querySelector('.initiatives-app.is-active')?.closest('.initiatives-group')||initiativeGroups[0];
         setMobileInitiativeGroup(activeGroup);
+      }else{
+        restoreInitiativesPreviewHome();
       }
     };
     initiativeGroups.forEach(group=>{
       const heading=group.querySelector(':scope > h3');
       const openGroup=()=>{
+        if(group.classList.contains('is-mobile-open')){
+          setMobileInitiativeGroup(null);
+          return;
+        }
         setMobileInitiativeGroup(group);
         if(isMobileLayout()&&!group.querySelector('.initiatives-app.is-active')){
           requestAnimationFrame(()=>group.querySelector('[data-initiative]')?.click());

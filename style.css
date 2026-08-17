@@ -1123,12 +1123,15 @@ figure:has(> video) > video:hover {
     sans-serif;
 }
 @media (max-height: 850px) and (min-width: 901px) {
-  .bio-about,
-  .bio-career {
-    top: 32%;
-  }
-  .bio-history {
-    top: 52%;
+  /* Compact-height mode: the numbered service list, bio copy, and the
+     Initiatives list all start higher (15svh) so they don't run into the
+     content anchored lower on the page (the Services divider/summary, the
+     bio portrait/status, and the Initiatives preview panel), which don't
+     move and keep their normal position. */
+  .bio-divider,
+  .bio-middle,
+  .bio-right {
+    top: 15svh;
   }
   .bio-copy-block {
     font-size: var(--type-3);
@@ -1144,6 +1147,18 @@ figure:has(> video) > video:hover {
   }
   .bio-history {
     font-size: var(--type-3);
+  }
+  .post-project-services {
+    --services-start-y: 15svh;
+  }
+  .initiatives-title {
+    top: calc(15svh - 32px);
+  }
+  .initiatives-divider {
+    top: 15svh;
+  }
+  .initiatives-index {
+    transform: translateY(-11.5svh);
   }
 }
 .bio-status {

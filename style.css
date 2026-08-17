@@ -2415,6 +2415,7 @@ body.is-curtain-active .site-nav {
   z-index: 3000;
   inset: 0;
   height: 100svh;
+  height: 100dvh;
   overflow-y: auto;
   overflow-x: visible;
   overscroll-behavior: contain;
@@ -2614,6 +2615,7 @@ body.is-curtain-active .site-nav {
   inset: 0 0 0 0;
   width: 100vw;
   height: 100svh;
+  height: 100dvh;
   max-width: none;
   aspect-ratio: auto;
   background: transparent;
@@ -3633,6 +3635,7 @@ body.is-curtain-active .site-nav {
     grid-column: 2;
     grid-row: 2;
     justify-self: end;
+    align-self: end;
     text-align: right;
     opacity: 1 !important;
     clip-path: none !important;
@@ -4087,7 +4090,7 @@ body.is-curtain-active .site-nav {
     margin: 48px 0 24px;
     background: var(--mobile-rule);
   }
-  .bio-portrait {
+  .bio-portrait.bio-wipe {
     position: relative;
     left: auto;
     bottom: auto;
@@ -4105,10 +4108,10 @@ body.is-curtain-active .site-nav {
   .bio-copy-row {
     display: block;
   }
-  .bio-section-label {
+  .bio-section-label.bio-wipe {
     position: static;
     width: auto;
-    margin: 0 0 10px;
+    margin: 0 0 16px;
   }
   .bio-about-lines {
     position: static;
@@ -4117,7 +4120,7 @@ body.is-curtain-active .site-nav {
     color: var(--body);
   }
   .bio-about-lines p + p {
-    margin-top: 10px;
+    margin-top: 16px;
   }
   .bio-section-label .bio-copy-switch,
   .bio-about-lines .bio-copy-switch {

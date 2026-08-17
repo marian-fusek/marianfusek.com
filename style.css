@@ -4093,7 +4093,7 @@ body.is-curtain-active .site-nav {
     bottom: auto;
     top: auto;
     width: min(38vw, 156px);
-    margin-bottom: 72px;
+    margin-bottom: 88px;
   }
   .bio-middle {
     position: relative;
@@ -4136,14 +4136,13 @@ body.is-curtain-active .site-nav {
   .bio-section-label .bio-copy-switch-label,
   .bio-about-lines .bio-copy-switch-label {
     grid-column: 2;
-    display: block;
-    width: auto;
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 6px;
+    width: 100%;
   }
   .bio-about-lines .bio-copy-switch-name {
     padding-left: 0;
-  }
-  .bio-about-lines .bio-copy-switch-note {
-    margin-left: 6px;
   }
   .bio-about,
   .bio-career,
@@ -4758,10 +4757,12 @@ body.coaching-overlay-open .layout-grid {
    later in source order — regardless of media query — so this block has
    to stay last to actually win. */
 @media (max-height: 850px) and (min-width: 901px) {
-  .bio-divider,
+  .bio-divider {
+    top: 15svh;
+  }
   .bio-middle,
   .bio-right {
-    top: 15svh;
+    top: calc(15svh + 20px);
   }
   .post-project-services {
     --services-start-y: 15svh;
@@ -4793,13 +4794,18 @@ body.coaching-overlay-open .layout-grid {
   .post-project-services .post-project-service:nth-child(9) {
     --service-offset: 48svh;
   }
+  .post-project-service p {
+    font-size: var(--type-3);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
   .initiatives-title {
     top: calc(15svh - 32px);
   }
   .initiatives-divider {
     top: 15svh;
   }
-  .initiatives-index {
+  .initiatives-grid {
     transform: translateY(-11.5svh);
   }
 }

@@ -552,7 +552,7 @@ figure:has(> video) > video:hover {
   text-align: right;
   font: var(--weight-regular) var(--type-3) / 1.2 var(--font-family), sans-serif;
   letter-spacing: -0.01em;
-  color: var(--ink);
+  color: var(--body);
 }
 .projects-frame {
   position: absolute;
@@ -3506,10 +3506,6 @@ body.is-curtain-active .site-nav {
     transform: none;
     max-width: none;
   }
-  .hero-copy {
-    font-size: clamp(18px, 5.4vw, 24px);
-    line-height: 1.08;
-  }
   .hero-copy span {
     white-space: normal;
   }
@@ -3679,11 +3675,6 @@ body.is-curtain-active .site-nav {
   }
   .case-project-heading {
     display: block;
-  }
-  .case-project-title {
-    margin: 0;
-    font-size: clamp(32px, 10vw, 48px);
-    line-height: 0.95;
   }
   .case-project-strapline {
     margin: 8px 0 0;
@@ -4563,11 +4554,11 @@ body.is-curtain-active .site-nav {
   .footer-stage {
     position: relative;
     height: auto;
-    min-height: 76svh;
+    min-height: 0;
     padding: var(--mobile-section-space) var(--pad) 24px;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: flex-start;
     overflow: visible;
   }
   .footer-wipe {
@@ -4583,13 +4574,16 @@ body.is-curtain-active .site-nav {
     margin-bottom: 32px;
     background: var(--mobile-rule);
   }
-  .footer-links {
+  .footer-links.case-project-links {
     position: relative;
     inset: auto;
     left: auto;
     right: auto;
+    top: auto;
     bottom: auto;
+    width: auto;
     margin-top: 0;
+    order: 3;
   }
   .footer-copyright {
     position: relative;
@@ -4598,13 +4592,16 @@ body.is-curtain-active .site-nav {
     width: auto;
     bottom: auto;
     margin-top: 24px;
+    order: 4;
   }
-  .footer-back-top {
+  .footer-back-top.case-project-links {
     position: relative;
     inset: auto;
     left: auto;
+    top: auto;
     width: auto;
     margin-bottom: 24px;
+    order: 2;
   }
 }
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {

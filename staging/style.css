@@ -3403,6 +3403,20 @@ body.is-curtain-active .site-nav {
     --type-project-meta: 16px;
     --type-project-label: 9px;
   }
+  /* Collapsed (mobile/portrait) vertical view: leadership meta headings and
+     the case-project-links / initiatives-copy-link labels ("Led",
+     "Overseeing", "Read my team's reviews", "Buy MF Art…", etc.) should sit
+     at size 3, not the same size 2 used on desktop. */
+  .bio-leadership-meta h2.type-project-title {
+    font-size: var(--type-3);
+  }
+  .bio-about .case-project-links button,
+  .bio-coaching-details .case-project-links button {
+    font-size: var(--type-3);
+  }
+  .initiatives-copy-link {
+    font-size: var(--type-3);
+  }
   body {
     cursor: auto;
   }

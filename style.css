@@ -1967,6 +1967,12 @@ img[src*="/flags/"] {
   }
   .coaching-review-copy {
     grid-column: 5 / span 4;
+    /* .coaching-review-meta below is position:fixed at the viewport bottom
+       — a persistent stat that stays put while a long review scrolls past
+       it, not something copy flows after. Without reserved trailing space,
+       a long enough review's last lines render directly behind/under that
+       fixed element instead of scrolling clear of it first. */
+    padding-bottom: 120px;
   }
   .coaching-review-meta {
     position: fixed;
@@ -4866,5 +4872,28 @@ body.coaching-overlay-open .layout-grid {
   .coaching-review-copy {
     font-size: var(--type-3);
     line-height: 1.2;
+  }
+  /* Every pinned stage has a 720px min-height floor for normal desktop use.
+     On a window shorter than 720px this makes the stage itself taller than
+     the real viewport, so bottom-anchored content (bio portrait/status,
+     footer links, etc.) sits below the fold and gets clipped — pushing the
+     top content up doesn't fix that, since the box itself is still too
+     tall. Dropping the floor here lets height:100svh alone govern, which
+     always matches the true (short) viewport. */
+  .projects-stage,
+  .post-project-transition-stage,
+  .bio-stage,
+  .initiatives-stage,
+  .footer-stage {
+    min-height: 0;
+  }
+  .coaching-overlay-rule {
+    top: 15svh;
+  }
+  .coaching-overlay-grid {
+    padding-top: calc(15svh + 12px);
+  }
+  .coaching-review-index {
+    top: calc(15svh + 12px);
   }
 }

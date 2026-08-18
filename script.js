@@ -1319,7 +1319,7 @@
           app.classList.toggle('is-active',active);
           app.setAttribute('aria-pressed',String(active));
         });
-        initiativesStage.classList.remove('is-switching');
+        requestAnimationFrame(()=>initiativesStage.classList.remove('is-switching'));
       },300);
     };
     initiativesSection.addEventListener('click',event=>{
@@ -1383,8 +1383,15 @@
         item.style.transform='none';
       });
     };
-    addEventListener('scroll',updateInitiatives,{passive:true});
-    addEventListener('resize',updateInitiatives,{passive:true});
+    /* Called through a wrapper, not passed directly: a listener receives the
+       Event as its first argument, which lands in skipSwitchOwned and is
+       truthy, so every scroll and resize permanently skipped the media,
+       detail and mentions wipes below. The index still revealed normally, so
+       the menu looked fine while the panel it controls stayed at opacity 0 —
+       visible only after a reload, whose own no-argument call above is the
+       one place they ever got their styles set. */
+    addEventListener('scroll',()=>updateInitiatives(),{passive:true});
+    addEventListener('resize',()=>updateInitiatives(),{passive:true});
     updateInitiatives();
   }
 

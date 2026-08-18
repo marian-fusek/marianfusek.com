@@ -4856,7 +4856,12 @@ body.coaching-overlay-open .layout-grid {
     font-size: var(--type-3);
     line-height: 1.2;
   }
+  .post-project-services-summary h2,
   .post-project-services-summary p {
+    font-size: var(--type-3);
+    line-height: 1.2;
+  }
+  .post-project-service h2 {
     font-size: var(--type-3);
     line-height: 1.2;
   }
@@ -4866,6 +4871,10 @@ body.coaching-overlay-open .layout-grid {
   }
   .bio-leadership-meta .type-project-title,
   .bio-leadership-meta .type-project-meta {
+    font-size: var(--type-3);
+    line-height: 1.2;
+  }
+  .bio-copy-block .case-project-links a {
     font-size: var(--type-3);
     line-height: 1.2;
   }

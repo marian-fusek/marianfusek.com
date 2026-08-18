@@ -1788,6 +1788,19 @@
     });
   };
   const updateNavProgress=()=>{
+    if(isMobileLayout()){
+      /* This fill assumes desktop's tall, scroll-pinned sections — on mobile
+         every section collapses to its natural (often shorter-than-viewport)
+         height, so offsetHeight-innerHeight goes negative and the clamped
+         1px range makes the fill snap on/off on every scroll tick instead of
+         sweeping smoothly. Mobile's full-screen menu was never meant to show
+         this scroll-progress sweep anyway, so just keep it fully hidden. */
+      navSections.forEach(item=>{
+        item.fill.style.clipPath='inset(0 100% 0 0)';
+        item.link.classList.remove('is-nav-active');
+      });
+      return;
+    }
     navSections.forEach((item,index)=>{
       const {start,end}=navRanges[index];
       const raw=end>start?clamp((scrollY-start)/(end-start),0,1):(scrollY>=end?1:0);

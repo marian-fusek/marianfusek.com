@@ -1271,7 +1271,7 @@
           app.classList.toggle('is-active',active);
           app.setAttribute('aria-pressed',String(active));
         });
-        requestAnimationFrame(()=>initiativesStage.classList.remove('is-switching'));
+        initiativesStage.classList.remove('is-switching');
       },300);
     };
     initiativesSection.addEventListener('click',event=>{

@@ -1122,7 +1122,7 @@ figure:has(> video) > video:hover {
     var(--weight-regular) var(--type-3) / 1.35 var(--font-family),
     sans-serif;
 }
-@media (max-height: 850px) and (min-width: 901px) {
+@media (max-height: 1050px) and (min-width: 901px) {
   .bio-copy-block {
     font-size: var(--type-3);
     line-height: 1.2;
@@ -4801,8 +4801,14 @@ body.coaching-overlay-open .layout-grid {
    .initiatives-divider all have unconditional base rules elsewhere of the
    same specificity, and equal-specificity ties go to whichever rule is
    later in source order — regardless of media query — so this block has
-   to stay last to actually win. */
-@media (max-height: 850px) and (min-width: 901px) {
+   to stay last to actually win.
+
+   Triggered at 1050px rather than the original 850px: between those two
+   heights the Initiatives list and the copy block under it closed to a 4px
+   gap at 1000px and touched outright by 940px (where the detail column also
+   ran past the bottom of the viewport), so the crowding started well before
+   the compact layout that relieves it did. */
+@media (max-height: 1050px) and (min-width: 901px) {
   .bio-divider {
     top: 15svh;
   }
@@ -4915,7 +4921,9 @@ body.coaching-overlay-open .layout-grid {
    bottom) at heights just above 850px where the shared breakpoint hadn't
    kicked in yet; the bio stat blocks were left on the later 850px trigger,
    which read as inconsistent next to reviews already being compact. */
-@media (max-height: 1000px) and (min-width: 901px) {
+/* Matched to the 1050px trigger above so the type in here shrinks in step
+   with the layout compaction rather than a step behind it. */
+@media (max-height: 1050px) and (min-width: 901px) {
   .coaching-overlay-rule {
     top: 15svh;
   }

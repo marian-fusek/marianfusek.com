@@ -962,7 +962,7 @@
     const bioCopy={
       about:`<p class="bio-copy-text">What satisfies me isn't another logo on my résumé, a new design approach, or clicking buttons in Figma — and I don't do any of this out of passion either. My process is a fight, with the brief, with the obvious, with anything that comes too easy. That restlessness is where everything starts: design, leadership, coaching, all of it.</p><p class="bio-copy-text">It's showing up for individuals and teams who need support, finding that rare fit where something real clicks between us. Underneath the polish, there's usually something worth digging for — and when those layers break, the real and beautiful comes alive.</p><p class="bio-about-xp">20+ Years of XP</p>`,
       leadership:`<p class="bio-copy-text">My leadership experience comes mostly from my time at STRV. I led team leads and platform experts across iOS, Android, Backend, Frontend, Data Science, Design &amp; QA.</p><p class="bio-copy-text">Before that, I ran STRV's Design Team — and for a bit, when QA had no lead, ran both teams at once. Good times.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Led</h2><p class="type-project-meta">11 managers</p></div><div><h2 class="type-project-title">Overseeing</h2><p class="type-project-meta">130 people</p></div></div><div class="case-project-links"><button id="openLeadershipReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read my team's reviews</span></button><a href="https://www.eleken.co/blog-posts/managing-a-design-team-interview-with-seasoned-design-leaders" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">My take on leadership in Eleken interview</span></a></div>`,
-      coaching:`<p class="bio-copy-text">I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No "do it like this." Your style all the way. Nothing forced.</p><p class="bio-copy-text">Coming from tech, clients don't have to explain the day-to-day — I already get it.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Coached</h2><p class="type-project-meta">70+ people (500+ hours)</p></div><div><h2 class="type-project-title">Accreditation</h2><p class="type-project-meta">ICF (ACSTH) &amp; EMCC</p></div></div><div class="case-project-links"><button id="openCoachingReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read all client feedback</span></button></div>`
+      coaching:`<p class="bio-copy-text">I work with teams and individuals to find the version of you that isn't performing for anyone — the noise gone, just what's actually there. No immediate advice. No "do it like this." Your style all the way. Nothing forced.</p><p class="bio-copy-text">Coming from tech, clients don't have to explain the day-to-day — I already get it.</p><div class="bio-leadership-meta"><div><h2 class="type-project-title">Coached</h2><p class="type-project-meta">70+ people (500+ hrs.)</p></div><div><h2 class="type-project-title">Accreditation</h2><p class="type-project-meta">ICF (ACSTH) &amp; EMCC</p></div></div><div class="case-project-links"><button id="openCoachingReviews" type="button"><span class="case-project-link-arrow" aria-hidden="true">→</span><span class="case-project-link-label">Read all client feedback</span></button></div>`
     };
     const bioRightCopy={
       about:(bioRight?.innerHTML||'').replaceAll(' bio-wipe',''),
@@ -1205,9 +1205,9 @@
         {label:'Support MF Art Directly',action:'art-support'}
       ]},
       leftovers:{name:'Leftovers',video:'media/initiatives/remnants/oldies.mp4',copy:'Earlier work, experiments, and pro bono design for an NGO — side projects I kept doing while focused on mindset coaching.',note:"Don't judge me. Everybody does this. Nobody shows.",noMeta:true},
-      utb:{name:'Tomas Bata Uni.',image:'media/initiatives/side-quests/side-quests_utb.jpg',copy:["I was twice invited to serve on a panel of industry professionals evaluating final bachelor's and master's thesis presentations on the Visual Arts programme at the university.",'On top of this, while leading a design team, we held full-day design talks for students of the Multimedia & Design subject twice over two years. The sessions continued even after I got promoted out of the Design Team Leadership role.','I made friends with the faculty lead. Had students applying to STRV years later. Lovely stuff.'],sideQuest:true},
+      utb:{name:'Tomas Bata Uni.',image:'media/initiatives/side-quests/side-quests_utb.jpg',copy:["I was twice invited to serve on a panel of industry professionals evaluating final bachelor's and master's thesis presentations on the Visual Arts programme at the university.",'On top of this, while leading a design team, we held full-day design talks for students of the Multimedia & Design subject twice over two years. The sessions continued even after I got promoted out of the Design Team Leadership role.','I made friends with the faculty lead. Had students applying to STRV years later. Lovely stuff.'],mentions:[['Faculty Website','https://fmk.utb.cz/en/']],sideQuest:true},
       undersurface:{name:'Ūndersurface',image:'media/initiatives/side-quests/side-quests_undersurface.jpg',copy:['Co-founded an enclosed community of entrepreneurs, designers and tinkerers. A peer accountability community that ran for 5+ years on Slack, combining structured goal-pushing sessions, sharing circles and talks to help members grow personally and professionally. Beyond the digital space, Joe and I organized an in-person retreat — including a 3-day trip to Estonia — built around deep-sharing, introspective and task-driven exercises designed to get people sharing honestly and working through personal blocks.','It moved me so much that when I got back, I enrolled in a one-year coaching program to become a certified life coach.'],mentions:[['Joe Pacal','https://www.pac.al/']],sideQuest:true},
-      'femme-palette':{name:'Femme Palette',image:'media/initiatives/side-quests/side-quests_femme-palette.jpg',copy:['Femme Palette is a mentoring platform and community built around career development and practical advice, not theory. Network of 1,200+ mentors, community of 5,000+, hubs in Prague, Berlin, Amsterdam, Barcelona, Copenhagen, and Paris.','I mentor in Design, General Career Guidance & Soft Skills, and Management & Leadership.'],sideQuest:true},
+      'femme-palette':{name:'Femme Palette',image:'media/initiatives/side-quests/side-quests_femme-palette.jpg',copy:['Femme Palette is a mentoring platform and community built around career development and practical advice, not theory. Network of 1,200+ mentors, community of 5,000+, hubs in Prague, Berlin, Amsterdam, Barcelona, Copenhagen, and Paris.','I mentor in Design, General Career Guidance & Soft Skills, and Management & Leadership.'],mentions:[['Website','https://www.femmepalette.com/']],sideQuest:true},
       nollie:{name:'Nollie',image:'media/initiatives/side-quests/side-quests_nollie.jpg',copy:['Co-founded this creative studio with a longtime friend and former colleague, Ales Nesetril, before we each pivoted into our own things — all in good spirit. During this time we launched the NEXT WORKOUT iOS app, which you can check out next.','Sharing this to also openly admit that not everything I touch always "works out." Duh! Here, the studio — the app works great! Hehe.'],mentions:[['Ales Nesetril','https://www.instagram.com/alesnesetril']],sideQuest:true},
       'next-workout':{name:'NEXT.WORKOUT',image:'media/initiatives/side-quests/side-quests_next-workout.jpg',copy:["This was a sweet collab between Next.Move (client), Yiskra Creative Studio (brand) — and my former Creative Studio Nollie (Design & Ops w/ Ales Nesetril).",'I sourced and managed developers, tracked the timeline and reported progress to the client side represented by Veronika Huna.',"The app launched and keeps growing. People work out. Life's good."],projectLink:'https://www.nextworkout.app/en',mentions:[['Next.Move','https://www.instagram.com/nextmove.cz/'],['Yiskra Creative Studio','https://www.yiskra.studio/'],['Ales Nesetril','https://www.instagram.com/alesnesetril'],['Veronika Huna','https://www.instagram.com/fitveronika']],sideQuest:true}
     };
@@ -1226,13 +1226,31 @@
     let activeInitiative='a-void';
     initiativeApps.forEach(app=>app.setAttribute('aria-pressed',String(app.dataset.initiative===activeInitiative)));
     let initiativeSwitchTimer=0;
+    let initiativeSwitchSeq=0;
     const switchInitiative=key=>{
       const next=initiativeData[key];
       if(!next||key===activeInitiative||!initiativesStage||!initiativesGrid)return;
       clearTimeout(initiativeSwitchTimer);
+      /* Bumped per switch so the media callbacks below can tell whether they
+         still belong to the newest click — a slow image finishing after the
+         user has already moved on must not un-hide the stage mid-swap. */
+      const seq=++initiativeSwitchSeq;
       initiativesStage.classList.add('is-switching');
       initiativeSwitchTimer=setTimeout(()=>{
         activeInitiative=key;
+        /* The stage stays hidden until the incoming media has actually
+           decoded. An <img> keeps painting its previous frame until the new
+           src is ready, so revealing on the next frame — as this used to —
+           faded the *old* image back in for a moment before the new one
+           appeared. The fallback timer is a floor, not a race: a slow or
+           broken asset still reveals rather than leaving the stage blank. */
+        let revealFallback=0;
+        const revealStage=()=>{
+          if(seq!==initiativeSwitchSeq)return;
+          clearTimeout(revealFallback);
+          requestAnimationFrame(()=>initiativesStage.classList.remove('is-switching'));
+        };
+        revealFallback=setTimeout(revealStage,1200);
         if(next.video){
           initiativeImage.hidden=true;
           initiativeImage.removeAttribute('src');
@@ -1240,6 +1258,8 @@
           initiativeVideo.src=next.video;
           initiativeVideo.setAttribute('aria-label',`${next.name} video`);
           initiativeVideo.addEventListener('loadedmetadata',()=>applyInitiativeMediaAR(initiativeVideo.videoWidth,initiativeVideo.videoHeight),{once:true});
+          initiativeVideo.addEventListener('loadeddata',revealStage,{once:true});
+          initiativeVideo.addEventListener('error',revealStage,{once:true});
           initiativeVideo.play?.().catch(()=>{});
         }else{
           initiativeVideo.hidden=true;
@@ -1249,8 +1269,16 @@
           initiativeImage.hidden=false;
           initiativeImage.src=next.image;
           initiativeImage.alt=`${next.name} app interface`;
-          if(initiativeImage.complete&&initiativeImage.naturalWidth)applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight);
-          else initiativeImage.addEventListener('load',()=>applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight),{once:true});
+          if(initiativeImage.complete&&initiativeImage.naturalWidth){
+            applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight);
+            revealStage();
+          }else{
+            initiativeImage.addEventListener('load',()=>{
+              applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight);
+              revealStage();
+            },{once:true});
+            initiativeImage.addEventListener('error',revealStage,{once:true});
+          }
         }
         initiativeCopy.replaceChildren(...(Array.isArray(next.copy)?next.copy:[next.copy]).map(copy=>{
           const paragraph=document.createElement('p');
@@ -1319,7 +1347,6 @@
           app.classList.toggle('is-active',active);
           app.setAttribute('aria-pressed',String(active));
         });
-        requestAnimationFrame(()=>initiativesStage.classList.remove('is-switching'));
       },300);
     };
     initiativesSection.addEventListener('click',event=>{

@@ -1103,6 +1103,7 @@
     const initiativeImage=initiativesSection.querySelector('#initiativeImage');
     const initiativeVideo=initiativesSection.querySelector('#initiativeVideo');
     const initiativesMedia=initiativesSection.querySelector('.initiatives-media');
+    const initiativesDetail=initiativesSection.querySelector('.initiatives-detail');
     const applyInitiativeMediaAR=(w,h)=>{
       if(initiativesMedia&&w&&h)initiativesMedia.style.aspectRatio=`${w} / ${h}`;
     };
@@ -1330,12 +1331,12 @@
          otherwise leave the page looking half-wiped right as new content
          swaps in. */
       initiativesForceReveal=true;
-      updateInitiatives();
+      updateInitiatives(true);
       addEventListener('wheel',()=>{initiativesForceReveal=false;},{once:true,passive:true});
       addEventListener('touchmove',()=>{initiativesForceReveal=false;},{once:true,passive:true});
       switchInitiative(app.dataset.initiative);
     });
-    const updateInitiatives=()=>{
+    const updateInitiatives=(skipSwitchOwned=false)=>{
       if(isMobileLayout()){
         initiativesWipes.forEach(item=>{
           item.style.removeProperty('opacity');
@@ -1357,6 +1358,14 @@
          same enter/exit math (and the same per-item stagger) makes every
          middle section's hold length consistent. */
       initiativesWipes.forEach((item,index)=>{
+        /* .initiatives-media/-detail/-mentions are the ones switchInitiative's
+           own is-switching CSS transition animates on the click path (see
+           the click handler below) — that transition is their sole owner
+           during a switch. Recomputing and overwriting their inline
+           opacity/clip-path here too, from the same click, raced with that
+           transition and produced the "old image flashes back in" bug:
+           two systems writing the same nested figure/img opacity chain. */
+        if(skipSwitchOwned&&(item===initiativesMedia||item===initiativesDetail||item===initiativeMentions))return;
         const order=Number(item.dataset.initiativesOrder||index);
         const enter=smoothstep(.02+order*.018,.16+order*.018,p);
         const reverseOrder=initiativesWipes.length-1-order;

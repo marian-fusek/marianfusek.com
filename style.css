@@ -223,6 +223,39 @@ figure:has(> video) > video:hover {
   transform: scale(1.05);
 }
 
+/* Whole-page scroll progress: a hairline track pinned to the bottom of the
+   viewport, with a fill that runs left to right across the full document
+   height. Scaled on a transform rather than animated on width so it stays
+   off the layout path, and left untransitioned because it is repainted every
+   eased scroll frame — a transition here would lag behind the scroll rather
+   than smooth it. Hidden whenever something is layered over the page: those
+   states freeze or replace the page scroll this bar reports. */
+.scroll-progress {
+  position: fixed;
+  z-index: 4500;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--line);
+  transition: opacity 0.25s var(--ease);
+  pointer-events: none;
+}
+.scroll-progress-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--body);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+body.is-nav-open .scroll-progress,
+body.case-overlay-open .scroll-progress,
+body.coaching-overlay-open .scroll-progress,
+body.art-support-overlay-open .scroll-progress,
+body.is-curtain-active .scroll-progress {
+  opacity: 0;
+}
 .site-nav {
   position: fixed;
   z-index: 50;

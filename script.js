@@ -1858,4 +1858,21 @@
     addEventListener('scroll',updateNavProgress,{passive:true});
     addEventListener('resize',()=>{measureNavRanges();updateNavProgress();},{passive:true});
   }
+
+  /* Whole-page scroll progress, top of the document to the very bottom. Runs
+     off the ordinary scroll event rather than hooking SmoothScroll: that
+     class drives the page with scrollTo() on every eased frame, so a plain
+     listener already follows the easing instead of fighting it, and the bar
+     keeps working on the touch and reduced-motion paths where the smooth
+     scroller is disabled entirely. */
+  const scrollProgressFill=document.querySelector('#scrollProgress .scroll-progress-fill');
+  if(scrollProgressFill){
+    const updateScrollProgress=()=>{
+      const max=document.documentElement.scrollHeight-innerHeight;
+      scrollProgressFill.style.transform=`scaleX(${max>0?clamp(scrollY/max,0,1):0})`;
+    };
+    addEventListener('scroll',()=>updateScrollProgress(),{passive:true});
+    addEventListener('resize',()=>updateScrollProgress(),{passive:true});
+    updateScrollProgress();
+  }
 })();

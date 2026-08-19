@@ -234,7 +234,10 @@ figure:has(> video) > video:hover {
   position: fixed;
   z-index: 4500;
   right: 0;
-  bottom: 0;
+  /* Lifted clear of the home-indicator strip on notched phones, where a
+     hairline sitting at a true 0 ends up under the indicator pill. The inset
+     resolves to 0 everywhere it doesn't apply, so desktop stays flush. */
+  bottom: env(safe-area-inset-bottom, 0px);
   left: 0;
   height: 1px;
   background: var(--line);
@@ -245,7 +248,11 @@ figure:has(> video) > video:hover {
   display: block;
   width: 100%;
   height: 100%;
-  background: var(--body);
+  /* --ink rather than --body: at a single pixel against the page background,
+     the mid grey read as almost nothing at the very bottom edge of the
+     window and the bar went unnoticed. The faint track behind it still keeps
+     the full extent quiet. */
+  background: var(--ink);
   transform: scaleX(0);
   transform-origin: left center;
 }

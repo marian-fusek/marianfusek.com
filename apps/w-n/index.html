@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f3f2ed" />
+  <title>What's Nest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="What's Nest home">What's Nest</a>
+      <nav class="nav" aria-label="Primary">
+        <button class="nav-btn active" data-view="matchup">Matchup</button>
+        <button class="nav-btn" data-view="players">Players</button>
+        <button class="nav-btn" data-view="league">League</button>
+      </nav>
+      <div class="top-actions">
+        <div class="sync-dot" id="syncDot" title="Sync status"></div>
+        <button class="icon-btn" id="refreshBtn" title="Refresh NFL data" aria-label="Refresh NFL data">↻</button>
+      </div>
+    </header>
+
+    <main>
+      <div id="bootMessage" class="boot-message visible" role="status">Loading your matchup…</div>
+      <section id="view-matchup" class="view active"></section>
+      <section id="view-players" class="view"></section>
+      <section id="view-league" class="view"></section>
+    </main>
+  </div>
+
+  <dialog id="playerDialog" class="player-dialog"></dialog>
+  <dialog id="teamDialog" class="team-dialog"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="config.js"></script>
+  <noscript><p class="boot-message visible">What's Nest needs JavaScript enabled to run.</p></noscript>
+  <script defer src="app.js"></script>
+</body>
+</html>

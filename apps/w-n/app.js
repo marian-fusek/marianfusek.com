@@ -495,7 +495,6 @@ function renderMatchup(){
   const [a,b] = state.teams;
   const aScore = teamTotal(a), bScore = teamTotal(b);
   el.innerHTML = `
-    <div class="view-intro matchup-intro"><div><span class="eyebrow">Weekly scoreboard</span><h1>Head to head.</h1></div><p>One week. Two lineups. A completely reasonable amount of judgment.</p></div>
     <div class="hero-grid">
       <section class="score-card">
         <div class="score-head">
@@ -605,12 +604,18 @@ function playerListRow(p,i){
 
 function renderLeague(){
   const el=$('#view-league');
+  const sharedConfigured=Boolean(CFG.supabaseUrl && SUPABASE_KEY);
+  const leagueSyncMessage=syncReady
+    ? 'Shared sync is connected. Both laptops using this URL will share the league.'
+    : sharedConfigured
+      ? 'Supabase is configured, but the connection needs attention. Check the sync indicator above.'
+      : 'Local mode works immediately. Add free Supabase values in config.js to make both browsers share the same roster in real time.';
   el.innerHTML=`<div class="view-intro league-intro"><div><span class="eyebrow">Private league / setup</span><h1>Make it yours.</h1></div><p>Connect the two laptops, name the teams, then make the kind of player decisions that will be discussed again in Week 7.</p></div><div class="league-grid">
     ${setupGuideCard()}
     ${teamSetupCard(state.teams[0])}
     ${teamSetupCard(state.teams[1])}
     ${seasonCard()}
-    <section class="setup-card"><h2>League</h2><div class="field"><label>Shared league ID</label><input value="${escAttr(CFG.leagueId||'whats-nest-private')}" disabled></div><p class="small">Local mode works immediately. Add free Supabase values in config.js to make both browsers share the same roster in real time.</p><button class="secondary" id="clearLeague">Reset league</button></section>
+    <section class="setup-card"><h2>League</h2><div class="field"><label>Shared league ID</label><input value="${escAttr(CFG.leagueId||'whats-nest-private')}" disabled></div><p class="small">${leagueSyncMessage}</p><button class="secondary" id="clearLeague">Reset league</button></section>
     <section class="setup-card"><h2>Transactions</h2><div class="transaction-list">${state.transactions.length?state.transactions.slice().reverse().slice(0,20).map(tx=>`<div class="transaction"><span>${esc(tx.text)}</span><time>${new Date(tx.ts).toLocaleString()}</time></div>`).join(''):'<div class="small">No roster moves yet.</div>'}</div></section>
   </div>`;
   $$('[data-team-form]',el).forEach(form=>form.addEventListener('submit',async e=>{

@@ -6,7 +6,9 @@ const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/s
 const TEAM_CODES = ['ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB','HOU','IND','JAX','KC','LAC','LAR','LV','MIA','MIN','NE','NO','NYG','NYJ','PHI','PIT','SEA','SF','TB','TEN','WAS'];
 const POSITIONS = ['ALL','QB','RB','WR','TE','K','DEF'];
 const STARTER_SLOTS = ['QB','RB1','RB2','WR1','WR2','TE','FLEX','K','DEF'];
-const ALL_SLOTS = [...STARTER_SLOTS, 'BENCH'];
+const BENCH_SLOTS = ['BENCH1','BENCH2','BENCH3','BENCH4','BENCH5','BENCH6'];
+const ALL_SLOTS = [...STARTER_SLOTS, ...BENCH_SLOTS];
+const ROSTER_SIZE = STARTER_SLOTS.length + BENCH_SLOTS.length;
 const STORAGE_KEY = 'wn-state-v1';
 
 let nflState = { week: 1, season: new Date().getFullYear().toString(), season_type: 'regular' };
@@ -73,8 +75,10 @@ function normalizeRoster(raw={}){
   const roster={...source};
   if(roster.RB && !roster.RB1) roster.RB1=roster.RB;
   if(roster.WR && !roster.WR1) roster.WR1=roster.WR;
+  if(roster.BENCH && !roster.BENCH1) roster.BENCH1=roster.BENCH;
   delete roster.RB;
   delete roster.WR;
+  delete roster.BENCH;
   return roster;
 }
 
@@ -553,10 +557,10 @@ function logo(team){ return `<div class="logo-box">${team.logo?`<img src="${team
 
 function rosterCard(team){
   return `<section class="roster-card">
-    <div class="roster-head"><h3>${esc(team.name)}</h3><span class="small">${Object.values(team.roster||{}).filter(Boolean).length}/10</span></div>
+    <div class="roster-head"><h3>${esc(team.name)}</h3><span class="small">${Object.values(team.roster||{}).filter(Boolean).length}/${ROSTER_SIZE}</span></div>
     ${STARTER_SLOTS.map(slot => rosterRow(team,slot)).join('')}
     <div class="bench-label">Bench</div>
-    ${rosterRow(team,'BENCH')}
+    ${BENCH_SLOTS.map(slot => rosterRow(team,slot)).join('')}
   </section>`;
 }
 function rosterRow(team, slot){
@@ -744,9 +748,12 @@ function openAssignDialog(id,teamId){
   }));
   d.showModal();
 }
-function slotLabel(slot){ return ({RB1:'RB 1',RB2:'RB 2',WR1:'WR 1',WR2:'WR 2'})[slot] || slot; }
+function slotLabel(slot){
+  if(/^BENCH[1-6]$/.test(slot)) return `Bench ${slot.slice(5)}`;
+  return ({RB1:'RB 1',RB2:'RB 2',WR1:'WR 1',WR2:'WR 2'})[slot] || slot;
+}
 function slotEligible(pos,slot){
-  const baseSlot=({RB1:'RB',RB2:'RB',WR1:'WR',WR2:'WR'})[slot] || slot;
+  const baseSlot=BENCH_SLOTS.includes(slot) || slot==='BENCH' ? 'BENCH' : ({RB1:'RB',RB2:'RB',WR1:'WR',WR2:'WR'})[slot] || slot;
   return baseSlot==='BENCH' || pos===baseSlot || (baseSlot==='FLEX' && ['RB','WR','TE'].includes(pos));
 }
 async function removePlayer(id,log=true){

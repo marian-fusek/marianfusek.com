@@ -6,7 +6,7 @@ What's Nest is a private, browser-based, two-person NFL fantasy matchup app. Two
 
 ## Hard constraints
 
-- Keep exactly two fantasy teams and exactly 10 roster slots per team: `QB`, `RB`, `RB`, `WR`, `WR`, `TE`, `FLEX`, `K`, `DEF`, and `BENCH`.
+- Keep exactly two fantasy teams and exactly 15 roster slots per team: `QB`, `RB`, `RB`, `WR`, `WR`, `TE`, `FLEX`, `K`, `DEF`, and six bench slots.
 - Show the full active NFL player pool. Do not add a “cut the stars” flow, banned-player list, artificial player limits, or a restriction against superstars; any such rule is a private house rule.
 - Keep the operating cost at $0 for this private use. Do not introduce paid APIs, paid infrastructure, API-key requirements, or a dependency on Tank01.
 - Preserve both modes: local-only use must work immediately, and optional shared two-browser sync must work through the free Supabase setup.
@@ -47,10 +47,10 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 ## Roster, scoring, and game-lock rules
 
 - Use weekly PPR scoring: 1 point per reception; 1 per 10 rushing/receiving yards; 6 per rushing/receiving touchdown; 4 per passing touchdown; 1 per 25 passing yards; −2 per interception; −2 per lost fumble; standard kicker points matching the existing formula.
-- Count only the nine starter slots in the team total. `BENCH` is visible and movable but does not score.
+- Count only the nine starter slots in the team total. All six bench slots are visible and movable but do not score.
 - Preserve a separate lineup snapshot for every week. Switching weeks must restore that week’s snapshot instead of sharing one mutable roster across the season.
 - Once a week is complete or has a saved result, treat that week as read-only: no add, drop, replace, or lineup move, while later weeks remain editable.
-- Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; `BENCH` accepts any supported fantasy position.
+- Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; every bench slot accepts any supported fantasy position.
 - Lock each player individually when that player's real NFL game begins. A locked early player cannot be moved, dropped, replaced, or newly added; players whose games have not begun remain editable.
 - A lock is not a whole-roster lock. Preserve later-game flexibility throughout the week.
 - Keep Week 1–18 navigation, matchup totals, winner/lead state, weekly results, and the ability to reflect official stat corrections.

@@ -14,7 +14,7 @@ Private two-person NFL fantasy web app.
 - Sort by top-rated, projected points, or name
 - Player detail with headshot, status, weekly stats, projection, ranking
 - Assign any player to either fantasy team
-- 10-player roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, BENCH
+- 15-player roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, and 6 bench slots
 - One player cannot belong to both teams
 - Drop and replace players
 - Per-player kickoff locking from the free schedule feed, with stats-feed fallback

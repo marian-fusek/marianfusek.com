@@ -91,10 +91,11 @@ main { padding: 52px 0 96px; }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #7ef29d; }
 
 .week-card { padding: 30px; display: flex; flex-direction: column; justify-content: space-between; }
+.week-card > div:last-child { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
 .week-card h2, .panel-title { margin: 0; font-weight: 500; letter-spacing: -.065em; font-size: 36px; }
-.week-card .big { font-size: clamp(86px, 11vw, 150px); letter-spacing: -.1em; line-height: .78; margin-top: 54px; }
-.week-card .muted { color: var(--muted); font-size: 13px; }
-.week-status { display: inline-flex; margin-top: 14px; padding: 7px 10px; border-radius: 999px; background: #e0f4e5; color: #16753d; font-size: 11px; font-weight: 600; }
+.week-card .big { font-size: clamp(86px, 11vw, 150px); letter-spacing: -.1em; line-height: .78; margin: 0; }
+.week-card .muted { color: var(--muted); font-size: 13px; margin: 0; }
+.week-status { display: inline-flex; margin-top: 0; padding: 7px 10px; border-radius: 999px; background: #e0f4e5; color: #16753d; font-size: 11px; font-weight: 600; }
 .week-status.closed { background: #e5e4df; color: var(--muted); }
 
 .matchup-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }

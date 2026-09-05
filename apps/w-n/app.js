@@ -1,7 +1,7 @@
 const CFG = window.WN_CONFIG || {};
 const SUPABASE_KEY = CFG.supabasePublishableKey || CFG.supabaseAnonKey || '';
 const SLEEPER = 'https://api.sleeper.app/v1';
-const STATS = 'https://api.sleeper.app';
+const STATS = SLEEPER;
 const SCOREBOARD = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
 const TEAM_CODES = ['ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB','HOU','IND','JAX','KC','LAC','LAR','LV','MIA','MIN','NE','NO','NYG','NYJ','PHI','PIT','SEA','SF','TB','TEN','WAS'];
 const POSITIONS = ['ALL','QB','RB','WR','TE','K','DEF'];

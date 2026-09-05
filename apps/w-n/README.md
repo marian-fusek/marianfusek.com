@@ -106,8 +106,8 @@ Player data and NFL state use Sleeper's public API:
 
 Weekly stats/projections use Sleeper endpoints currently used by community projects:
 
-- `/stats/nfl/regular/{season}/{week}`
-- `/projections/nfl/regular/{season}/{week}`
+- `/v1/stats/nfl/regular/{season}/{week}`
+- `/v1/projections/nfl/regular/{season}/{week}`
 
 These stats/projection routes are less formally documented by Sleeper than the player API, so `app.js` keeps the provider calls isolated enough to replace later if needed.
 

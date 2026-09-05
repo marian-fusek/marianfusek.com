@@ -2,11 +2,11 @@
 
 ## Purpose
 
-What's Nest is a private, browser-based, two-person NFL fantasy matchup app. Two people manually assign NFL players to their own teams, set weekly lineups, follow live/official weekly PPR scoring, and compare results across Weeks 1–18. It is a focused scorekeeper, not a general fantasy platform.
+What's Nest is a private, browser-based, two-person NFL fantasy matchup app. Two people manually redraft NFL players to their own teams each week, set weekly lineups, follow live/official weekly PPR scoring, and compare results across Weeks 1–18. It is a focused scorekeeper, not a general fantasy platform.
 
 ## Hard constraints
 
-- Keep exactly two fantasy teams and exactly 15 roster slots per team: `QB`, `RB`, `RB`, `WR`, `WR`, `TE`, `FLEX`, `K`, `DEF`, and six bench slots.
+- Keep exactly two fantasy teams and nine starter slots per team: `QB`, `RB`, `RB`, `WR`, `WR`, `TE`, `FLEX`, `K`, and `DEF`. The six-slot bench is optional and controlled by the shared League setting; when enabled the total is 15 slots.
 - Show the full active NFL player pool. Do not add a “cut the stars” flow, banned-player list, artificial player limits, or a restriction against superstars; any such rule is a private house rule.
 - Keep the operating cost at $0 for this private use. Do not introduce paid APIs, paid infrastructure, API-key requirements, or a dependency on Tank01.
 - Preserve both modes: local-only use must work immediately, and optional shared two-browser sync must work through the free Supabase setup.
@@ -41,16 +41,18 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - The weekly stats/projection routes are less formally documented than the player endpoint. Handle failed or partial responses gracefully, retain cached data where appropriate, and keep the manual refresh fallback.
 - Never display a prior week’s stats as if they belonged to the selected week. Clear in-memory weekly stats when changing weeks; retain only same-week cached data during a failed refresh.
 - The free public ESPN NFL scoreboard feed is the schedule/live-status source only. Use it for kickoff, game state, and quarter/clock labels; never use it for player identity or fantasy scoring.
+- Defense rows use the committed local helmet assets in `media/defense-helmets/`; keep those assets available for the player list, roster rows, and detail dialog. Do not replace them with arbitrary remote hotlinks.
 - Never fabricate live status, quarter/clock values, scores, projections, or kickoff times. The current build locks from the schedule feed when available and falls back conservatively to stats-feed participation when that schedule feed is unavailable; always make that fallback visible.
 - Refresh sparingly: cached player data, weekly data refresh while the app is open, slower refresh before games, roughly 30–60 seconds during live play, and stop when games are finished. Do not poll continuously when it adds no value.
 
 ## Roster, scoring, and game-lock rules
 
 - Use weekly PPR scoring: 1 point per reception; 1 per 10 rushing/receiving yards; 6 per rushing/receiving touchdown; 4 per passing touchdown; 1 per 25 passing yards; −2 per interception; −2 per lost fumble; standard kicker points matching the existing formula.
-- Count only the nine starter slots in the team total. All six bench slots are visible and movable but do not score.
+- Keep actual PPR points and provider projections visibly separate: large numbers are actual PPR, while smaller `Proj` values are forecasts and may be unavailable until the projection feed returns.
+- Count only the nine starter slots in the team total. When the bench setting is on, all six bench slots are visible and movable but do not score; when it is off, bench slots are hidden and not draftable.
 - Preserve a separate lineup snapshot for every week. Switching weeks must restore that week’s snapshot instead of sharing one mutable roster across the season.
 - Once a week is complete or has a saved result, treat that week as read-only: no add, drop, replace, or lineup move, while later weeks remain editable.
-- Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; every bench slot accepts any supported fantasy position.
+- Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; every enabled bench slot accepts any supported fantasy position.
 - Lock each player individually when that player's real NFL game begins. A locked early player cannot be moved, dropped, replaced, or newly added; players whose games have not begun remain editable.
 - A lock is not a whole-roster lock. Preserve later-game flexibility throughout the week.
 - Keep Week 1–18 navigation, matchup totals, winner/lead state, weekly results, and the ability to reflect official stat corrections.
@@ -61,7 +63,7 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Mobile: stack the matchup into a readable vertical comparison without losing the head-to-head relationship; keep rows scannable and controls comfortably tappable. The bottom navigation treatment may remain fixed on small screens.
 - Player setup must feel editorial: searchable large rows, all NFL teams selected by default, deselectable team chips, position filters, ownership filters (`Available`, either team), active/injured filters, top-rated sorting by default, projection/name alternatives, and a focused detail view with photo, status, rank, projection, and weekly stats.
 - Make ownership, availability, projection, score, lock/open state, live state, and sync state clear without forcing the user to infer them.
-- Keep the League view’s concise `Draft-day setup` guide visible. It must explain the public shared URL, two-team manual assignment flow, weekly lineup movement, kickoff locks, and the difference between shared sync and local-only mode.
+- Keep the League view’s concise `Weekly redraft setup` guide visible. It must explain the public shared URL, two-team manual weekly redraft flow, weekly lineup movement, kickoff locks, and the difference between shared sync and local-only mode.
 - Preserve manual refresh, visible sync feedback, loading/empty/error states, confirmation for destructive reset, and accessible labels/dialog close behavior.
 - Keep the interface usable with long names, missing photos, missing stats, slow feeds, and narrow screens.
 

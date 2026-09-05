@@ -13,14 +13,16 @@ Private two-person NFL fantasy web app.
 - Active/injured player filters
 - Sort by top-rated, projected points, or name
 - Player detail with headshot, status, weekly stats, projection, ranking
+- Defense rows use local NFL team helmet assets in the player list, roster, and player detail
 - Assign any player to either fantasy team
-- 15-player roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, and 6 bench slots
+- 9-player starting roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, with an optional 6-slot bench controlled in League settings
 - One player cannot belong to both teams
 - Drop and replace players
 - Per-player kickoff locking from the free schedule feed, with stats-feed fallback
 - Live game labels such as `LIVE · Q3 08:21` when the schedule feed provides them
-- Move owned players between eligible lineup and bench slots, including safe swaps
+- Move owned players between eligible lineup and bench slots when the bench setting is enabled, including safe swaps
 - Weekly PPR scoring
+- Clear actual PPR and projected points for each starter, plus projected team totals
 - Team totals and head-to-head matchup
 - Week 1–18 navigation
 - A separate saved lineup for each week, with completed weeks read-only
@@ -63,7 +65,7 @@ For you and one partner on separate laptops, do this once:
 
 This is link-private rather than account-private: the agreed build has no login. Keep the site address to the two of you. If you later need real access control, that is a separate authentication decision—not something to smuggle in through a checkbox and hope for the best.
 
-After that, draft from `Players`: open a player, choose a team, then choose a roster slot. This is intentionally a manual draft, not a full draft-room engine. Fill both teams together, then review the final lineups in `Matchup`. The in-app `Draft-day setup` card repeats this checklist when you need it.
+At the start of each week, redraft from `Players`: open a player, drop or replace as needed, then choose a team and roster slot. This is intentionally a manual weekly redraft, not a full draft-room engine. Fill both teams together, then review the final lineups in `Matchup`. The in-app `Weekly redraft setup` card repeats this checklist when you need it.
 
 If the badge says `Local mode only`, the app still works, but changes stay on that laptop. That is useful for a private solo test and not a successful shared league.
 

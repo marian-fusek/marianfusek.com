@@ -124,6 +124,21 @@ function healthLabel(player: Record<string, any>) {
 
 function teamLogoCandidates(team: Record<string, any>) {
   const candidates: string[] = [];
+  const visited = new WeakSet<object>();
+
+  const isSafeImageCandidate = (value: string) => {
+    if (/^data:image\//i.test(value)) return true;
+    try {
+      const hostname = new URL(value).hostname.toLowerCase();
+      return hostname === 'espn.com'
+        || hostname.endsWith('.espn.com')
+        || hostname === 'espncdn.com'
+        || hostname.endsWith('.espncdn.com');
+    } catch (_) {
+      return false;
+    }
+  };
+
   const visit = (value: unknown) => {
     if (Array.isArray(value)) {
       value.forEach(visit);
@@ -131,12 +146,14 @@ function teamLogoCandidates(team: Record<string, any>) {
     }
     if (typeof value === 'string') {
       const trimmed = value.trim();
-      if (trimmed && !candidates.includes(trimmed)) candidates.push(trimmed);
+      if (isSafeImageCandidate(trimmed) && !candidates.includes(trimmed)) candidates.push(trimmed);
       return;
     }
     if (value && typeof value === 'object') {
+      if (visited.has(value)) return;
+      visited.add(value);
       const item = value as Record<string, any>;
-      visit(item.href || item.url || item.src || item.imageUrl || item.logoUrl);
+      Object.values(item).forEach(visit);
     }
   };
   [
@@ -146,10 +163,16 @@ function teamLogoCandidates(team: Record<string, any>) {
     team.image, team.imageUrl, team.imageURL
   ].forEach(visit);
   return candidates.sort((left, right) => {
-    const leftLooksCustom = /mystique-api|\/domains\/lm\/images\//i.test(left) ? 1 : 0;
-    const rightLooksCustom = /mystique-api|\/domains\/lm\/images\//i.test(right) ? 1 : 0;
+    const leftLooksCustom = /mystique-api|\/domains\/lm\/images\/|data:image\//i.test(left) ? 1 : 0;
+    const rightLooksCustom = /mystique-api|\/domains\/lm\/images\/|data:image\//i.test(right) ? 1 : 0;
     return rightLooksCustom - leftLooksCustom;
   });
+}
+
+function defaultTeamLogo(team: Record<string, any>) {
+  const abbreviation = normalizeTeamCode(team.abbrev).toUpperCase();
+  if (!Object.values(NFL_TEAM_BY_ESPN_ID).includes(abbreviation)) return '';
+  return `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(abbreviation.toLowerCase())}.png`;
 }
 
 function base64FromBytes(bytes: Uint8Array) {
@@ -185,11 +208,15 @@ async function privateImageDataUrl(url: string, cookie: string) {
 }
 
 async function teamLogoDataUrl(team: Record<string, any>, cookie: string) {
-  for (const candidate of teamLogoCandidates(team)) {
+  const candidates = teamLogoCandidates(team);
+  for (const candidate of candidates) {
     const image = await privateImageDataUrl(candidate, cookie);
     if (image) return image;
   }
-  return '';
+  // A custom ESPN image can require the viewer's browser session even when
+  // the server cannot proxy it. Let the browser try that URL first before
+  // using the normal NFL logo fallback.
+  return candidates.find(candidate => /^https?:\/\//i.test(candidate)) || defaultTeamLogo(team);
 }
 
 function teamName(team: Record<string, any>) {
@@ -329,6 +356,7 @@ Deno.serve(async (request) => {
       name: teamName(team),
       abbreviation: asText(team.abbrev).toUpperCase(),
       logo: await teamLogoDataUrl(team, espnCookie),
+      logoFallback: defaultTeamLogo(team),
       starters: players.filter((player: Record<string, any>) => !player.bench),
       bench: players.filter((player: Record<string, any>) => player.bench)
     };

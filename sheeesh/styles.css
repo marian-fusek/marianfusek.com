@@ -71,10 +71,11 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 .team-logo:has(img) .logo-fallback, .search-result-logo:has(img) .logo-fallback, .player-avatar:has(img) .avatar-fallback { display: none; }
 .team-heading h2 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(22px, 2.1vw, 32px); font-weight: 550; letter-spacing: -.065em; }
 .team-abbreviation { margin-top: 4px; color: var(--muted); font-size: 11px; letter-spacing: .1em; }
-.team-drag-handle { flex: 0 0 auto; padding: 6px 2px 6px 12px; border: 0; color: var(--muted); background: transparent; cursor: grab; font-size: 25px; line-height: 1; touch-action: none; user-select: none; }
+.team-drag-handle { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: transparent; cursor: grab; font-size: 19px; line-height: 1; touch-action: none; user-select: none; }
+.team-drag-handle:hover, .team-drag-handle:focus-visible { color: var(--ink); background: #f0efe9; }
 .team-drag-handle:active { cursor: grabbing; }
-.team-card.is-dragging { opacity: .55; }
-.team-card.is-drag-over { outline: 2px solid var(--ink); outline-offset: -2px; }
+.team-card.is-dragging { opacity: .48; }
+.team-card.is-drag-over { outline: 2px dashed var(--ink); outline-offset: -2px; }
 .team-columns { display: grid; grid-template-columns: 1fr 1fr; }
 .player-column { min-width: 0; }
 .player-column + .player-column { border-left: 1px solid var(--line); }

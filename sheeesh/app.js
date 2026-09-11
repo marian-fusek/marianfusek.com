@@ -68,10 +68,11 @@ function playerColumn(title, players) {
 }
 
 function teamMarkup(team) {
+  const logo = team.logo ? `<img src="${esc(team.logo)}" alt="" ${team.logoFallback ? `data-fallback="${esc(team.logoFallback)}"` : ''} onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback}else{this.remove()}" >` : '';
   return `<article class="team-card" data-team-id="${esc(team.id)}">
     <header class="team-header">
       <div class="team-heading">
-        <div class="team-logo">${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}<span class="logo-fallback">${esc(initials(team.name))}</span></div>
+        <div class="team-logo">${logo}<span class="logo-fallback">${esc(initials(team.name))}</span></div>
         <div><h2>${esc(team.name)}</h2>${team.abbreviation ? `<div class="team-abbreviation">${esc(team.abbreviation)}</div>` : ''}</div>
       </div>
       <button class="team-drag-handle" type="button" aria-label="Drag to reorder ${esc(team.name)}" title="Drag to reorder">⠿</button>
@@ -112,31 +113,67 @@ function saveTeamOrder() {
 function enableTeamDragging() {
   let dragState = null;
   const handles = teamGrid.querySelectorAll('.team-drag-handle');
+
+  const clearDragClasses = () => {
+    teamGrid.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
+  };
+
+  const targetAt = (event, card) => {
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.team-card');
+    return target && target !== card && teamGrid.contains(target) ? target : null;
+  };
+
+  const updateDropTarget = event => {
+    if (!dragState) return;
+    const target = targetAt(event, dragState.card);
+    clearDragClasses();
+    if (!target) {
+      dragState.target = null;
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    dragState.target = target;
+    dragState.insertAfter = event.clientY > rect.top + rect.height / 2;
+    target.classList.add('is-drag-over');
+  };
+
   handles.forEach(handle => {
     handle.addEventListener('pointerdown', event => {
       const card = handle.closest('.team-card');
       if (!card) return;
       event.preventDefault();
-      dragState = { card, pointerId: event.pointerId };
+      dragState = {
+        card,
+        handle,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        target: null,
+        insertAfter: false
+      };
       card.classList.add('is-dragging');
       handle.setPointerCapture?.(event.pointerId);
     });
     handle.addEventListener('pointermove', event => {
-      if (!dragState) return;
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
       event.preventDefault();
-      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.team-card');
-      if (!target || target === dragState.card || !teamGrid.contains(target)) return;
-      const rect = target.getBoundingClientRect();
-      const after = event.clientY > rect.top + rect.height / 2;
-      teamGrid.insertBefore(dragState.card, after ? target.nextSibling : target);
-      teamGrid.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
-      target.classList.add('is-drag-over');
+      const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
+      if (distance < 6) return;
+      dragState.moved = true;
+      updateDropTarget(event);
     });
-    const finish = () => {
-      if (!dragState) return;
-      dragState.card.classList.remove('is-dragging');
-      teamGrid.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
-      saveTeamOrder();
+    const finish = event => {
+      if (!dragState || (event?.pointerId && event.pointerId !== dragState.pointerId)) return;
+      if (event && dragState.moved) updateDropTarget(event);
+      const { card, target, insertAfter } = dragState || {};
+      if (target && target !== card) {
+        teamGrid.insertBefore(card, insertAfter ? target.nextSibling : target);
+        saveTeamOrder();
+      }
+      card?.classList.remove('is-dragging');
+      clearDragClasses();
+      dragState?.handle?.releasePointerCapture?.(dragState.pointerId);
       dragState = null;
     };
     handle.addEventListener('pointerup', finish);
@@ -145,7 +182,8 @@ function enableTeamDragging() {
 }
 
 function searchLogoMarkup(team) {
-  return `<div class="search-result-logo">${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}<span class="logo-fallback">${esc(initials(team.name))}</span></div>`;
+  const logo = team.logo ? `<img src="${esc(team.logo)}" alt="" ${team.logoFallback ? `data-fallback="${esc(team.logoFallback)}"` : ''} onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback}else{this.remove()}" >` : '';
+  return `<div class="search-result-logo">${logo}<span class="logo-fallback">${esc(initials(team.name))}</span></div>`;
 }
 
 function updatePlayerSearch() {

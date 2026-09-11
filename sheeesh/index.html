@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sheeesh · ESPN league</title>
+  <meta name="description" content="A private, read-only view of the ESPN fantasy league.">
+  <link rel="canonical" href="https://marianfusek.com/sheeesh/">
+  <link rel="icon" type="image/png" href="/favicon/favicon.png">
+  <link rel="stylesheet" href="styles.css?v=20260911-2">
+</head>
+<body>
+  <main>
+    <section class="intro">
+      <div>
+        <span class="eyebrow">ESPN fantasy league</span>
+        <h1>Sheeesh.</h1>
+      </div>
+      <div class="intro-meta">
+        <span id="seasonLabel">2026</span>
+        <span id="weekLabel">Private view</span>
+      </div>
+    </section>
+
+    <section class="login-card" id="loginCard">
+      <span class="eyebrow">Private league</span>
+      <h2>Enter the password.</h2>
+      <form id="loginForm">
+        <label for="passwordInput">Password</label>
+        <div class="password-row"><input id="passwordInput" type="password" autocomplete="current-password" required><button type="submit">Open Sheeesh</button></div>
+        <p class="form-message" id="loginMessage" role="status"></p>
+      </form>
+    </section>
+
+    <div class="message" id="message" role="status" hidden></div>
+    <section class="team-grid" id="teamGrid" aria-live="polite" hidden></section>
+  </main>
+
+  <script src="../apps/w-n/config.js"></script>
+  <script defer src="app.js?v=20260911-2"></script>
+</body>
+</html>

@@ -114,7 +114,7 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
   .password-row button { justify-self: start; }
   .league-tools { flex-direction: column; gap: 10px; }
   .search-and-result { width: 100%; flex-direction: column; align-items: stretch; }
-  .player-search { width: 100%; }
+  .player-search { width: 100%; font-size: 16px; }
   .search-result { width: 100%; }
   .league-actions { width: 100%; justify-content: space-between; }
   .team-header { padding: 22px 18px 18px; }

@@ -37,7 +37,7 @@ function formatTime(game) {
 }
 
 function gameMarkup(game) {
-  if (!game) return '<span class="play-state upcoming">Schedule TBD</span>';
+  if (!game) return '<span class="play-state unavailable">Game time unavailable</span>';
   const stateClass = game.state === 'post' ? 'played' : game.state === 'in' ? 'live' : 'upcoming';
   const opponent = game.opponent ? `vs ${esc(game.opponent)}` : '';
   const time = formatTime(game);

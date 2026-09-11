@@ -85,6 +85,7 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 .play-state.played { color: var(--ink); }
 .play-state.upcoming { color: var(--warning); }
 .play-state.live { color: var(--good); }
+.play-state.unavailable { color: var(--muted); }
 .play-detail { color: var(--muted); }
 .health { display: inline-flex; margin-top: 7px; padding: 4px 7px; border-radius: 999px; color: var(--danger); background: #f5dfdc; font-size: 9px; font-weight: 750; letter-spacing: .08em; }
 .health-questionable, .health-doubtful { color: var(--warning); background: #f5ebc9; }

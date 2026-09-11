@@ -143,7 +143,15 @@ function base64FromBytes(bytes: Uint8Array) {
 async function privateImageDataUrl(url: string, cookie: string) {
   if (!url) return '';
   try {
-    const response = await fetch(url, { headers: { Accept: 'image/*', Cookie: cookie } });
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'image/*',
+        Cookie: cookie,
+        Origin: 'https://fantasy.espn.com',
+        Referer: 'https://fantasy.espn.com/football/',
+        'User-Agent': 'Mozilla/5.0 (compatible; Sheeesh/1.0)'
+      }
+    });
     if (!response.ok) return '';
     const contentType = (response.headers.get('content-type') || 'image/png').split(';')[0];
     if (!contentType.startsWith('image/')) return '';
@@ -270,7 +278,15 @@ Deno.serve(async (request) => {
     scoreboardUrl.searchParams.set('dates', season);
     scoreboardUrl.searchParams.set('seasontype', '2');
     scoreboardUrl.searchParams.set('week', String(week));
-    const scoreboardResult = await fetchJson(scoreboardUrl.toString());
+    scoreboardUrl.searchParams.set('limit', '100');
+    const scoreboardResult = await fetchJson(scoreboardUrl.toString(), {
+      headers: {
+        Accept: 'application/json',
+        Origin: 'https://fantasy.espn.com',
+        Referer: 'https://fantasy.espn.com/football/',
+        'User-Agent': 'Mozilla/5.0 (compatible; Sheeesh/1.0)'
+      }
+    });
     if (scoreboardResult.response.ok) games = normalizeGames(scoreboardResult.body || {});
   } catch (_) {
     games = {};

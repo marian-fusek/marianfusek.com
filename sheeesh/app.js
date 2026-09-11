@@ -13,10 +13,13 @@ const teamGrid = $('#teamGrid');
 const refreshButton = $('#refreshButton');
 const leagueTools = $('#leagueTools');
 const lastRefreshed = $('#lastRefreshed');
+const playerSearch = $('#playerSearch');
+const playerSearchResult = $('#playerSearchResult');
 const seasonLabel = $('#seasonLabel');
 const weekLabel = $('#weekLabel');
 
 let sessionToken = sessionStorage.getItem(SESSION_KEY) || '';
+let leagueData = null;
 
 function esc(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
@@ -73,6 +76,36 @@ function teamMarkup(team) {
     </header>
     <div class="team-columns">${playerColumn('Starters', team.starters || [])}${playerColumn('Bench', team.bench || [])}</div>
   </article>`;
+}
+
+function searchLogoMarkup(team) {
+  return `<div class="search-result-logo"><span>${esc(initials(team.name))}</span>${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}</div>`;
+}
+
+function updatePlayerSearch() {
+  if (!playerSearch || !playerSearchResult) return;
+  const query = playerSearch.value.trim().toLowerCase();
+  if (!query || !leagueData?.teams?.length) {
+    playerSearchResult.hidden = true;
+    playerSearchResult.innerHTML = '';
+    return;
+  }
+  const matches = [];
+  for (const team of leagueData.teams) {
+    for (const player of [...(team.starters || []), ...(team.bench || [])]) {
+      if (player.name.toLowerCase().includes(query)) matches.push({ team, player });
+    }
+  }
+  if (!matches.length) {
+    playerSearchResult.innerHTML = '<span class="search-empty">No player found</span>';
+    playerSearchResult.hidden = false;
+    return;
+  }
+  playerSearchResult.innerHTML = matches.slice(0, 6).map(({ team, player }) => `<div class="search-hit">
+    ${searchLogoMarkup(team)}
+    <div><strong>${esc(team.name)}</strong><span>${esc(player.name)} · ${esc(player.position || 'Player')}</span></div>
+  </div>`).join('');
+  playerSearchResult.hidden = false;
 }
 
 function setMessage(text = '', isError = false) {
@@ -136,9 +169,16 @@ async function loadLeague() {
       teamGrid.hidden = true;
       if (refreshButton) refreshButton.hidden = true;
       if (leagueTools) leagueTools.hidden = true;
+      leagueData = null;
+      if (playerSearch) playerSearch.value = '';
+      if (playerSearchResult) {
+        playerSearchResult.hidden = true;
+        playerSearchResult.innerHTML = '';
+      }
       throw new Error('Session expired. Enter the password again.');
     }
     if (!response.ok) throw new Error(data.error || `Connection failed (${response.status})`);
+    leagueData = data;
     seasonLabel.textContent = data.season || '2026';
     weekLabel.textContent = data.week ? `Week ${data.week}` : 'Current week';
     teamGrid.innerHTML = (data.teams || []).map(teamMarkup).join('');
@@ -150,6 +190,7 @@ async function loadLeague() {
     const refreshed = data.refreshedAt ? new Date(data.refreshedAt) : new Date();
     lastRefreshed.textContent = `Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(refreshed)}`;
     lastRefreshed.title = refreshed.toLocaleString();
+    updatePlayerSearch();
   } catch (error) {
     if (!sessionToken) teamGrid.hidden = true;
     setMessage(error.message || 'Sheeesh could not refresh.', true);
@@ -160,4 +201,5 @@ async function loadLeague() {
 
 loginForm.addEventListener('submit', login);
 refreshButton.addEventListener('click', loadLeague);
+if (playerSearch) playerSearch.addEventListener('input', updatePlayerSearch);
 if (sessionToken) loadLeague();

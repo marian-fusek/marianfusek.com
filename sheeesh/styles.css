@@ -27,6 +27,7 @@ a { color: inherit; text-decoration: none; }
 .refresh-button, .password-row button { border: 1px solid var(--ink); border-radius: 999px; padding: 10px 16px; color: var(--panel); background: var(--ink); cursor: pointer; font-size: 12px; font-weight: 650; }
 .refresh-button:hover, .password-row button:hover { background: #34332f; }
 .refresh-button:disabled { cursor: wait; opacity: .55; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 main { width: min(100% - 56px, 1440px); margin: 0 auto; padding: 86px 0 120px; }
 .intro { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 74px; }
@@ -41,8 +42,21 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 .password-row input { width: 100%; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; outline: none; color: var(--ink); background: white; }
 .password-row input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(17,17,16,.08); }
 .form-message { min-height: 17px; margin: 12px 0 0; color: var(--danger); font-size: 12px; }
-.league-tools { display: flex; align-items: center; gap: 14px; min-height: 40px; margin: 18px 0 24px; }
+.league-tools { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; min-height: 40px; margin: 18px 0 24px; }
+.search-and-result { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
+.player-search { width: min(260px, 100%); min-height: 40px; padding: 0 15px; border: 1px solid var(--line); border-radius: 999px; outline: none; color: var(--ink); background: var(--panel); font-size: 12px; }
+.player-search:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(17,17,16,.08); }
+.league-actions { display: flex; align-items: center; gap: 14px; flex: 0 0 auto; }
 .last-refreshed { color: var(--muted); font-size: 11px; }
+.search-result { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-x: auto; }
+.search-hit { display: flex; align-items: center; gap: 8px; min-width: max-content; padding: 4px 10px 4px 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); }
+.search-result-logo { position: relative; display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 auto; overflow: hidden; border-radius: 50%; background: #eceae3; color: var(--muted); font-size: 8px; font-weight: 700; }
+.search-result-logo img { position: absolute; inset: 0; width: 100%; height: 100%; padding: 4px; object-fit: contain; }
+.search-hit strong, .search-hit span { display: block; }
+.search-hit strong { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 650; }
+.search-hit span, .search-empty { color: var(--muted); font-size: 10px; }
+.search-hit span { margin-top: 2px; }
+.search-empty { padding: 8px 0; white-space: nowrap; }
 .message { margin: 0 0 24px; color: var(--muted); font-size: 13px; }
 .message.error { color: var(--danger); }
 
@@ -59,8 +73,8 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 .player-column { min-width: 0; }
 .player-column + .player-column { border-left: 1px solid var(--line); }
 .column-heading { padding: 18px 22px 12px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
-.player-row { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 10px; min-height: 90px; padding: 14px 18px; border-top: 1px solid var(--line); }
-.player-avatar { position: relative; display: grid; place-items: center; width: 42px; height: 52px; overflow: hidden; border-radius: 13px; background: #eceae3; color: var(--muted); font-size: 11px; font-weight: 700; }
+.player-row { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; min-height: 82px; padding: 14px 18px; border-top: 1px solid var(--line); }
+.player-avatar { position: relative; display: grid; place-items: center; width: 52px; height: 52px; aspect-ratio: 1; overflow: hidden; border-radius: 13px; background: #eceae3; color: var(--muted); font-size: 11px; font-weight: 700; }
 .player-avatar img { object-fit: cover; object-position: center top; }
 .player-avatar img[src*="teamlogos"] { object-fit: contain; padding: 6px; }
 .player-main { min-width: 0; }
@@ -87,10 +101,16 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
   .login-card { padding: 24px 20px; }
   .password-row { grid-template-columns: 1fr; }
   .password-row button { justify-self: start; }
+  .league-tools { flex-direction: column; gap: 10px; }
+  .search-and-result { width: 100%; flex-direction: column; align-items: stretch; }
+  .player-search { width: 100%; }
+  .search-result { width: 100%; }
+  .league-actions { width: 100%; justify-content: space-between; }
   .team-header { padding: 22px 18px 18px; }
   .team-logo { width: 58px; height: 58px; border-radius: 15px; }
   .team-columns { grid-template-columns: 1fr; }
   .player-column + .player-column { border-top: 1px solid var(--line); border-left: 0; }
   .column-heading { padding-left: 18px; }
-  .player-row { padding-left: 14px; padding-right: 14px; }
+  .player-row { grid-template-columns: 50px minmax(0, 1fr); padding-left: 14px; padding-right: 14px; }
+  .player-avatar { width: 50px; height: 50px; }
 }

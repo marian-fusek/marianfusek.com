@@ -122,7 +122,7 @@ function healthLabel(player: Record<string, any>) {
   return asText(player.injuryStatus || player.injuryStatusText || player.status).toUpperCase();
 }
 
-function teamLogo(team: Record<string, any>) {
+function teamLogoUrl(team: Record<string, any>) {
   let logo = team.logo;
   if (Array.isArray(logo)) logo = logo[0];
   if (logo && typeof logo === 'object') logo = logo.href || logo.url || '';
@@ -131,9 +131,39 @@ function teamLogo(team: Record<string, any>) {
   return abbrev ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(abbrev)}.png` : '';
 }
 
+function base64FromBytes(bytes: Uint8Array) {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+  return btoa(binary);
+}
+
+async function privateImageDataUrl(url: string, cookie: string) {
+  if (!url) return '';
+  try {
+    const response = await fetch(url, { headers: { Accept: 'image/*', Cookie: cookie } });
+    if (!response.ok) return '';
+    const contentType = (response.headers.get('content-type') || 'image/png').split(';')[0];
+    if (!contentType.startsWith('image/')) return '';
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (!bytes.byteLength || bytes.byteLength > 500000) return '';
+    return `data:${contentType};base64,${base64FromBytes(bytes)}`;
+  } catch (_) {
+    return '';
+  }
+}
+
 function teamName(team: Record<string, any>) {
   const fullName = [asText(team.location), asText(team.nickname)].filter(Boolean).join(' ');
   return fullName || asText(team.name) || `Team ${team.id || ''}`.trim();
+}
+
+function playerRecord(entry: Record<string, any>) {
+  if (entry.player && typeof entry.player === 'object') return entry.player;
+  if (entry.playerPoolEntry?.player && typeof entry.playerPoolEntry.player === 'object') return entry.playerPoolEntry.player;
+  return entry.playerPoolEntry && typeof entry.playerPoolEntry === 'object' ? entry.playerPoolEntry : {};
 }
 
 function normalizeGames(data: Record<string, any>) {
@@ -160,19 +190,21 @@ function normalizeGames(data: Record<string, any>) {
 }
 
 function normalizePlayer(entry: Record<string, any>, games: Record<string, any>) {
-  const player = entry.player || {};
+  const player = playerRecord(entry);
   const position = playerPosition(player);
   const teamCode = teamCodeForProTeam(player.proTeamId);
   const slotId = Number(entry.lineupSlotId);
+  const playerId = player.id || player.playerId || entry.playerId || '';
   const name = asText(player.fullName)
+    || asText(player.displayName)
     || [asText(player.firstName), asText(player.lastName)].filter(Boolean).join(' ')
-    || `Player ${entry.playerId || ''}`.trim();
+    || `Player ${playerId}`.trim();
   const game = games[teamCode] || null;
   const avatar = position === 'DEF' && teamCode
     ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(teamCode.toLowerCase())}.png`
-    : `https://a.espncdn.com/i/headshots/nfl/players/full/${encodeURIComponent(String(entry.playerId || ''))}.png`;
+    : `https://a.espncdn.com/i/headshots/nfl/players/full/${encodeURIComponent(String(playerId))}.png`;
   return {
-    id: String(entry.playerId || ''),
+    id: String(playerId),
     name,
     position,
     lineupSlot: lineupSlot(slotId),
@@ -244,17 +276,18 @@ Deno.serve(async (request) => {
     games = {};
   }
 
-  const teams = (league.teams || []).map((team: Record<string, any>) => {
+  const espnCookie = `SWID=${swid}; espn_s2=${espnS2}`;
+  const teams = await Promise.all((league.teams || []).map(async (team: Record<string, any>) => {
     const players = (team.roster?.entries || []).map((entry: Record<string, any>) => normalizePlayer(entry, games));
     return {
       id: String(team.id || ''),
       name: teamName(team),
       abbreviation: asText(team.abbrev).toUpperCase(),
-      logo: teamLogo(team),
+      logo: await privateImageDataUrl(teamLogoUrl(team), espnCookie),
       starters: players.filter((player: Record<string, any>) => !player.bench),
       bench: players.filter((player: Record<string, any>) => player.bench)
     };
-  });
+  }));
 
   return json({ season, week, refreshedAt: new Date().toISOString(), teams });
 });

@@ -63,7 +63,8 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 
 .team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
 .team-card { min-width: 0; overflow: hidden; background: var(--panel); border: 1px solid rgba(17, 17, 16, .06); border-radius: 28px; box-shadow: var(--shadow); }
-.team-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 28px 30px 24px; border-bottom: 1px solid var(--line); }
+.team-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 28px 30px 24px; border-bottom: 1px solid var(--line); cursor: grab; touch-action: none; user-select: none; }
+.team-header:active { cursor: grabbing; }
 .team-heading { display: flex; align-items: center; min-width: 0; gap: 16px; }
 .team-logo { position: relative; display: grid; place-items: center; width: 68px; height: 68px; flex: 0 0 auto; overflow: hidden; border-radius: 18px; background: #eceae3; color: var(--muted); font-size: 13px; font-weight: 700; }
 .team-logo img, .player-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }

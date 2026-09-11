@@ -63,12 +63,26 @@ function playerMarkup(player) {
   </article>`;
 }
 
+function teamLogoFallback(team) {
+  if (team.logoFallback) return team.logoFallback;
+  const players = [...(team.starters || []), ...(team.bench || [])];
+  const defense = players.find(player => player.position === 'DEF' && player.teamCode);
+  return defense ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(defense.teamCode.toLowerCase())}.png` : '';
+}
+
+function teamLogoMarkup(team, className) {
+  const fallback = teamLogoFallback(team);
+  const source = team.logo || fallback;
+  if (!source) return '';
+  return `<img class="${className}" src="${esc(source)}" alt="" ${fallback ? `data-fallback="${esc(fallback)}"` : ''} onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback}else{this.remove()}">`;
+}
+
 function playerColumn(title, players) {
   return `<div class="player-column"><div class="column-heading">${title}</div>${players.length ? players.map(playerMarkup).join('') : '<div class="empty-column">No players listed</div>'}</div>`;
 }
 
 function teamMarkup(team) {
-  const logo = team.logo ? `<img src="${esc(team.logo)}" alt="" ${team.logoFallback ? `data-fallback="${esc(team.logoFallback)}"` : ''} onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback}else{this.remove()}" >` : '';
+  const logo = teamLogoMarkup(team, 'team-logo-image');
   return `<article class="team-card" data-team-id="${esc(team.id)}">
     <header class="team-header">
       <div class="team-heading">
@@ -111,8 +125,9 @@ function saveTeamOrder() {
 }
 
 function enableTeamDragging() {
+  if (teamGrid.dataset.dragReady === 'true') return;
+  teamGrid.dataset.dragReady = 'true';
   let dragState = null;
-  const handles = teamGrid.querySelectorAll('.team-drag-handle');
 
   const clearDragClasses = () => {
     teamGrid.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
@@ -146,7 +161,6 @@ function enableTeamDragging() {
     card.style.top = '0';
     card.style.zIndex = '20';
     card.style.pointerEvents = 'none';
-    document.body.append(card);
   };
 
   const moveFloatingCard = event => {
@@ -174,65 +188,67 @@ function enableTeamDragging() {
     if (destination !== dragState.placeholder) teamGrid.insertBefore(dragState.placeholder, destination);
   };
 
-  handles.forEach(handle => {
-    handle.addEventListener('pointerdown', event => {
-      const card = handle.closest('.team-card');
-      if (!card) return;
-      event.preventDefault();
-      dragState = {
-        card,
-        handle,
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        moved: false,
-        target: null,
-        insertAfter: false
-      };
-      card.classList.add('is-dragging');
-      handle.setPointerCapture?.(event.pointerId);
-    });
-    handle.addEventListener('pointermove', event => {
-      if (!dragState || event.pointerId !== dragState.pointerId) return;
-      event.preventDefault();
-      const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
-      if (distance < 6) return;
-      dragState.moved = true;
-      startFloatingCard(event);
+  const finish = event => {
+    if (!dragState || (event?.pointerId != null && event.pointerId !== dragState.pointerId)) return;
+    if (event && dragState.active) {
       moveFloatingCard(event);
       updateDropTarget(event);
-    });
-    const finish = event => {
-      if (!dragState || (event?.pointerId && event.pointerId !== dragState.pointerId)) return;
-      if (event && dragState.active) {
-        moveFloatingCard(event);
-        updateDropTarget(event);
-      }
-      const { card, placeholder } = dragState || {};
-      if (placeholder?.parentNode === teamGrid) {
-        teamGrid.insertBefore(card, placeholder);
-        placeholder.remove();
-        if (dragState.active && dragState.moved) saveTeamOrder();
-      } else if (card && card.parentNode !== teamGrid) {
-        teamGrid.append(card);
-      }
-      if (card && dragState.active) {
-        if (dragState.originalStyle) card.setAttribute('style', dragState.originalStyle);
-        else card.removeAttribute('style');
-      }
-      card?.classList.remove('is-dragging');
-      clearDragClasses();
-      dragState?.handle?.releasePointerCapture?.(dragState.pointerId);
-      dragState = null;
+    }
+    const { card, placeholder, source } = dragState;
+    if (placeholder?.parentNode === teamGrid) {
+      teamGrid.insertBefore(card, placeholder);
+      placeholder.remove();
+      if (dragState.active && dragState.moved) saveTeamOrder();
+    }
+    if (dragState.active) {
+      if (dragState.originalStyle) card.setAttribute('style', dragState.originalStyle);
+      else card.removeAttribute('style');
+    }
+    card.classList.remove('is-dragging');
+    clearDragClasses();
+    source.releasePointerCapture?.(dragState.pointerId);
+    dragState = null;
+  };
+
+  const move = event => {
+    if (!dragState || event.pointerId !== dragState.pointerId) return;
+    event.preventDefault();
+    const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
+    if (!dragState.active && distance < 6) return;
+    dragState.moved = true;
+    startFloatingCard(event);
+    moveFloatingCard(event);
+    updateDropTarget(event);
+  };
+
+  teamGrid.addEventListener('pointerdown', event => {
+    if (event.button != null && event.button !== 0) return;
+    const source = event.target.closest?.('.team-header');
+    if (!source || !teamGrid.contains(source)) return;
+    const card = source.closest('.team-card');
+    if (!card) return;
+    event.preventDefault();
+    dragState = {
+      card,
+      source,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
+      target: null,
+      insertAfter: false
     };
-    handle.addEventListener('pointerup', finish);
-    handle.addEventListener('pointercancel', finish);
-    handle.addEventListener('lostpointercapture', finish);
+    card.classList.add('is-dragging');
+    source.setPointerCapture?.(event.pointerId);
   });
+
+  document.addEventListener('pointermove', move, { passive: false });
+  document.addEventListener('pointerup', finish);
+  document.addEventListener('pointercancel', finish);
 }
 
 function searchLogoMarkup(team) {
-  const logo = team.logo ? `<img src="${esc(team.logo)}" alt="" ${team.logoFallback ? `data-fallback="${esc(team.logoFallback)}"` : ''} onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback}else{this.remove()}" >` : '';
+  const logo = teamLogoMarkup(team, 'search-logo-image');
   return `<div class="search-result-logo">${logo}<span class="logo-fallback">${esc(initials(team.name))}</span></div>`;
 }
 

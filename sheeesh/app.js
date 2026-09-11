@@ -11,6 +11,7 @@ const loginMessage = $('#loginMessage');
 const message = $('#message');
 const teamGrid = $('#teamGrid');
 const refreshButton = $('#refreshButton');
+const leagueTools = $('#leagueTools');
 const lastRefreshed = $('#lastRefreshed');
 const seasonLabel = $('#seasonLabel');
 const weekLabel = $('#weekLabel');
@@ -81,6 +82,7 @@ function setMessage(text = '', isError = false) {
 }
 
 function setBusy(busy) {
+  if (!refreshButton) return;
   refreshButton.disabled = busy;
   refreshButton.textContent = busy ? 'Refreshing…' : 'Refresh';
 }
@@ -133,7 +135,8 @@ async function loadLeague() {
       sessionStorage.removeItem(SESSION_KEY);
       loginCard.hidden = false;
       teamGrid.hidden = true;
-      refreshButton.hidden = true;
+      if (refreshButton) refreshButton.hidden = true;
+      if (leagueTools) leagueTools.hidden = true;
       throw new Error('Session expired. Enter the password again.');
     }
     if (!response.ok) throw new Error(data.error || `Connection failed (${response.status})`);
@@ -142,7 +145,8 @@ async function loadLeague() {
     teamGrid.innerHTML = (data.teams || []).map(teamMarkup).join('');
     teamGrid.hidden = false;
     loginCard.hidden = true;
-    refreshButton.hidden = false;
+    if (refreshButton) refreshButton.hidden = false;
+    if (leagueTools) leagueTools.hidden = false;
     setMessage(data.teams?.length ? '' : 'No ESPN teams were returned.', !data.teams?.length);
     const refreshed = data.refreshedAt ? new Date(data.refreshedAt) : new Date();
     lastRefreshed.textContent = `Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(refreshed)}`;

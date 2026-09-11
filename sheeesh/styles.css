@@ -41,6 +41,8 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 .password-row input { width: 100%; min-height: 48px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; outline: none; color: var(--ink); background: white; }
 .password-row input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(17,17,16,.08); }
 .form-message { min-height: 17px; margin: 12px 0 0; color: var(--danger); font-size: 12px; }
+.league-tools { display: flex; align-items: center; gap: 14px; min-height: 40px; margin: 18px 0 24px; }
+.last-refreshed { color: var(--muted); font-size: 11px; }
 .message { margin: 0 0 24px; color: var(--muted); font-size: 13px; }
 .message.error { color: var(--danger); }
 

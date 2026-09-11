@@ -123,6 +123,38 @@ function enableTeamDragging() {
     return target && target !== card && teamGrid.contains(target) ? target : null;
   };
 
+  const startFloatingCard = event => {
+    if (!dragState || dragState.active) return;
+    const { card } = dragState;
+    const rect = card.getBoundingClientRect();
+    const placeholder = document.createElement('div');
+    placeholder.className = 'team-drop-placeholder';
+    placeholder.setAttribute('aria-hidden', 'true');
+    placeholder.style.height = `${rect.height}px`;
+    placeholder.style.width = `${rect.width}px`;
+    placeholder.style.borderRadius = getComputedStyle(card).borderRadius;
+    teamGrid.insertBefore(placeholder, card);
+    dragState.placeholder = placeholder;
+    dragState.active = true;
+    dragState.offsetX = event.clientX - rect.left;
+    dragState.offsetY = event.clientY - rect.top;
+    dragState.originalStyle = card.getAttribute('style') || '';
+    card.style.width = `${rect.width}px`;
+    card.style.height = `${rect.height}px`;
+    card.style.position = 'fixed';
+    card.style.left = '0';
+    card.style.top = '0';
+    card.style.zIndex = '20';
+    card.style.pointerEvents = 'none';
+    document.body.append(card);
+  };
+
+  const moveFloatingCard = event => {
+    if (!dragState?.active) return;
+    const { card } = dragState;
+    card.style.transform = `translate(${event.clientX - dragState.offsetX}px, ${event.clientY - dragState.offsetY}px) rotate(1deg) scale(1.015)`;
+  };
+
   const updateDropTarget = event => {
     if (!dragState) return;
     const target = targetAt(event, dragState.card);
@@ -131,10 +163,15 @@ function enableTeamDragging() {
       dragState.target = null;
       return;
     }
-    const rect = target.getBoundingClientRect();
+    // Team cards can be very tall. Use the header as the reorder zone so a
+    // target is decided from the visible team position, not from the bottom
+    // of a long player list.
+    const rect = (target.querySelector('.team-header') || target).getBoundingClientRect();
     dragState.target = target;
     dragState.insertAfter = event.clientY > rect.top + rect.height / 2;
     target.classList.add('is-drag-over');
+    const destination = dragState.insertAfter ? target.nextSibling : target;
+    if (destination !== dragState.placeholder) teamGrid.insertBefore(dragState.placeholder, destination);
   };
 
   handles.forEach(handle => {
@@ -161,15 +198,27 @@ function enableTeamDragging() {
       const distance = Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY);
       if (distance < 6) return;
       dragState.moved = true;
+      startFloatingCard(event);
+      moveFloatingCard(event);
       updateDropTarget(event);
     });
     const finish = event => {
       if (!dragState || (event?.pointerId && event.pointerId !== dragState.pointerId)) return;
-      if (event && dragState.moved) updateDropTarget(event);
-      const { card, target, insertAfter } = dragState || {};
-      if (target && target !== card) {
-        teamGrid.insertBefore(card, insertAfter ? target.nextSibling : target);
-        saveTeamOrder();
+      if (event && dragState.active) {
+        moveFloatingCard(event);
+        updateDropTarget(event);
+      }
+      const { card, placeholder } = dragState || {};
+      if (placeholder?.parentNode === teamGrid) {
+        teamGrid.insertBefore(card, placeholder);
+        placeholder.remove();
+        if (dragState.active && dragState.moved) saveTeamOrder();
+      } else if (card && card.parentNode !== teamGrid) {
+        teamGrid.append(card);
+      }
+      if (card && dragState.active) {
+        if (dragState.originalStyle) card.setAttribute('style', dragState.originalStyle);
+        else card.removeAttribute('style');
       }
       card?.classList.remove('is-dragging');
       clearDragClasses();
@@ -178,6 +227,7 @@ function enableTeamDragging() {
     };
     handle.addEventListener('pointerup', finish);
     handle.addEventListener('pointercancel', finish);
+    handle.addEventListener('lostpointercapture', finish);
   });
 }
 

@@ -189,10 +189,12 @@ async function privateImageDataUrl(url: string, cookie: string) {
   try {
     const response = await fetch(url, {
       headers: {
-        Accept: 'image/*',
+        Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
         Cookie: cookie,
         Origin: 'https://fantasy.espn.com',
         Referer: 'https://fantasy.espn.com/football/',
+        'X-Fantasy-Platform': 'espn-fantasy-web',
+        'X-Fantasy-Source': 'kona',
         'User-Agent': 'Mozilla/5.0 (compatible; Sheeesh/1.0)'
       }
     });
@@ -280,6 +282,33 @@ function normalizePlayer(entry: Record<string, any>, games: Record<string, any>)
   };
 }
 
+// Keep every team's starting column in the same fantasy-football order. ESPN
+// returns roster entries in an order that is not reliable for presentation.
+function sortStarters(players: Record<string, any>[]) {
+  const rank: Record<string, number> = {
+    QB: 0,
+    RB: 1,
+    WR: 3,
+    FLEX: 5,
+    TE: 6,
+    DEF: 7,
+    K: 8
+  };
+
+  return players
+    .map((player, index) => ({ player, index }))
+    .sort((left, right) => {
+      const leftRank = left.player.lineupSlot === 'FLEX'
+        ? rank.FLEX
+        : rank[left.player.position] ?? 99;
+      const rightRank = right.player.lineupSlot === 'FLEX'
+        ? rank.FLEX
+        : rank[right.player.position] ?? 99;
+      return leftRank - rightRank || left.index - right.index;
+    })
+    .map(({ player }) => player);
+}
+
 async function fetchJson(url: string, init?: RequestInit) {
   const response = await fetch(url, init);
   const body = await response.json().catch(() => null);
@@ -351,13 +380,14 @@ Deno.serve(async (request) => {
   const espnCookie = `SWID=${swid}; espn_s2=${espnS2}`;
   const teams = await Promise.all((league.teams || []).map(async (team: Record<string, any>) => {
     const players = (team.roster?.entries || []).map((entry: Record<string, any>) => normalizePlayer(entry, games));
+    const starters = sortStarters(players.filter((player: Record<string, any>) => !player.bench));
     return {
       id: String(team.id || ''),
       name: teamName(team),
       abbreviation: asText(team.abbrev).toUpperCase(),
       logo: await teamLogoDataUrl(team, espnCookie),
       logoFallback: defaultTeamLogo(team),
-      starters: players.filter((player: Record<string, any>) => !player.bench),
+      starters,
       bench: players.filter((player: Record<string, any>) => player.bench)
     };
   }));

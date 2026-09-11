@@ -139,8 +139,17 @@ function teamLogoCandidates(team: Record<string, any>) {
       visit(item.href || item.url || item.src || item.imageUrl || item.logoUrl);
     }
   };
-  [team.logo, team.logos, team.logoUrl, team.teamLogo, team.teamLogoUrl].forEach(visit);
-  return candidates;
+  [
+    team.customLogo, team.customLogoUrl, team.customLogoURL,
+    team.logo, team.logos, team.logoUrl, team.logoURL,
+    team.teamLogo, team.teamLogoUrl, team.teamLogoURL,
+    team.image, team.imageUrl, team.imageURL
+  ].forEach(visit);
+  return candidates.sort((left, right) => {
+    const leftLooksCustom = /mystique-api|\/domains\/lm\/images\//i.test(left) ? 1 : 0;
+    const rightLooksCustom = /mystique-api|\/domains\/lm\/images\//i.test(right) ? 1 : 0;
+    return rightLooksCustom - leftLooksCustom;
+  });
 }
 
 function base64FromBytes(bytes: Uint8Array) {

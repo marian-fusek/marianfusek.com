@@ -122,13 +122,25 @@ function healthLabel(player: Record<string, any>) {
   return asText(player.injuryStatus || player.injuryStatusText || player.status).toUpperCase();
 }
 
-function teamLogoUrl(team: Record<string, any>) {
-  let logo = team.logo;
-  if (Array.isArray(logo)) logo = logo[0];
-  if (logo && typeof logo === 'object') logo = logo.href || logo.url || '';
-  if (typeof logo === 'string' && logo) return logo;
-  const abbrev = asText(team.abbrev).toLowerCase();
-  return abbrev ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(abbrev)}.png` : '';
+function teamLogoCandidates(team: Record<string, any>) {
+  const candidates: string[] = [];
+  const visit = (value: unknown) => {
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed && !candidates.includes(trimmed)) candidates.push(trimmed);
+      return;
+    }
+    if (value && typeof value === 'object') {
+      const item = value as Record<string, any>;
+      visit(item.href || item.url || item.src || item.imageUrl || item.logoUrl);
+    }
+  };
+  [team.logo, team.logos, team.logoUrl, team.teamLogo, team.teamLogoUrl].forEach(visit);
+  return candidates;
 }
 
 function base64FromBytes(bytes: Uint8Array) {
@@ -161,6 +173,14 @@ async function privateImageDataUrl(url: string, cookie: string) {
   } catch (_) {
     return '';
   }
+}
+
+async function teamLogoDataUrl(team: Record<string, any>, cookie: string) {
+  for (const candidate of teamLogoCandidates(team)) {
+    const image = await privateImageDataUrl(candidate, cookie);
+    if (image) return image;
+  }
+  return '';
 }
 
 function teamName(team: Record<string, any>) {
@@ -299,7 +319,7 @@ Deno.serve(async (request) => {
       id: String(team.id || ''),
       name: teamName(team),
       abbreviation: asText(team.abbrev).toUpperCase(),
-      logo: await privateImageDataUrl(teamLogoUrl(team), espnCookie),
+      logo: await teamLogoDataUrl(team, espnCookie),
       starters: players.filter((player: Record<string, any>) => !player.bench),
       bench: players.filter((player: Record<string, any>) => player.bench)
     };

@@ -20,6 +20,7 @@ const weekLabel = $('#weekLabel');
 
 let sessionToken = sessionStorage.getItem(SESSION_KEY) || '';
 let leagueData = null;
+const TEAM_ORDER_KEY = 'sheeesh-team-order-v1';
 
 function esc(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
@@ -52,7 +53,7 @@ function healthMarkup(health) {
 
 function playerMarkup(player) {
   return `<article class="player-row">
-    <div class="player-avatar"><span>${esc(initials(player.name))}</span><img src="${esc(player.avatar || '')}" alt="" onerror="this.remove()"></div>
+    <div class="player-avatar">${player.avatar ? `<img src="${esc(player.avatar)}" alt="" onerror="this.remove()">` : ''}<span class="avatar-fallback">${esc(initials(player.name))}</span></div>
     <div class="player-main">
       <div class="player-name">${esc(player.name)}</div>
       <div class="player-meta"><span>${esc(player.position || '—')}</span>${player.teamCode ? `<span>${esc(player.teamCode)}</span>` : ''}${player.lineupSlot && player.lineupSlot !== player.position ? `<span>${esc(player.lineupSlot)}</span>` : ''}</div>
@@ -67,19 +68,84 @@ function playerColumn(title, players) {
 }
 
 function teamMarkup(team) {
-  return `<article class="team-card">
+  return `<article class="team-card" data-team-id="${esc(team.id)}">
     <header class="team-header">
       <div class="team-heading">
-        <div class="team-logo"><span>${esc(initials(team.name))}</span>${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}</div>
+        <div class="team-logo">${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}<span class="logo-fallback">${esc(initials(team.name))}</span></div>
         <div><h2>${esc(team.name)}</h2>${team.abbreviation ? `<div class="team-abbreviation">${esc(team.abbreviation)}</div>` : ''}</div>
       </div>
+      <button class="team-drag-handle" type="button" aria-label="Drag to reorder ${esc(team.name)}" title="Drag to reorder">⠿</button>
     </header>
     <div class="team-columns">${playerColumn('Starters', team.starters || [])}${playerColumn('Bench', team.bench || [])}</div>
   </article>`;
 }
 
+function savedTeamOrder() {
+  try {
+    const value = JSON.parse(localStorage.getItem(TEAM_ORDER_KEY) || '[]');
+    return Array.isArray(value) ? value.map(String) : [];
+  } catch (_) {
+    return [];
+  }
+}
+
+function orderedTeams(teams) {
+  const order = savedTeamOrder();
+  if (!order.length) return [...teams];
+  const rank = new Map(order.map((id, index) => [id, index]));
+  return [...teams].sort((left, right) => {
+    const leftRank = rank.has(String(left.id)) ? rank.get(String(left.id)) : order.length;
+    const rightRank = rank.has(String(right.id)) ? rank.get(String(right.id)) : order.length;
+    return leftRank - rightRank;
+  });
+}
+
+function saveTeamOrder() {
+  const ids = [...teamGrid.querySelectorAll('.team-card')].map(card => card.dataset.teamId).filter(Boolean);
+  localStorage.setItem(TEAM_ORDER_KEY, JSON.stringify(ids));
+  if (leagueData) {
+    const teamsById = new Map(leagueData.teams.map(team => [String(team.id), team]));
+    leagueData.teams = ids.map(id => teamsById.get(String(id))).filter(Boolean);
+  }
+}
+
+function enableTeamDragging() {
+  let dragState = null;
+  const handles = teamGrid.querySelectorAll('.team-drag-handle');
+  handles.forEach(handle => {
+    handle.addEventListener('pointerdown', event => {
+      const card = handle.closest('.team-card');
+      if (!card) return;
+      event.preventDefault();
+      dragState = { card, pointerId: event.pointerId };
+      card.classList.add('is-dragging');
+      handle.setPointerCapture?.(event.pointerId);
+    });
+    handle.addEventListener('pointermove', event => {
+      if (!dragState) return;
+      event.preventDefault();
+      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.team-card');
+      if (!target || target === dragState.card || !teamGrid.contains(target)) return;
+      const rect = target.getBoundingClientRect();
+      const after = event.clientY > rect.top + rect.height / 2;
+      teamGrid.insertBefore(dragState.card, after ? target.nextSibling : target);
+      teamGrid.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
+      target.classList.add('is-drag-over');
+    });
+    const finish = () => {
+      if (!dragState) return;
+      dragState.card.classList.remove('is-dragging');
+      teamGrid.querySelectorAll('.is-drag-over').forEach(item => item.classList.remove('is-drag-over'));
+      saveTeamOrder();
+      dragState = null;
+    };
+    handle.addEventListener('pointerup', finish);
+    handle.addEventListener('pointercancel', finish);
+  });
+}
+
 function searchLogoMarkup(team) {
-  return `<div class="search-result-logo"><span>${esc(initials(team.name))}</span>${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}</div>`;
+  return `<div class="search-result-logo">${team.logo ? `<img src="${esc(team.logo)}" alt="" onerror="this.remove()">` : ''}<span class="logo-fallback">${esc(initials(team.name))}</span></div>`;
 }
 
 function updatePlayerSearch() {
@@ -118,6 +184,7 @@ function setBusy(busy) {
   if (!refreshButton) return;
   refreshButton.disabled = busy;
   refreshButton.textContent = busy ? 'Refreshing…' : 'Refresh';
+  if (busy && lastRefreshed) lastRefreshed.textContent = 'Loading league…';
 }
 
 async function callFunction(method, body = null) {
@@ -159,7 +226,6 @@ async function loadLeague() {
     return;
   }
   setBusy(true);
-  setMessage('Loading league…');
   try {
     const { response, data } = await callFunction('GET');
     if (response.status === 401) {
@@ -178,15 +244,16 @@ async function loadLeague() {
       throw new Error('Session expired. Enter the password again.');
     }
     if (!response.ok) throw new Error(data.error || `Connection failed (${response.status})`);
-    leagueData = data;
+    leagueData = { ...data, teams: orderedTeams(data.teams || []) };
     seasonLabel.textContent = data.season || '2026';
     weekLabel.textContent = data.week ? `Week ${data.week}` : 'Current week';
-    teamGrid.innerHTML = (data.teams || []).map(teamMarkup).join('');
+    teamGrid.innerHTML = leagueData.teams.map(teamMarkup).join('');
+    enableTeamDragging();
     teamGrid.hidden = false;
     loginCard.hidden = true;
     if (refreshButton) refreshButton.hidden = false;
     if (leagueTools) leagueTools.hidden = false;
-    setMessage(data.teams?.length ? '' : 'No ESPN teams were returned.', !data.teams?.length);
+    setMessage(leagueData.teams.length ? '' : 'No ESPN teams were returned.', !leagueData.teams.length);
     const refreshed = data.refreshedAt ? new Date(data.refreshedAt) : new Date();
     lastRefreshed.textContent = `Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(refreshed)}`;
     lastRefreshed.title = refreshed.toLocaleString();

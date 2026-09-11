@@ -335,6 +335,7 @@ async function loadLeague() {
     if (response.status === 401) {
       sessionToken = '';
       sessionStorage.removeItem(SESSION_KEY);
+      document.documentElement.classList.remove('has-sheeesh-session');
       loginCard.hidden = false;
       teamGrid.hidden = true;
       if (refreshButton) refreshButton.hidden = true;
@@ -373,4 +374,7 @@ async function loadLeague() {
 loginForm.addEventListener('submit', login);
 refreshButton.addEventListener('click', loadLeague);
 if (playerSearch) playerSearch.addEventListener('input', updatePlayerSearch);
-if (sessionToken) loadLeague();
+if (sessionToken) {
+  loginCard.hidden = true;
+  loadLeague();
+}

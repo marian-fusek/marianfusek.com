@@ -5,7 +5,7 @@ const encoder = new TextEncoder();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sheeesh-session',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
 
@@ -203,8 +203,7 @@ Deno.serve(async (request) => {
   }
   if (request.method !== 'GET') return json({ error: 'Only GET and POST are supported.' }, 405);
 
-  const authorization = request.headers.get('Authorization') || '';
-  const token = authorization.replace(/^Bearer\s+/i, '').trim();
+  const token = request.headers.get('x-sheeesh-session')?.trim() || '';
   if (!token || !(await validSession(token, password))) return json({ error: 'Sheeesh session expired.' }, 401);
 
   const swid = Deno.env.get('ESPN_SWID');

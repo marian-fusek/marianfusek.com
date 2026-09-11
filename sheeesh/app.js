@@ -91,9 +91,8 @@ async function callFunction(method, body = null) {
   const headers = {};
   if (PUBLISHABLE_KEY) {
     headers.apikey = PUBLISHABLE_KEY;
-    headers.Authorization = `Bearer ${PUBLISHABLE_KEY}`;
   }
-  if (sessionToken) headers.Authorization = `Bearer ${sessionToken}`;
+  if (sessionToken) headers['x-sheeesh-session'] = sessionToken;
   if (body) headers['Content-Type'] = 'application/json';
   let response;
   try {

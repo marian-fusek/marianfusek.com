@@ -13,6 +13,7 @@ const teamGrid = $('#teamGrid');
 const refreshButton = $('#refreshButton');
 const leagueTools = $('#leagueTools');
 const lastRefreshed = $('#lastRefreshed');
+const spoilerToggle = $('#spoilerToggle');
 const playerSearch = $('#playerSearch');
 const playerSearchResult = $('#playerSearchResult');
 const seasonLabel = $('#seasonLabel');
@@ -21,6 +22,8 @@ const weekLabel = $('#weekLabel');
 let sessionToken = sessionStorage.getItem(SESSION_KEY) || '';
 let leagueData = null;
 const TEAM_ORDER_KEY = 'sheeesh-team-order-v1';
+const SPOILER_FREE_KEY = 'sheeesh-spoiler-free-v1';
+let spoilerFree = localStorage.getItem(SPOILER_FREE_KEY) === 'true';
 const DEFENSE_CODE_BY_NAME = {
   falcons: 'ATL', bills: 'BUF', bears: 'CHI', bengals: 'CIN', browns: 'CLE',
   cowboys: 'DAL', broncos: 'DEN', lions: 'DET', packers: 'GB', titans: 'TEN',
@@ -65,6 +68,7 @@ function gameMarkup(game) {
   const stateClass = game.state === 'post' ? 'played' : game.state === 'in' ? 'live' : 'upcoming';
   const opponent = game.opponent ? `vs ${esc(game.opponent)}` : '';
   const time = formatTime(game);
+  if (spoilerFree) return `<span class="play-detail">${opponent}${opponent && time ? ' · ' : ''}${esc(time)}</span>`;
   return `<span class="play-state ${stateClass}">${esc(game.label || 'Not played')}</span><span class="play-detail">${opponent}${opponent && time ? ' · ' : ''}${esc(time)}</span>`;
 }
 
@@ -83,7 +87,7 @@ function playerMarkup(player) {
       <div class="player-name">${esc(player.name)}</div>
       <div class="player-meta"><span>${esc(player.position || '—')}</span>${teamCode ? `<span>${esc(teamCode)}</span>` : ''}${player.lineupSlot && player.lineupSlot !== player.position ? `<span>${esc(player.lineupSlot)}</span>` : ''}</div>
       <div class="player-status">${gameMarkup(player.game)}</div>
-      ${healthMarkup(player.health)}
+      ${spoilerFree ? '' : healthMarkup(player.health)}
     </div>
   </article>`;
 }
@@ -105,6 +109,13 @@ function teamLogoMarkup(team, className) {
 
 function playerColumn(title, players) {
   return `<div class="player-column"><div class="column-heading">${title}</div>${players.length ? players.map(playerMarkup).join('') : '<div class="empty-column">No players listed</div>'}</div>`;
+}
+
+function renderTeams() {
+  if (!leagueData) return;
+  teamGrid.innerHTML = leagueData.teams.map(teamMarkup).join('');
+  enableTeamDragging();
+  updatePlayerSearch();
 }
 
 function teamMarkup(team) {
@@ -378,8 +389,7 @@ async function loadLeague() {
     leagueData = { ...data, teams: orderedTeams(data.teams || []) };
     seasonLabel.textContent = data.season || '2026';
     weekLabel.textContent = data.week ? `Week ${data.week}` : 'Current week';
-    teamGrid.innerHTML = leagueData.teams.map(teamMarkup).join('');
-    enableTeamDragging();
+    renderTeams();
     teamGrid.hidden = false;
     loginCard.hidden = true;
     if (refreshButton) refreshButton.hidden = false;
@@ -400,6 +410,14 @@ async function loadLeague() {
 loginForm.addEventListener('submit', login);
 refreshButton.addEventListener('click', loadLeague);
 if (playerSearch) playerSearch.addEventListener('input', updatePlayerSearch);
+if (spoilerToggle) {
+  spoilerToggle.checked = spoilerFree;
+  spoilerToggle.addEventListener('change', () => {
+    spoilerFree = spoilerToggle.checked;
+    localStorage.setItem(SPOILER_FREE_KEY, String(spoilerFree));
+    renderTeams();
+  });
+}
 if (sessionToken) {
   loginCard.hidden = true;
   loadLeague();

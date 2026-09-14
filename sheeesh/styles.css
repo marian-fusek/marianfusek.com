@@ -80,6 +80,10 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
 .team-logo:has(img) .logo-fallback, .search-result-logo:has(img) .logo-fallback, .player-avatar:has(img) .avatar-fallback { display: none; }
 .team-heading h2 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(22px, 2.1vw, 32px); font-weight: 550; letter-spacing: -.065em; }
 .team-abbreviation { margin-top: 4px; color: var(--muted); font-size: 11px; letter-spacing: .1em; }
+.team-reorder-controls { display: none; align-items: center; gap: 6px; }
+.team-reorder-button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); background: transparent; cursor: pointer; font-size: 20px; line-height: 1; }
+.team-reorder-button:disabled { color: #bbb9b1; background: #f0efe9; cursor: default; }
+.team-reorder-button:not(:disabled):hover, .team-reorder-button:not(:disabled):focus-visible { background: #f0efe9; }
 .team-drag-handle { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; padding: 0; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: transparent; cursor: grab; font-size: 19px; line-height: 1; touch-action: none; user-select: none; }
 .team-drag-handle:hover, .team-drag-handle:focus-visible { color: var(--ink); background: #f0efe9; }
 .team-drag-handle:active { cursor: grabbing; }
@@ -124,7 +128,9 @@ h1 { margin: 12px 0 0; font-size: clamp(84px, 14vw, 190px); font-weight: 500; le
   .player-search { width: 100%; font-size: 16px; }
   .search-result { width: 100%; }
   .league-actions { width: 100%; justify-content: space-between; }
-  .team-header { padding: 22px 18px 18px; }
+  .team-header { padding: 22px 18px 18px; cursor: default; touch-action: auto; }
+  .team-reorder-controls { display: flex; }
+  .team-drag-handle { display: none; }
   .team-logo { width: 58px; height: 58px; border-radius: 15px; }
   .team-columns { grid-template-columns: 1fr; }
   .player-column + .player-column { border-top: 1px solid var(--line); border-left: 0; }

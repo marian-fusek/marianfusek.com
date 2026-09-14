@@ -115,6 +115,7 @@ function renderTeams() {
   if (!leagueData) return;
   teamGrid.innerHTML = leagueData.teams.map(teamMarkup).join('');
   enableTeamDragging();
+  updateReorderControls();
   updatePlayerSearch();
 }
 
@@ -125,6 +126,10 @@ function teamMarkup(team) {
       <div class="team-heading">
         <div class="team-logo">${logo}<span class="logo-fallback">${esc(initials(team.name))}</span></div>
         <div><h2>${esc(team.name)}</h2>${team.abbreviation ? `<div class="team-abbreviation">${esc(team.abbreviation)}</div>` : ''}</div>
+      </div>
+      <div class="team-reorder-controls" aria-label="Reorder ${esc(team.name)}">
+        <button class="team-reorder-button" type="button" data-move-team="up" aria-label="Move ${esc(team.name)} up" title="Move up">↑</button>
+        <button class="team-reorder-button" type="button" data-move-team="down" aria-label="Move ${esc(team.name)} down" title="Move down">↓</button>
       </div>
       <button class="team-drag-handle" type="button" aria-label="Drag to reorder ${esc(team.name)}" title="Drag to reorder">⠿</button>
     </header>
@@ -159,6 +164,31 @@ function saveTeamOrder() {
     const teamsById = new Map(leagueData.teams.map(team => [String(team.id), team]));
     leagueData.teams = ids.map(id => teamsById.get(String(id))).filter(Boolean);
   }
+}
+
+function updateReorderControls() {
+  const cards = [...teamGrid.querySelectorAll('.team-card')];
+  cards.forEach((card, index) => {
+    const up = card.querySelector('[data-move-team="up"]');
+    const down = card.querySelector('[data-move-team="down"]');
+    if (up) up.disabled = index === 0;
+    if (down) down.disabled = index === cards.length - 1;
+  });
+}
+
+function moveTeamBy(teamId, direction) {
+  const card = [...teamGrid.querySelectorAll('.team-card')]
+    .find(item => item.dataset.teamId === String(teamId));
+  if (!card) return;
+
+  const sibling = direction === 'up' ? card.previousElementSibling : card.nextElementSibling;
+  if (!sibling?.classList.contains('team-card')) return;
+
+  if (direction === 'up') teamGrid.insertBefore(card, sibling);
+  else teamGrid.insertBefore(sibling, card);
+
+  saveTeamOrder();
+  updateReorderControls();
 }
 
 function enableTeamDragging() {
@@ -259,6 +289,7 @@ function enableTeamDragging() {
   };
 
   teamGrid.addEventListener('pointerdown', event => {
+    if (window.matchMedia('(max-width: 620px)').matches) return;
     if (event.button != null && event.button !== 0) return;
     const source = event.target.closest?.('.team-header');
     if (!source || !teamGrid.contains(source)) return;
@@ -277,6 +308,14 @@ function enableTeamDragging() {
     };
     card.classList.add('is-dragging');
     source.setPointerCapture?.(event.pointerId);
+  });
+
+  teamGrid.addEventListener('click', event => {
+    if (!window.matchMedia('(max-width: 620px)').matches) return;
+    const button = event.target.closest?.('[data-move-team]');
+    if (!button || !teamGrid.contains(button)) return;
+    event.preventDefault();
+    moveTeamBy(button.closest('.team-card')?.dataset.teamId, button.dataset.moveTeam);
   });
 
   document.addEventListener('pointermove', move, { passive: false });

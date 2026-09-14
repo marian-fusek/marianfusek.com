@@ -27,6 +27,16 @@ const NFL_TEAM_BY_ESPN_ID: Record<number, string> = {
   33: 'BAL', 34: 'HOU'
 };
 
+const NFL_TEAM_NICKNAME_BY_CODE: Record<string, string> = {
+  ATL: 'Falcons', BUF: 'Bills', CHI: 'Bears', CIN: 'Bengals', CLE: 'Browns',
+  DAL: 'Cowboys', DEN: 'Broncos', DET: 'Lions', GB: 'Packers', TEN: 'Titans',
+  IND: 'Colts', KC: 'Chiefs', LV: 'Raiders', LAR: 'Rams', MIA: 'Dolphins',
+  MIN: 'Vikings', NE: 'Patriots', NO: 'Saints', NYG: 'Giants', NYJ: 'Jets',
+  PHI: 'Eagles', ARI: 'Cardinals', LAC: 'Chargers', PIT: 'Steelers', SF: '49ers',
+  SEA: 'Seahawks', TB: 'Buccaneers', WAS: 'Commanders', CAR: 'Panthers',
+  JAX: 'Jaguars', BAL: 'Ravens', HOU: 'Texans'
+};
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -92,6 +102,29 @@ function samePassword(left: string, right: string) {
 
 function teamCodeForProTeam(id: unknown) {
   return NFL_TEAM_BY_ESPN_ID[Number(id)] || '';
+}
+
+function teamCodeForPlayer(player: Record<string, any>, position: string) {
+  const explicitCode = normalizeTeamCode(
+    player.proTeamAbbreviation
+      || player.proTeamAbbrev
+      || player.editorialTeamAbbreviation
+      || player.teamAbbreviation
+      || player.proTeam?.abbreviation
+  );
+
+  if (position === 'DEF') {
+    const name = [player.fullName, player.displayName, player.name]
+      .map(asText)
+      .join(' ')
+      .toLowerCase();
+    const namedTeam = Object.entries(NFL_TEAM_NICKNAME_BY_CODE)
+      .find(([, nickname]) => name.includes(nickname.toLowerCase()));
+
+    if (namedTeam) return namedTeam[0];
+  }
+
+  return explicitCode || teamCodeForProTeam(player.proTeamId);
 }
 
 function normalizeTeamCode(code: unknown) {
@@ -258,7 +291,7 @@ function normalizeGames(data: Record<string, any>) {
 function normalizePlayer(entry: Record<string, any>, games: Record<string, any>) {
   const player = playerRecord(entry);
   const position = playerPosition(player);
-  const teamCode = teamCodeForProTeam(player.proTeamId);
+  const teamCode = teamCodeForPlayer(player, position);
   const slotId = Number(entry.lineupSlotId);
   const playerId = player.id || player.playerId || entry.playerId || '';
   const name = asText(player.fullName)

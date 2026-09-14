@@ -21,6 +21,15 @@ const weekLabel = $('#weekLabel');
 let sessionToken = sessionStorage.getItem(SESSION_KEY) || '';
 let leagueData = null;
 const TEAM_ORDER_KEY = 'sheeesh-team-order-v1';
+const DEFENSE_CODE_BY_NAME = {
+  falcons: 'ATL', bills: 'BUF', bears: 'CHI', bengals: 'CIN', browns: 'CLE',
+  cowboys: 'DAL', broncos: 'DEN', lions: 'DET', packers: 'GB', titans: 'TEN',
+  colts: 'IND', chiefs: 'KC', raiders: 'LV', rams: 'LAR', dolphins: 'MIA',
+  vikings: 'MIN', patriots: 'NE', saints: 'NO', giants: 'NYG', jets: 'NYJ',
+  eagles: 'PHI', cardinals: 'ARI', chargers: 'LAC', steelers: 'PIT',
+  '49ers': 'SF', seahawks: 'SEA', buccaneers: 'TB', commanders: 'WAS',
+  panthers: 'CAR', jaguars: 'JAX', ravens: 'BAL', texans: 'HOU'
+};
 
 function esc(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
@@ -35,6 +44,20 @@ function formatTime(game) {
   const date = new Date(game.date);
   if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' }).format(date);
+}
+
+function displayedTeamCode(player) {
+  if (player.position !== 'DEF') return player.teamCode || '';
+  const name = String(player.name || '').toLowerCase();
+  const nickname = Object.keys(DEFENSE_CODE_BY_NAME).find(teamName => name.includes(teamName));
+  return nickname ? DEFENSE_CODE_BY_NAME[nickname] : player.teamCode || '';
+}
+
+function displayedAvatar(player) {
+  const teamCode = displayedTeamCode(player);
+  return player.position === 'DEF' && teamCode
+    ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(teamCode.toLowerCase())}.png`
+    : player.avatar;
 }
 
 function gameMarkup(game) {
@@ -52,11 +75,13 @@ function healthMarkup(health) {
 }
 
 function playerMarkup(player) {
+  const teamCode = displayedTeamCode(player);
+  const avatar = displayedAvatar(player);
   return `<article class="player-row">
-    <div class="player-avatar">${player.avatar ? `<img src="${esc(player.avatar)}" alt="" onerror="this.remove()">` : ''}<span class="avatar-fallback">${esc(initials(player.name))}</span></div>
+    <div class="player-avatar">${avatar ? `<img src="${esc(avatar)}" alt="" onerror="this.remove()">` : ''}<span class="avatar-fallback">${esc(initials(player.name))}</span></div>
     <div class="player-main">
       <div class="player-name">${esc(player.name)}</div>
-      <div class="player-meta"><span>${esc(player.position || '—')}</span>${player.teamCode ? `<span>${esc(player.teamCode)}</span>` : ''}${player.lineupSlot && player.lineupSlot !== player.position ? `<span>${esc(player.lineupSlot)}</span>` : ''}</div>
+      <div class="player-meta"><span>${esc(player.position || '—')}</span>${teamCode ? `<span>${esc(teamCode)}</span>` : ''}${player.lineupSlot && player.lineupSlot !== player.position ? `<span>${esc(player.lineupSlot)}</span>` : ''}</div>
       <div class="player-status">${gameMarkup(player.game)}</div>
       ${healthMarkup(player.health)}
     </div>
@@ -67,7 +92,8 @@ function teamLogoFallback(team) {
   if (team.logoFallback) return team.logoFallback;
   const players = [...(team.starters || []), ...(team.bench || [])];
   const defense = players.find(player => player.position === 'DEF' && player.teamCode);
-  return defense ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(defense.teamCode.toLowerCase())}.png` : '';
+  const teamCode = defense ? displayedTeamCode(defense) : '';
+  return teamCode ? `https://a.espncdn.com/i/teamlogos/nfl/500/${encodeURIComponent(teamCode.toLowerCase())}.png` : '';
 }
 
 function teamLogoMarkup(team, className) {

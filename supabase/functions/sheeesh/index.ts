@@ -5,9 +5,19 @@ const encoder = new TextEncoder();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sheeesh-session',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sheeesh-session, x-fantasheee-client',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
 };
+
+// Fantasheee is intentionally passwordless. Its read-only browser mirror is
+// limited to the local preview and the two production site origins; ESPN
+// cookies remain server-side in this function.
+const FANTASHEEE_ORIGINS = new Set([
+  'http://localhost:8080',
+  'http://127.0.0.1:8080',
+  'https://marianfusek.com',
+  'https://www.marianfusek.com'
+]);
 
 const POSITION_BY_ID: Record<number, string> = {
   1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'DEF'
@@ -265,6 +275,37 @@ function playerRecord(entry: Record<string, any>) {
   return entry.playerPoolEntry && typeof entry.playerPoolEntry === 'object' ? entry.playerPoolEntry : {};
 }
 
+function finiteNumber(...values: unknown[]) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === '') continue;
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return 0;
+}
+
+function playerFantasyPoints(entry: Record<string, any>, player: Record<string, any>) {
+  return finiteNumber(
+    entry.appliedStatTotal,
+    entry.currentPeriodPoints,
+    entry.playerPoolEntry?.appliedStatTotal,
+    player.appliedStatTotal,
+    player.currentPeriodPoints,
+    player.totalPoints
+  );
+}
+
+function playerProjection(entry: Record<string, any>, player: Record<string, any>) {
+  return finiteNumber(
+    entry.projectedPointTotal,
+    entry.projectedPoints,
+    entry.playerPoolEntry?.projectedPointTotal,
+    entry.playerPoolEntry?.projectedPoints,
+    player.projectedPointTotal,
+    player.projectedPoints
+  );
+}
+
 function normalizeGames(data: Record<string, any>) {
   const games: Record<string, any> = {};
   for (const event of data.events || []) {
@@ -311,8 +352,96 @@ function normalizePlayer(entry: Record<string, any>, games: Record<string, any>)
     avatar,
     health: healthLabel(player),
     game,
-    bench: slotId === 20 || slotId === 21
+    bench: slotId === 20 || slotId === 21,
+    points: playerFantasyPoints(entry, player),
+    projection: playerProjection(entry, player)
   };
+}
+
+function teamRecord(team: Record<string, any>) {
+  const record = team.record?.overall || team.record || {};
+  return {
+    wins: finiteNumber(record.wins, team.wins),
+    losses: finiteNumber(record.losses, team.losses),
+    ties: finiteNumber(record.ties, team.ties)
+  };
+}
+
+function teamWaiverPriority(team: Record<string, any>) {
+  return finiteNumber(
+    team.waiverPriority,
+    team.waiverRank,
+    team.waiver_rank,
+    team.settings?.waiverPriority,
+    team.settings?.waiverRank
+  );
+}
+
+function rosterSlotsFromSettings(league: Record<string, any>) {
+  const settings = league.settings?.rosterSettings || league.settings?.roster || {};
+  const counts = settings.lineupSlotCounts || settings.lineupSlots || {};
+  const rows = Array.isArray(counts)
+    ? counts
+    : Object.entries(counts).map(([lineupSlotId, count]) => ({ lineupSlotId, count }));
+  const slots: string[] = [];
+  rows.forEach((row: Record<string, any>) => {
+    const rawSlot = row.lineupSlotId ?? row.slotId ?? row.lineupSlot ?? row.position;
+    const slot = LINEUP_SLOT_BY_ID[Number(rawSlot)] || asText(rawSlot).toUpperCase();
+    const count = Math.floor(finiteNumber(row.count, row.slotCount, row.slots));
+    if (!slot || !count || !['QB', 'RB', 'WR', 'TE', 'FLEX', 'K', 'DEF', 'BE', 'IR'].includes(slot)) return;
+    for (let index = 0; index < count; index += 1) slots.push(slot);
+  });
+  return slots;
+}
+
+function teamIdFromMatchupSide(side: unknown) {
+  if (!side || typeof side !== 'object') return '';
+  const value = side as Record<string, any>;
+  return String(value.teamId || value.team?.id || value.id || '');
+}
+
+function matchupData(league: Record<string, any>, week: number) {
+  const matchups: Record<string, string> = {};
+  const teamScores: Record<string, any> = {};
+  const rows = Array.isArray(league.schedule)
+    ? league.schedule
+    : Array.isArray(league.matchups) ? league.matchups : [];
+
+  rows.forEach((row: Record<string, any>) => {
+    const period = finiteNumber(row.matchupPeriodId, row.scoringPeriodId, row.week, row.period);
+    if (period && period !== week) return;
+    const home = row.home || row.homeTeam || row.teamA;
+    const away = row.away || row.awayTeam || row.teamB;
+    const homeId = teamIdFromMatchupSide(home);
+    const awayId = teamIdFromMatchupSide(away);
+    if (!homeId || !awayId) return;
+    matchups[homeId] = awayId;
+    matchups[awayId] = homeId;
+    teamScores[homeId] = {
+      points: finiteNumber(home?.totalPoints, home?.points, home?.score),
+      projected: finiteNumber(home?.totalProjectedPoints, home?.projectedPoints, home?.projectedScore)
+    };
+    teamScores[awayId] = {
+      points: finiteNumber(away?.totalPoints, away?.points, away?.score),
+      projected: finiteNumber(away?.totalProjectedPoints, away?.projectedPoints, away?.projectedScore)
+    };
+  });
+  return { matchups, teamScores };
+}
+
+function transactionData(league: Record<string, any>) {
+  const rows = Array.isArray(league.transactions)
+    ? league.transactions
+    : Array.isArray(league.recentActivity) ? league.recentActivity : [];
+  return rows.slice(0, 100).map((row: Record<string, any>) => ({
+    id: String(row.id || row.transactionId || crypto.randomUUID()),
+    type: asText(row.type || row.transactionType || row.executionType || 'transaction'),
+    status: asText(row.status || row.processedStatus || 'processed'),
+    createdAt: row.processDate || row.createdAt || row.date || null,
+    teamId: String(row.teamId || row.team?.id || row.memberId || ''),
+    addPlayerId: String(row.addPlayerId || row.addedPlayerId || ''),
+    dropPlayerId: String(row.dropPlayerId || row.droppedPlayerId || '')
+  }));
 }
 
 // Keep every team's starting column in the same fantasy-football order. ESPN
@@ -348,21 +477,31 @@ async function fetchJson(url: string, init?: RequestInit) {
   return { response, body };
 }
 
+function isFantasheeeReadRequest(request: Request) {
+  return request.method === 'GET'
+    && request.headers.get('x-fantasheee-client') === '1'
+    && FANTASHEEE_ORIGINS.has(asText(request.headers.get('origin')));
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  const isPublicFantasheeeRead = isFantasheeeReadRequest(request);
   const password = Deno.env.get('SHEEESH_PASSWORD');
-  if (!password) return json({ error: 'Sheeesh password is not configured.' }, 500);
+  if (!password && !isPublicFantasheeeRead) return json({ error: 'Sheeesh password is not configured.' }, 500);
 
   if (request.method === 'POST') {
+    if (!password) return json({ error: 'Sheeesh password is not configured.' }, 500);
     const body = await request.json().catch(() => ({}));
     if (!samePassword(String(body.password || ''), password)) return json({ error: 'Wrong password.' }, 401);
     return json({ token: await createSession(password), expiresIn: TOKEN_TTL_SECONDS });
   }
   if (request.method !== 'GET') return json({ error: 'Only GET and POST are supported.' }, 405);
 
-  const token = request.headers.get('x-sheeesh-session')?.trim() || '';
-  if (!token || !(await validSession(token, password))) return json({ error: 'Sheeesh session expired.' }, 401);
+  if (!isPublicFantasheeeRead) {
+    const token = request.headers.get('x-sheeesh-session')?.trim() || '';
+    if (!password || !token || !(await validSession(token, password))) return json({ error: 'Sheeesh session expired.' }, 401);
+  }
 
   const swid = Deno.env.get('ESPN_SWID');
   const espnS2 = Deno.env.get('ESPN_S2');
@@ -376,6 +515,9 @@ Deno.serve(async (request) => {
   leagueUrl.searchParams.append('view', 'mTeam');
   leagueUrl.searchParams.append('view', 'mRoster');
   leagueUrl.searchParams.append('view', 'mStatus');
+  leagueUrl.searchParams.append('view', 'mMatchup');
+  leagueUrl.searchParams.append('view', 'mSettings');
+  leagueUrl.searchParams.append('view', 'mTransactions');
   if (requestedWeek) leagueUrl.searchParams.set('scoringPeriodId', String(requestedWeek));
 
   const leagueResult = await fetchJson(leagueUrl.toString(), {
@@ -411,19 +553,37 @@ Deno.serve(async (request) => {
   }
 
   const espnCookie = `SWID=${swid}; espn_s2=${espnS2}`;
+  const matchup = matchupData(league, week);
+  const transactions = transactionData(league);
+  const rosterSlots = rosterSlotsFromSettings(league);
   const teams = await Promise.all((league.teams || []).map(async (team: Record<string, any>) => {
     const players = (team.roster?.entries || []).map((entry: Record<string, any>) => normalizePlayer(entry, games));
     const starters = sortStarters(players.filter((player: Record<string, any>) => !player.bench));
+    const record = teamRecord(team);
+    const teamId = String(team.id || '');
     return {
-      id: String(team.id || ''),
+      id: teamId,
       name: teamName(team),
       abbreviation: asText(team.abbrev).toUpperCase(),
       logo: await teamLogoDataUrl(team, espnCookie),
       logoFallback: defaultTeamLogo(team),
+      wins: record.wins,
+      losses: record.losses,
+      ties: record.ties,
+      waiverPriority: teamWaiverPriority(team),
       starters,
       bench: players.filter((player: Record<string, any>) => player.bench)
     };
   }));
 
-  return json({ season, week, refreshedAt: new Date().toISOString(), teams });
+  return json({
+    season,
+    week,
+    refreshedAt: new Date().toISOString(),
+    teams,
+    matchups: matchup.matchups,
+    teamScores: matchup.teamScores,
+    transactions,
+    rosterSlots
+  });
 });

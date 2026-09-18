@@ -235,10 +235,6 @@ function matchupPage() {
         </div>
         <div class="score-foot"><span>${matchupLead(mine, opp, mineScore, oppScore)}</span><span class="status-pill"><span class="live-dot"></span>${status}</span></div>
       </section>
-      <aside class="week-card">
-        <div><span class="eyebrow">Season ${APP_CONFIG.season}</span><h2>Current week</h2></div>
-        <div><div class="week-big">${String(state.week).padStart(2, '0')}</div><p class="week-muted">NFL regular season</p><span class="week-status">${weekContextLabel(status)}</span></div>
-      </aside>
     </div>
     <div class="matchup-columns">
       ${matchupRosterCard(mine)}

@@ -7,7 +7,7 @@ This is the live implementation checklist for the Fantasheee build.
 - App/UI and local preview: 100%
 - ESPN team + starter/bench mirror: 100% — the browser can request the read-only feed directly from the allowlisted Fantasheee origins; the feed normalizes the exact six teams, records, waiver priority, matchup totals and roster slots, including flex starters.
 - ESPN watch-mirror completeness: 85% — the current source is read-only and covers the league teams, rosters, lineups, records, matchup week, settings and available activity fields. ESPN does not expose every score/projection/activity surface consistently, so any unavailable value stays clearly separate instead of being presented as a fake ESPN value.
-- Overall build: 95% — the NFL-style local surfaces now match the reference more closely across Matchup, Team, Players and League; the remaining handoff item is publishing the updated static Fantasheee folder to the live path and completing the final phone-width feel check.
+- Overall build: 97% — the NFL-style local surfaces now match the reference more closely across Matchup, Team, Players and League, and the updated client is live; the remaining check is the final phone-width feel pass in the user's browser.
 
 ## Features
 
@@ -30,7 +30,7 @@ This is the live implementation checklist for the Fantasheee build.
 | Responsive QA at 320px, 390px, and desktop | IN PROGRESS | Desktop Matchup, Team, and League layouts plus current-week and flex-slot behavior are verified; final phone-width feel still needs the user's local browser check. |
 | ESPN mirror connection | DONE | Uses the existing deployed Supabase function URL and publishable key from the allowlisted Fantasheee origins without exposing ESPN cookies; the normal same-browser Sheeesh session remains supported. |
 | Supabase-ready shared league mode | OUT OF SCOPE | Fantasheee reads the ESPN source directly; no separate editable Supabase league state is exposed. |
-| Production handoff for `marianfusek.com/fantasheee` | IN PROGRESS | The updated `sheeesh` function is deployed and the live read path is working. Publish the current Fantasheee client folder so the live visual surfaces match local. |
+| Production handoff for `marianfusek.com/fantasheee` | DONE | The updated `sheeesh` function is deployed, the current Fantasheee client is pushed, and the live page is serving the current CSS/JS asset versions. |
 
 ## Remaining implementation inputs
 

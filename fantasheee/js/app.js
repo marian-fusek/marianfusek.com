@@ -1,6 +1,6 @@
 import { APP_CONFIG } from './config.js?v=10';
 import { getNflState, getWeekData } from './data-provider.js?v=9';
-import { getEspnLeague, hasEspnSession, clearEspnSession, espnSyncConfigured, espnPasswordlessReadAvailable } from './espn-provider.js?v=2';
+import { getEspnLeague, hasEspnSession, clearEspnSession, espnSyncConfigured, espnPasswordlessReadAvailable } from './espn-provider.js?v=4';
 import { initStore, selectedTeamId, selectTeam, clearSelectedTeam, loadLeague, subscribeLeague } from './store.js?v=16';
 
 const root = document.querySelector('#app');
@@ -158,7 +158,7 @@ function renderTeamGate() {
         ${!state.networkOnline && state.storeMode === 'cloud' ? '<div class="data-status error" role="status">You are offline. Shared league data is paused.</div>' : ''}
         ${state.refreshError ? `<div class="data-status error" role="alert"><span>${escapeHtml(state.refreshError)}</span><button class="status-retry" data-action="retry-refresh">Retry</button></div>` : ''}
         ${state.espnConfigured && !state.espnSession && !espnPasswordlessReadAvailable() ? `<div class="data-status connection-status" role="status"><span>Exact teams and lineups load from the existing Sheeesh ESPN connection.</span><a class="connection-link" href="${escapeAttr(APP_CONFIG.espnSync.connectionUrl)}">Connect ESPN ↗</a></div>` : ''}
-        ${state.espnConfigured && !state.espnSession && espnPasswordlessReadAvailable() && !state.espnError ? '<div class="data-status connection-status" role="status">Connecting to the live ESPN mirror…</div>' : ''}
+        ${state.espnConfigured && state.dataSource !== 'espn' && !state.espnSession && espnPasswordlessReadAvailable() && !state.espnError ? '<div class="data-status connection-status" role="status">Connecting to the live ESPN mirror…</div>' : ''}
         ${state.espnError ? `<div class="data-status error" role="alert"><span>${escapeHtml(state.espnError)}</span><button class="status-retry" data-action="retry-refresh">Retry live data</button></div>` : ''}
         ${teams.length ? `<div class="team-grid">${teams.map(teamLogoCard).join('')}</div>` : '<div class="data-status">Live ESPN data is unavailable. No local league state is loaded.</div>'}
       </section>
@@ -179,6 +179,12 @@ function appFrame() {
       ${pullRefreshMarkup()}
       <header class="topbar">
         <button class="brand-button" data-action="home"><span class="brand-mark"></span><span>${APP_CONFIG.appName}</span></button>
+        <nav class="primary-nav" aria-label="Primary">
+          ${navButton('matchup','Matchup',iconVs())}
+          ${navButton('team','Team',iconTeam())}
+          ${navButton('players','Players',iconSearch())}
+          ${navButton('league','League',iconLeague())}
+        </nav>
         <div class="topbar-right">
           <span class="sync-dot ${state.dataSource === 'espn' || state.storeMode === 'cloud' ? 'online' : ''}" role="status" aria-label="${state.dataSource === 'espn' ? 'ESPN league connected' : state.storeMode === 'cloud' ? 'Shared league connected' : 'Local preview mode'}"></span>
           <button class="avatar-button" data-action="switch-team">${logoMarkup(team, 'tiny')}</button>
@@ -191,12 +197,6 @@ function appFrame() {
       ${state.loading ? '<div class="data-status" role="status">Updating live data…</div>' : ''}
       ${state.refreshError ? `<div class="data-status error" role="alert"><span>${escapeHtml(state.refreshError)}</span><button class="status-retry" data-action="retry-refresh">Retry</button></div>` : ''}
       <main class="page"><div class="page-content page-${state.tab}">${pageContent()}</div></main>
-      <nav class="bottom-nav" aria-label="Primary">
-        ${navButton('matchup','Matchup',iconVs())}
-        ${navButton('team','Team',iconTeam())}
-        ${navButton('players','Players',iconSearch())}
-        ${navButton('league','League',iconLeague())}
-      </nav>
       ${state.sheet ? renderSheet() : ''}
     </div>`;
 }
@@ -216,21 +216,31 @@ function matchupPage() {
   const oppScore = teamScore(opp?.id);
   const mineProj = teamProjection(mine.id);
   const oppProj = teamProjection(opp?.id);
+  const status = matchupStatus(mine, opp);
   return `
-    <section class="page-heading">
-      <div><p class="eyebrow">WEEK ${state.week}</p><h1>Matchup</h1></div>
-      <button class="icon-button" data-action="refresh" aria-label="Refresh" aria-busy="${state.loading}" ${state.loading ? 'disabled' : ''}>${iconRefresh()}</button>
+    <section class="view-intro matchup-intro">
+      <div><p class="eyebrow">${APP_CONFIG.leagueName.toUpperCase()} · ${APP_CONFIG.season}</p><h1>Matchup</h1></div>
+      <div class="matchup-intro-meta"><span>Week ${state.week}</span><button class="icon-button" data-action="refresh" aria-label="Refresh" aria-busy="${state.loading}" ${state.loading ? 'disabled' : ''}>${iconRefresh()}</button></div>
     </section>
-    <section class="scoreboard">
-      ${scoreTeam(mine, mineScore, mineProj, true)}
-      <div class="versus">VS</div>
-      ${scoreTeam(opp, oppScore, oppProj, false)}
-    </section>
-    <div class="segmented" role="tablist" aria-label="Matchup lineup">
-      <button class="${state.matchupView === 'mine' ? 'active' : ''}" data-matchup-view="mine" role="tab" aria-selected="${state.matchupView === 'mine'}">Your lineup</button>
-      <button class="${state.matchupView === 'opponent' ? 'active' : ''}" data-matchup-view="opponent" role="tab" aria-selected="${state.matchupView === 'opponent'}">Opponent</button>
+    <div class="hero-grid">
+      <section class="score-card">
+        <div class="score-head"><span class="eyebrow">Head to head</span><span class="score-week">Week ${state.week}</span></div>
+        <div class="score-body">
+          ${scoreTeam(mine, mineScore, mineProj, false)}
+          <div class="versus">VS</div>
+          ${scoreTeam(opp, oppScore, oppProj, true)}
+        </div>
+        <div class="score-foot"><span>${matchupLead(mine, opp, mineScore, oppScore)}</span><span class="status-pill"><span class="live-dot"></span>${status}</span></div>
+      </section>
+      <aside class="week-card">
+        <div><span class="eyebrow">Season ${APP_CONFIG.season}</span><h2>Current week</h2></div>
+        <div><div class="week-big">${String(state.week).padStart(2, '0')}</div><p class="week-muted">NFL regular season</p><span class="week-status">${status}</span></div>
+      </aside>
     </div>
-    <section class="roster-list">${rosterRows(state.matchupView === 'opponent' ? opponentId : mine.id)}</section>
+    <div class="matchup-columns">
+      ${matchupRosterCard(mine)}
+      ${matchupRosterCard(opp)}
+    </div>
   `;
 }
 
@@ -238,14 +248,12 @@ function teamPage() {
   const team = teamById(state.selectedTeam);
   const counts = lineupCounts(team.id);
   return `
-    <section class="team-hero">
-      ${logoMarkup(team, 'hero')}
-      <div><p class="eyebrow">YOUR TEAM</p><h1>${escapeHtml(team.name)}</h1><p class="muted">${team.wins || 0}-${team.losses || 0} · Waiver ${team.waiver_priority || '—'}</p></div>
-    </section>
-    <div class="section-label"><span>STARTERS <small class="section-count">${counts.starters}/${counts.starterSlots}</small></span><span>PROJ · PTS</span></div>
-    <section class="roster-list starters-list">${rosterRows(team.id, 'starters')}</section>
-    <div class="section-label bench-label"><span>BENCH <small class="section-count">${counts.bench}/${counts.benchSlots}</small></span><span>PROJ · PTS</span></div>
-    <section class="roster-list bench-list">${rosterRows(team.id, 'bench')}</section>
+    <section class="view-intro"><div><p class="eyebrow">YOUR TEAM · WEEK ${state.week}</p><h1>Team</h1></div></section>
+    <section class="team-identity">${logoMarkup(team, 'hero')}<div><h2>${escapeHtml(team.name)}</h2><p>${team.wins || 0}-${team.losses || 0} record · Waiver ${team.waiver_priority || '—'}</p></div></section>
+    <div class="team-roster-grid">
+      <section class="setup-card roster-panel"><div class="roster-head"><h3>Starters</h3><span class="small">${counts.starters}/${counts.starterSlots}</span></div>${rosterRows(team.id, 'starters')}</section>
+      <section class="setup-card roster-panel"><div class="roster-head"><h3>Bench</h3><span class="small">${counts.bench}/${counts.benchSlots}</span></div>${rosterRows(team.id, 'bench')}</section>
+    </div>
   `;
 }
 
@@ -261,14 +269,14 @@ function playersPage() {
   });
   list = list.slice(0,120);
   return `
-    <section class="page-heading"><div><p class="eyebrow">NFL PLAYER POOL</p><h1>Players</h1></div></section>
-    <div class="search-box">${iconSearch()}<input data-player-search placeholder="Search players" value="${escapeHtml(state.playerQuery)}" /></div>
+    <section class="view-intro"><div><p class="eyebrow">${APP_CONFIG.leagueName.toUpperCase()} · WEEK ${state.week}</p><h1>Players</h1></div></section>
+    <div class="players-toolbar"><div class="search-box">${iconSearch()}<input data-player-search placeholder="Search players" value="${escapeHtml(state.playerQuery)}" /></div>
     <div class="chips horizontal-scroll">
       ${['ALL','QB','RB','WR','TE','K','DEF'].map((p) => `<button class="chip ${state.playerPosition === p ? 'active' : ''}" data-position="${p}">${p}</button>`).join('')}
     </div>
     <div class="segmented player-view" role="tablist" aria-label="Player ownership">
       ${['AVAILABLE','ALL','OWNED'].map((v) => `<button class="${state.playerView === v ? 'active' : ''}" data-player-view="${v}" role="tab" aria-selected="${state.playerView === v}">${titleCase(v)}</button>`).join('')}
-    </div>
+    </div></div>
     <section class="player-list">
       ${list.map((p) => playerRow(p, owned.has(p.id))).join('') || '<div class="empty">No players match.</div>'}
     </section>`;
@@ -279,20 +287,22 @@ function leaguePage() {
   const pendingClaims = (state.league?.claims || []).filter((claim) => claim.status === 'pending').slice(0,20);
   const recentMoves = (state.league?.transactions || []).slice(0,20);
   return `
-    <section class="page-heading"><div><p class="eyebrow">${APP_CONFIG.leagueName.toUpperCase()}</p><h1>League</h1></div></section>
-    <section class="league-card waiver-order-card">
-      <div class="card-title">Waiver order</div>
-      ${teams.map((t,i) => `<div class="waiver-row"><strong>${i+1}</strong>${logoMarkup(t,'tiny')}<span>${escapeHtml(t.name)}</span></div>`).join('')}
-    </section>
-    <section class="league-card pending-card">
-      <div class="card-title"><span>Pending waivers</span><span class="card-count">${pendingClaims.length}</span></div>
-      ${pendingClaims.map(waiverClaimRow).join('') || '<div class="empty compact">No pending claims.</div>'}
-    </section>
-    <section class="league-card moves-card">
-      <div class="card-title"><span>Recent moves</span><span class="card-count">${recentMoves.length}</span></div>
-      ${recentMoves.map(transactionRow).join('') || '<div class="empty compact">No moves yet.</div>'}
-    </section>
-    <button class="secondary wide" data-action="switch-team">Switch team</button>`;
+    <section class="view-intro"><div><p class="eyebrow">${APP_CONFIG.leagueName.toUpperCase()} · ${APP_CONFIG.season}</p><h1>League</h1></div></section>
+    <div class="league-grid">
+      <section class="setup-card season-card"><div class="card-title"><span>Standings</span><span class="small">Week ${state.week}</span></div><div class="season-teams">${teams.map((t) => seasonTeamCard(t)).join('')}</div></section>
+      <section class="setup-card waiver-order-card"><div class="card-title">Waiver order</div>${teams.map((t,i) => `<div class="waiver-row"><strong>${i+1}</strong>${logoMarkup(t,'tiny')}<span>${escapeHtml(t.name)}</span></div>`).join('')}</section>
+      <section class="setup-card pending-card"><div class="card-title"><span>Pending waivers</span><span class="card-count">${pendingClaims.length}</span></div>${pendingClaims.map(waiverClaimRow).join('') || '<div class="empty compact">No pending claims.</div>'}</section>
+      <section class="setup-card moves-card"><div class="card-title"><span>Recent league activity</span><span class="card-count">${recentMoves.length}</span></div>${recentMoves.map(transactionRow).join('') || '<div class="empty compact">No recent moves.</div>'}</section>
+    </div>`;
+}
+
+function matchupRosterCard(team) {
+  if (!team) return '<section class="setup-card roster-card"><div class="empty">Opponent not available.</div></section>';
+  return `<section class="setup-card roster-card"><div class="roster-head"><h3>${escapeHtml(team.name)}</h3><span class="small">${fmt(teamScore(team.id))} PTS</span></div><div class="roster-section-label">Starters <span>PROJ · PTS</span></div>${rosterRows(team.id, 'starters')}<div class="roster-section-label bench-title">Bench <span>PROJ · PTS</span></div>${rosterRows(team.id, 'bench')}</section>`;
+}
+
+function seasonTeamCard(team) {
+  return `<article class="season-team"><div class="season-team-head">${logoMarkup(team,'tiny')}<div><strong>${escapeHtml(team.name)}</strong><div class="small">${team.wins || 0}-${team.losses || 0}${team.ties ? `-${team.ties}` : ''}</div></div></div><div class="season-metrics"><span><strong>${fmt(teamScore(team.id))}</strong><small>Week ${state.week}</small></span><span><strong>${team.waiver_priority || '—'}</strong><small>Waiver</small></span></div></article>`;
 }
 
 function rosterRows(teamId, section = 'all') {
@@ -318,7 +328,7 @@ function rosterRows(teamId, section = 'all') {
     });
   }
   visibleRows.sort((a, b) => slotRank(a.slot) - slotRank(b.slot) || Number(Boolean(a.empty)) - Number(Boolean(b.empty)));
-  if (!visibleRows.length) return '<div class="empty">No roster loaded yet. Add players from Players.</div>';
+  if (!visibleRows.length) return '<div class="empty">No roster loaded yet.</div>';
   return visibleRows.map(({player,slot,empty}) => empty ? emptyRosterRow(slot) : rosterRow(player, slot)).join('');
 }
 
@@ -328,7 +338,7 @@ function rosterRow(p, slot) {
     <div class="slot ${locked ? 'locked' : ''}">${escapeHtml(slot)}${locked ? '<span class="lock-dot"></span>' : ''}</div>
     ${playerAvatar(p)}
     <div class="player-main"><strong>${escapeHtml(shortName(p.name))}</strong>${playerMeta(p)}</div>
-    <div class="player-number"><span>${fmt(p.projection)}</span><strong>${fmt(p.points)}</strong></div>
+    <div class="player-number"><span>${fmt(p.projection)}</span><strong>${fmt(playerPoints(p))}</strong></div>
   </button>`;
 }
 
@@ -361,7 +371,7 @@ function renderSheet() {
         <p class="eyebrow">${escapeHtml(p.position)} · ${escapeHtml(p.nflTeam)}</p>
         <h2>${escapeHtml(p.name)}</h2>
         ${playerMeta(p, true)}
-        <div class="detail-stats"><div><span>Projection</span><strong>${fmt(p.projection)}</strong></div><div><span>Points</span><strong>${fmt(p.points)}</strong></div></div>
+        <div class="detail-stats"><div><span>Projection</span><strong>${fmt(p.projection)}</strong></div><div><span>Points</span><strong>${fmt(playerPoints(p))}</strong></div></div>
         ${owner ? `<div class="owned-by">Owned by ${escapeHtml(teamById(owner)?.name || 'team')}</div>` : '<div class="owned-by available">Available</div>'}
         ${action}
       </div>
@@ -517,7 +527,10 @@ function logoMarkup(team,size='normal') {
     ? `<img class="team-logo ${variant} ${teamClass}" src="${escapeAttr(source)}" alt="${escapeAttr(team.name)}" ${fallback ? `data-fallback="${escapeAttr(fallback)}"` : ''} onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){this.src=this.dataset.fallback}else{this.remove()}" />`
     : `<span class="team-logo ${variant} ${teamClass}">${escapeHtml(team.abbr || initials(team.name))}</span>`;
 }
-function scoreTeam(team,score,proj,mine) { const status = teamGameState(team?.id); return `<div class="score-team ${mine?'mine':''}">${logoMarkup(team,'score')}<span class="score-name">${escapeHtml(team?.name || 'Opponent')}</span><span class="score-status ${status.toLowerCase()}">${status}</span><span class="score-label">PTS</span><strong class="score-value">${fmt(score)}</strong><span class="score-proj"><span>PROJ</span> ${fmt(proj)}</span></div>`; }
+function scoreTeam(team, score, proj, right) {
+  const status = teamGameState(team?.id);
+  return `<div class="team-score ${right ? 'right' : ''}"><div class="team-meta">${right ? `<div><div class="team-name">${escapeHtml(team?.name || 'Opponent')}</div></div>${logoMarkup(team,'score')}` : `${logoMarkup(team,'score')}<div><div class="team-name">${escapeHtml(team?.name || 'Opponent')}</div></div>`}</div><div class="score">${fmt(score)}</div><div class="score-label">PPR actual · ${status}</div><div class="score-projection"><span>Projected</span><strong>${fmt(proj)}</strong></div></div>`;
+}
 function navButton(id,label,icon) { return `<button class="nav-item ${state.tab===id?'active':''}" data-nav="${id}" aria-current="${state.tab===id?'page':'false'}">${icon}<span>${label}</span></button>`; }
 function teamById(id) { return (state.league?.teams || APP_CONFIG.teams).find((t)=>t.id===id) || APP_CONFIG.teams.find((t)=>t.id===id); }
 function opponentFor(id) { return state.league?.matchups?.[id] || (state.dataSource === 'espn' ? '' : nextOpponent(id)); }
@@ -525,16 +538,36 @@ function nextOpponent(id) { const teams = (state.league?.teams || APP_CONFIG.tea
 function ownedPlayerIds() { const set=new Set(); Object.values(state.league?.roster || {}).flat().forEach((id)=>set.add(id)); return set; }
 function ownerOf(playerId) { return Object.entries(state.league?.roster || {}).find(([,ids])=>ids.includes(playerId))?.[0] || ''; }
 function teamScore(id) {
-  const sourced = state.league?.teamScores?.[id]?.points;
-  return Number.isFinite(Number(sourced)) && Number(sourced) > 0
-    ? Number(sourced)
-    : activeRosterPlayers(id).reduce((sum,p)=>sum+(p.points||0),0);
+  const scores = state.league?.teamScores || {};
+  if (id && Object.prototype.hasOwnProperty.call(scores, id)) return Number(scores[id]?.points || 0);
+  return activeRosterPlayers(id).reduce((sum,p)=>sum+(p.points||0),0);
 }
 function teamProjection(id) {
   const sourced = state.league?.teamScores?.[id]?.projected;
   return Number.isFinite(Number(sourced)) && Number(sourced) > 0
     ? Number(sourced)
     : activeRosterPlayers(id).reduce((sum,p)=>sum+(p.projection||0),0);
+}
+function playerPoints(player) {
+  const owner = ownerOf(player?.id);
+  const score = state.league?.teamScores?.[owner];
+  if (!score || !Object.prototype.hasOwnProperty.call(state.league?.teamScores || {}, owner)) return Number(player?.points || 0);
+  const currentScore = Number(score.points || 0);
+  if (currentScore === 0) return 0;
+  const starterTotal = activeRosterPlayers(owner).reduce((sum,p) => sum + Number(p.points || 0), 0);
+  return starterTotal > 0 && Math.abs(starterTotal - currentScore) > 0.1 ? 0 : Number(player?.points || 0);
+}
+function matchupStatus(mine, opponent) {
+  const states = [mine, opponent].filter(Boolean).map((team) => teamGameState(team.id));
+  if (states.includes('LIVE')) return 'LIVE';
+  if (states.length && states.every((value) => value === 'FINAL')) return 'FINAL';
+  return 'UPCOMING';
+}
+function matchupLead(mine, opponent, mineScore, opponentScore) {
+  if (!mine || !opponent) return 'Opponent not available';
+  if (!mineScore && !opponentScore) return 'Week has not started';
+  if (mineScore === opponentScore) return 'Currently tied';
+  return mineScore > opponentScore ? `${mine.name} leads` : `${opponent.name} leads`;
 }
 function activeRosterPlayers(id) { const roster=state.league?.roster?.[id]||[]; const lineup=state.league?.lineups?.[id]||{}; return roster.map((pid)=>state.playerMap.get(pid)).filter(Boolean).filter((p)=>!['BE','IR'].includes(playerSlot(p,lineup[p.id]))); }
 function lineupCounts(id) { const roster=state.league?.roster?.[id]||[]; const lineup=state.league?.lineups?.[id]||{}; const slots=roster.map((pid)=>{ const player=state.playerMap.get(pid); return player ? playerSlot(player,lineup[pid]) : 'BE'; }); const configuredSlots=activeRosterSlots(); return { starters:slots.filter((slot)=>!['BE','IR'].includes(slot)).length, starterSlots:configuredSlots.filter((slot)=>!['BE','IR'].includes(slot)).length, bench:slots.filter((slot)=>slot==='BE').length, benchSlots:configuredSlots.filter((slot)=>slot==='BE').length }; }

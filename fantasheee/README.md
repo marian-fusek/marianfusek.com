@@ -14,7 +14,7 @@ Mobile-first browser fantasy app for the existing six-person Sheeesh league.
 - Read-only team, matchup, player, waiver-order and activity views.
 - Rolling waiver priority.
 - Player lock state based on NFL kickoff from the free Sleeper schedule.
-- Lineup move control for unlocked players.
+- Read-only starter/bench/flex roster display; lineup changes are made only in ESPN.
 - League screen with waiver order and transaction history.
 - Automatic refresh: about 60 sec while games are live, 5 min otherwise.
 - Pull down from the top of the app to refresh; the latest successful refresh time is shown below the top bar.
@@ -33,7 +33,7 @@ The free Sleeper endpoints provide player metadata, weekly projections, weekly s
 
 Fantasheee stays passwordless by design. The live read path is allowed only from `localhost:8080`, `127.0.0.1:8080`, and the Marian Fusek production origins; the existing Sheeesh function still keeps its normal password/session gate for Sheeesh itself. If the deployed function has not received this read-path change yet, Fantasheee will show its connection error and keep the local preview available. No password or ESPN cookie is copied into this app.
 
-The app is read-only in every mode. It never creates, changes or deletes ESPN, Supabase or local league rosters, lineups, waivers, trades or transactions. All changes must be made in ESPN; refresh then reflects the current source state.
+The app is read-only in every mode. It never creates, changes or deletes ESPN, Supabase or local league rosters, lineups, waivers, trades or transactions. All changes must be made in ESPN; refresh then reflects the current source state. The current live league week is Week 2. Before a game starts, the actual score is shown as `0.0`; projected points remain separate from actual points, so Week 1 totals cannot leak into Week 2.
 
 The ESPN fantasy endpoint is private and unofficial, so no sync can be promised as permanently perfect: ESPN cookies can expire and ESPN can change the endpoint. The current server function already handles the exact six-team roster/lineup mirror and reports connection errors instead of silently inventing team data.
 

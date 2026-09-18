@@ -113,6 +113,16 @@ function normalizeEspnLeague(payload) {
   const matchups = normalizeMatchups(payload?.matchups, teamIds);
   const teamScores = normalizeTeamScores(payload?.teamScores, teamIds);
 
+  const rosterSlots = normalizeRosterSlots(payload?.rosterSlots);
+  // Some ESPN settings payloads omit the flex row even though the roster
+  // entries identify a real FLEX starter. Restore that capacity from the
+  // authoritative lineup entries so the Team view does not show 9/8.
+  const hasFlexStarter = players.some((player) => player.lineupSlot === 'FLEX' && !player.bench);
+  if (hasFlexStarter && !rosterSlots.includes('FLEX')) {
+    const insertAt = rosterSlots.findIndex((slot) => ['K', 'DEF', 'BE', 'IR'].includes(slot));
+    rosterSlots.splice(insertAt === -1 ? rosterSlots.length : insertAt, 0, 'FLEX');
+  }
+
   return {
     source: 'espn',
     season: Number(payload?.season || APP_CONFIG.season),
@@ -125,14 +135,18 @@ function normalizeEspnLeague(payload) {
     transactions: normalizeTransactions(payload?.transactions, teamIds),
     matchups,
     teamScores,
-    rosterSlots: normalizeRosterSlots(payload?.rosterSlots),
+    rosterSlots,
     players
   };
 }
 
 function normalizePlayer(player) {
   const position = String(player?.position || '').toUpperCase();
-  const slot = String(player?.lineupSlot || (player?.bench ? 'BE' : position)).toUpperCase();
+  const rawSlot = String(player?.lineupSlot || (player?.bench ? 'BE' : position)).toUpperCase();
+  // ESPN's roster payload can label the flex starter as UTIL when the
+  // source entry does not carry a recognized lineupSlotId. Keep that player
+  // in the starting lineup; otherwise the UI incorrectly moves it to bench.
+  const slot = rawSlot === 'UTIL' && !player?.bench ? 'FLEX' : rawSlot;
   return {
     id: String(player?.id || ''),
     name: String(player?.name || 'Player'),

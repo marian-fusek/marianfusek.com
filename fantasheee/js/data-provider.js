@@ -83,6 +83,7 @@ export async function getWeekData(week) {
     return {
       id,
       name,
+      rank: Number(player.search_rank || player.rank || weeklyPlayer.search_rank || p.search_rank || 0),
       firstName: player.first_name || '',
       lastName: player.last_name || '',
       position: position || (id.startsWith('TEAM_') ? 'DEF' : ''),

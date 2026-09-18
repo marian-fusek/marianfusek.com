@@ -51,6 +51,10 @@ button:not(:disabled), input { cursor: pointer; }
 .page-content { min-width: 0; }
 .view-intro { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin: 0 0 34px; }
 .matchup-intro-meta { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
+.week-picker { display: inline-flex; align-items: center; gap: 5px; }
+.week-picker button { width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); font-size: 18px; line-height: 1; }
+.week-picker button:hover:not(:disabled) { background: var(--soft); }
+.week-picker button:disabled { opacity: .3; cursor: not-allowed; }
 .matchup-intro-meta .icon-button { width: 46px; height: 46px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: rgba(255,255,255,.45); }
 svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -100,17 +104,31 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
 .player-number { text-align: right; font-variant-numeric: tabular-nums; }
 .player-number span { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
 .player-number strong { display: block; margin-top: 3px; font-size: 19px; letter-spacing: -.04em; }
+.player-number small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; white-space: nowrap; }
 .roster-empty-row { display: grid; grid-template-columns: 44px 48px minmax(0,1fr); align-items: center; gap: 12px; min-height: 78px; padding: 13px 22px; border-top: 1px solid var(--line); }
 .empty-avatar { border: 1px dashed var(--line); background: transparent; }
 .locked { opacity: .62; }
 .team-identity { display: flex; align-items: center; gap: 18px; margin: 0 0 28px; }
 .team-identity h2 { margin: 0; font-size: clamp(38px, 4vw, 60px); line-height: .9; letter-spacing: -.07em; }
 .team-identity p { margin: 11px 0 0; color: var(--muted); font-size: 12px; }
+.team-summary-card { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; margin: 0 0 24px; padding: 24px 28px; color: white; background: var(--ink); border-radius: var(--radius); box-shadow: 0 24px 70px rgba(17,17,17,.15); }
+.team-summary-identity { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.team-summary-identity .eyebrow { color: #aaa9a1; }
+.team-summary-identity h2 { margin: 7px 0 0; font-size: clamp(32px, 4vw, 52px); font-weight: 500; letter-spacing: -.07em; line-height: .9; }
+.team-summary-identity p:last-child { margin: 12px 0 0; color: #aaa9a1; font-size: 12px; }
+.team-summary-score { min-width: 160px; text-align: right; }
+.team-summary-score > span, .team-summary-score div span { color: #aaa9a1; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.team-summary-score > strong { display: block; margin: 7px 0 10px; font-size: 48px; font-weight: 500; letter-spacing: -.08em; line-height: .85; }
+.team-summary-score div { display: flex; align-items: baseline; justify-content: flex-end; gap: 7px; }
+.team-summary-score b { font-size: 17px; font-weight: 500; }
 
-.players-toolbar { display: grid; grid-template-columns: minmax(220px,1fr) auto auto; gap: 10px; margin-bottom: 18px; }
+.players-toolbar { display: grid; grid-template-columns: minmax(220px,1fr) minmax(150px,.35fr) minmax(150px,.35fr); gap: 10px; margin-bottom: 12px; }
 .search-box { height: 64px; padding: 0 20px; display: flex; align-items: center; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; }
 .search-box svg { width: 18px; }
 .search-box input { width: 100%; padding: 0; border: 0; outline: 0; background: transparent; font-size: 16px; cursor: text; }
+.player-select { width: 100%; height: 64px; padding: 0 18px; border: 1px solid var(--line); border-radius: 20px; outline: 0; background: var(--paper); color: var(--ink); font-size: 13px; }
+.player-select:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(17,17,17,.08); }
+.players-filter-rail { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
 .chips { display: flex; align-items: center; gap: 7px; }
 .chip { height: 42px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; font-size: 12px; }
 .chip.active { color: white; background: var(--ink); border-color: var(--ink); }
@@ -133,6 +151,7 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
 .season-team { padding: 14px; background: var(--soft); border-radius: 18px; }
 .season-team-head { display: flex; align-items: center; gap: 10px; }
 .season-team-head strong { display: block; font-size: 14px; }
+.season-rank { color: var(--muted); font-size: 11px !important; font-variant-numeric: tabular-nums; }
 .season-metrics { display: flex; gap: 20px; margin-top: 16px; }
 .season-metrics span { display: flex; align-items: baseline; gap: 5px; }
 .season-metrics strong { font-size: 20px; letter-spacing: -.04em; }
@@ -194,6 +213,7 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   .season-card { grid-column: auto; }
   .season-teams { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .players-toolbar { grid-template-columns: 1fr; }
+  .players-filter-rail { align-items: stretch; flex-direction: column; }
   .chips, .segmented { width: 100%; overflow: auto; }
   .chips { padding-bottom: 2px; }
 }
@@ -210,6 +230,9 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   .team-name { max-width: 100px; font-size: 14px; }
   .score { font-size: 50px; }
   .score-foot { align-items: flex-start; flex-direction: column; }
+  .team-summary-card { grid-template-columns: 1fr; gap: 18px; padding: 20px; }
+  .team-summary-score { text-align: left; }
+  .team-summary-score div { justify-content: flex-start; }
   .matchup-columns { gap: 6px; }
   .matchup-columns .roster-card { border-radius: 18px; }
   .matchup-columns .roster-head { min-height: 76px; padding: 14px 10px 10px; align-items: flex-start; flex-direction: column; gap: 4px; }

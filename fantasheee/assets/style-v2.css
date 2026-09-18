@@ -187,7 +187,8 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   .page { padding: 40px 0 112px; }
   .view-intro { align-items: flex-start; flex-direction: column; gap: 16px; margin-bottom: 26px; }
   .matchup-intro { flex-direction: row; align-items: end; }
-  .hero-grid, .matchup-columns, .team-roster-grid, .league-grid { grid-template-columns: 1fr; }
+  .hero-grid, .team-roster-grid, .league-grid { grid-template-columns: 1fr; }
+  .matchup-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
   .score-card { min-height: 260px; padding: 22px; }
   .week-card { min-height: 180px; }
   .season-card { grid-column: auto; }
@@ -209,6 +210,23 @@ svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width:
   .team-name { max-width: 100px; font-size: 14px; }
   .score { font-size: 50px; }
   .score-foot { align-items: flex-start; flex-direction: column; }
+  .matchup-columns { gap: 6px; }
+  .matchup-columns .roster-card { border-radius: 18px; }
+  .matchup-columns .roster-head { min-height: 76px; padding: 14px 10px 10px; align-items: flex-start; flex-direction: column; gap: 4px; }
+  .matchup-columns .roster-head h3 { font-size: 14px; line-height: 1; }
+  .matchup-columns .roster-head .small { font-size: 9px; }
+  .matchup-columns .roster-section-label { padding: 0 10px 8px; font-size: 8px; letter-spacing: .06em; }
+  .matchup-columns .roster-section-label span { display: none; }
+  .matchup-columns .roster-section-label.bench-title { padding-top: 12px; }
+  .matchup-columns .roster-row { grid-template-columns: 30px minmax(0,1fr) auto; min-height: 54px; padding: 8px 7px; gap: 5px; }
+  .matchup-columns .roster-row .slot { font-size: 10px; letter-spacing: -.02em; }
+  .matchup-columns .roster-row .player-avatar { display: none; }
+  .matchup-columns .roster-row .player-main strong { font-size: 11px; }
+  .matchup-columns .roster-row .player-main span { display: none; }
+  .matchup-columns .roster-row .player-number span { display: none; }
+  .matchup-columns .roster-row .player-number strong { font-size: 14px; }
+  .matchup-columns .roster-empty-row { grid-template-columns: 30px minmax(0,1fr); min-height: 54px; padding: 8px 7px; gap: 5px; }
+  .matchup-columns .roster-empty-row .empty-avatar { display: none; }
   .roster-row, .roster-empty-row { grid-template-columns: 34px 42px minmax(0,1fr) auto; padding: 10px 14px; gap: 8px; }
   .roster-section-label { padding-left: 14px; padding-right: 14px; }
   .player-row { grid-template-columns: 46px minmax(0,1fr) auto; padding: 10px 14px; gap: 8px; }

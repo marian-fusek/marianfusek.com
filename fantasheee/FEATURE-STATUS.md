@@ -4,10 +4,11 @@ This is the live implementation checklist for the Fantasheee build.
 
 ## Current rollup
 
+- Live Feed implementation: 95% — real ESPN NFL drive-by-drive plays, roster matching, configured scoring, owner names, and no demo fallback. The existing Supabase function is deployed and health-checked; the local Feed connects and correctly waits when there are no scoring changes. Remaining: publish the updated static app and verify an actual live scoring play.
 - App/UI and local preview: 100%
 - ESPN team + starter/bench mirror: 100% — the browser can request the read-only feed directly from the allowlisted Fantasheee origins; the feed normalizes the exact six teams, records, waiver priority, matchup totals and roster slots, including flex starters.
 - ESPN watch-mirror completeness: 85% — the current source is read-only and covers the league teams, rosters, lineups, records, matchup week, settings and available activity fields. ESPN does not expose every score/projection/activity surface consistently, so any unavailable value stays clearly separate instead of being presented as a fake ESPN value.
-- Overall build: 97% — the NFL-style local surfaces now match the reference more closely across Matchup, Team, Players and League, and the updated client is live; the remaining check is the final phone-width feel pass in the user's browser.
+- Overall launch readiness: 85% — the live data function and local app are ready. The public site still serves the previous app bundle, and one live-game verification remains.
 
 ## Features
 
@@ -16,6 +17,7 @@ This is the live implementation checklist for the Fantasheee build.
 | Local preview and loading behavior | DONE | Served over HTTP; direct `file://` opening is not supported by the ES-module entry point; the brand button returns to the default Matchup view, loading/retry feedback covers both the app shell and team picker, automatic refresh pauses offline, cross-tab local updates remain supported, malformed storage can be recovered, and an unavailable live feed is explicitly labeled when local preview data is being shown. |
 | Read-only mode and refresh feedback | DONE | Add/drop, waiver, trade, lineup-move and local waiver-processing paths are removed from the app; player sheets are informational only, the live source remains authoritative, pull-down refresh is wired at the top of the page, and the latest successful refresh time is visible. |
 | Compact responsive team-picker | DONE | Fixed the vertical-stretch class collision and tightened the composition. |
+| American-football favicon and installed-app icon | DONE | Replaced the generic mark with a brown leather football, white laces, and the existing dark brand tile; browser and manifest references use the refreshed asset. |
 | Six-team configuration and logo slots | DONE | Local fallback supports six teams and marks; live team names, abbreviations and logos are now taken from the existing ESPN-backed Sheeesh feed instead of guessed placeholders. |
 | Exact ESPN teams, lineups and roster shape | DONE | `js/espn-provider.js` normalizes the existing Sheeesh payload into Fantasheee team, roster and lineup state, including real starter/bench/flex slots, logos, player positions, injury state, NFL game status and ESPN-provided roster slot counts. It uses the allowlisted passwordless read path from Fantasheee itself. |
 | Local demo roster and lineup state | OUT OF SCOPE | Demo seeding and synthetic player identities were removed from the watch build. Existing stale local state is not displayed while the approved ESPN read path is active. |
@@ -26,14 +28,25 @@ This is the live implementation checklist for the Fantasheee build.
 | Free-agent add/drop and rolling waivers | OUT OF SCOPE | No add, drop, trade, claim or waiver-submission controls are exposed. Current waiver order, pending claims and activity are display-only source data. |
 | Individual NFL kickoff locking | DONE | One shared lock rule labels live/final players across player rows, roster rows and detail sheets. |
 | League waiver order and transaction history | DONE | Six-team standings are sorted by record and points-for context; waiver order is shown separately in priority order, with pending-waiver and recent-moves surfaces plus live counts/timestamps. Everything is display-only; the app never processes or writes transactions. |
+| Feed tab, compact header, and icon navigation | DONE | Feed title is smaller with Sheeesh/week aligned at right; compact mobile navigation displays icons only and retains accessible labels. Opponent gains read “Against you,” and the Playing now toggle glyph is centered. |
+| Live individual scoring-change events | READY · 95% | Reads real current/recent ESPN drive plays only when Feed is open; maps player names to the six ESPN rosters and calculates PPR, yardage, TD, interception, kicking, core D/ST, points-allowed and yards-allowed changes from configured league rules. Unit checks pass, the deployed endpoint reports `ready`, and no sample/fallback events are generated. Waiting for the next scoring play to verify end-to-end attribution. |
+| Matchup-relative event colors and commentary | DONE | Your team's points are green, matchup-opponent scoring and scoring losses are red, and unrelated league scoring is neutral; copy explicitly frames rival points as against your matchup. |
+| Rotating NFL nicknames and commentary vocabulary | DONE | Uses recognizable short names and nicknames (for example Dolphins/Fins/Miami boys) plus punchier slang, profanity, wordplay and play callbacks. |
+| Team-owner names in Feed commentary | READY · 100% | Deployed ESPN response supplies owner names for all six teams; verified by aggregate check. Commentary uses those names and the known Linda’s Pickens reference rather than guessing. |
+| Large scoring-gain alert | DONE | Adds a 🚨 Big gain marker to individual positive events worth 6.0 or more points; the event’s matchup color still reflects whether it helps or hurts the selected team. |
+| Auto refresh, manual refresh, and last-refreshed time | DONE | Branded black/lime toggle; preference persists locally; polling follows the existing one-minute live / five-minute non-live cadence, pauses while offline or hidden, and can be disabled without disabling the Refresh button or pull-down refresh. |
+| Playing Now roster summary | DONE | Expandable summary groups actual fantasy-roster players whose NFL games are live, with per-team and per-player points; it does not use demo event identities. |
+| ESPN play-by-play ingestion | DEPLOYED · 100% | Existing `sheeesh` function now reads real ESPN game summaries for relevant current/recent games. Health check returned the six-team league and `feedStatus: ready`; no games currently have scoring changes to display. |
+| Feed responsive QA at 320px, 390px, and desktop | IN PROGRESS · 80% | The local desktop Feed is verified, including the connected/empty state; new event cards and empty/error states still need a phone-width pass. |
 | Mobile-first visual system and desktop expansion | DONE | Shared focus states, page-width constraints, NFL-style two-column Matchup/Team/League compositions, side-by-side mobile matchup comparison, canonical lineup ordering, overflow protection, async status/retry feedback, and navigation/tab accessibility state are live. |
 | Responsive QA at 320px, 390px, and desktop | IN PROGRESS | Local narrow Matchup is now checked with side-by-side rosters, reduced row density, hidden nonessential roster metadata and no standalone week card; final phone-width feel still needs the user's local browser check. |
 | ESPN mirror connection | DONE | Uses the existing deployed Supabase function URL and publishable key from the allowlisted Fantasheee origins without exposing ESPN cookies; the normal same-browser Sheeesh session remains supported. |
 | Supabase-ready shared league mode | OUT OF SCOPE | Fantasheee reads the ESPN source directly; no separate editable Supabase league state is exposed. |
-| Production handoff for `marianfusek.com/fantasheee` | DONE | The updated `sheeesh` function is deployed, the current Fantasheee client is pushed, and the live page is serving the current CSS/JS asset versions. |
+| Production handoff for `marianfusek.com/fantasheee` | IN PROGRESS · 60% | Updated Supabase function is live. The public site still serves `app.js?v=45` and `style-v2.css?v=5`; the updated local bundle is `app.js?v=54` and `style-v2.css?v=12`. No static-host upload/deploy workflow is configured in this repository. |
 
 ## Remaining implementation inputs
 
-- Publish the current Fantasheee client folder to `/fantasheee/` so production receives the NFL-style Matchup/Team/League layout.
+- Upload the updated `fantasheee` folder to `/fantasheee/` using the site's hosting workflow; the repository does not contain that workflow or credentials.
+- Verify player attribution, point totals, matchup colors and owner names during the next active NFL game; the current slate has no live scoring changes yet.
 - Keep Fantasheee read-only; no server-side transaction adapter is planned.
 - Extend the ESPN response deliberately for fantasy totals, projections, matchup schedule, waiver order and transactions if those must also be authoritative. The current function already provides the exact six teams and lineups, but not every league surface.

@@ -16,6 +16,7 @@ Mobile-first browser fantasy app for the existing six-person Sheeesh league.
 - Player lock state based on NFL kickoff from the free Sleeper schedule.
 - Read-only starter/bench/flex roster display; lineup changes are made only in ESPN.
 - League screen with waiver order and transaction history.
+- Feed tab reads actual ESPN NFL drive-by-drive plays and shows per-player fantasy point changes; there is no demo-event fallback.
 - Automatic refresh: about 60 sec while games are live, 5 min otherwise.
 - Pull down from the top of the app to refresh; the latest successful refresh time is shown below the top bar.
 - Responsive phone-first layout, expands on desktop.
@@ -23,7 +24,7 @@ Mobile-first browser fantasy app for the existing six-person Sheeesh league.
 
 ## Data
 
-The existing Sheeesh Supabase Edge Function is the source for the private ESPN league mirror. ESPN cookies stay server-side; Fantasheee receives only normalized read-only league data. The function now requests ESPN team, roster, status, matchup, settings and transaction views, and returns normalized records, waiver priority, matchup totals and transaction rows when those fields are present.
+The existing Sheeesh Supabase Edge Function is the source for the private ESPN league mirror. ESPN cookies stay server-side; Fantasheee receives only normalized read-only league data. The function requests ESPN team, roster, status, matchup, settings and transaction views, and returns normalized records, waiver priority, matchup totals and transaction rows when those fields are present. When Feed is open, the same function also reads current/recent ESPN game summaries and returns individual drive plays. Fantasheee maps those plays to owned players and calculates event points from the configured Sheeesh scoring rules. It requests no play summaries on other tabs, only includes the current scoring week, and shows an honest empty/error state rather than synthetic plays.
 
 The free Sleeper endpoints provide player metadata, weekly projections, weekly stats and NFL schedule context when ESPN does not include that field.
 
@@ -35,7 +36,7 @@ Fantasheee stays passwordless by design. The live read path is allowed only from
 
 The app is read-only in every mode. It never creates, changes or deletes ESPN, Supabase or local league rosters, lineups, waivers, trades or transactions. All changes must be made in ESPN; refresh then reflects the current source state. The current live league week is Week 2. Before a game starts, the actual score is shown as `0.0`; projected points remain separate from actual points, so Week 1 totals cannot leak into Week 2.
 
-The ESPN fantasy endpoint is private and unofficial, so no sync can be promised as permanently perfect: ESPN cookies can expire and ESPN can change the endpoint. The current server function already handles the exact six-team roster/lineup mirror and reports connection errors instead of silently inventing team data.
+The ESPN fantasy endpoint is private and unofficial, so no sync can be promised as permanently perfect: ESPN cookies can expire and ESPN can change the endpoint. The server function handles the exact six-team roster/lineup mirror and reports connection errors instead of silently inventing team data. The public ESPN game-summary feed is also unofficial and can change; Feed never substitutes demo events when it fails.
 
 ## Exact ESPN rules
 
@@ -104,4 +105,6 @@ Use the same IDs in Supabase `fantasheee_teams` and `fantasheee_matchups`.
 
 ## Important production step
 
-Before using this as the real league source of truth, deploy the updated Supabase `sheeesh` function and confirm its `ESPN_SWID`, `ESPN_S2`, `ESPN_LEAGUE_ID=465957009` and `ESPN_SEASON=2026` secrets are current. The current function is a read-only roster/lineup mirror. If ESPN does not expose a score, projection or activity field consistently, Fantasheee leaves that field empty/zero rather than inventing a value. ESPN write-back is intentionally not part of this app.
+The existing Supabase `sheeesh` function has been updated and deployed with the read-only ESPN play-by-play Feed. Its live endpoint was checked against the six-team league and returned `feedStatus: ready`; the Feed stays empty until real scoring changes occur. No sample events are generated. The endpoint also resolved ESPN owner names for all six teams.
+
+The updated frontend still needs to be uploaded to the site's `/fantasheee/` directory. This repository has no configured static-hosting workflow. The function continues to use the existing `ESPN_SWID`, `ESPN_S2`, `ESPN_LEAGUE_ID=465957009` and `ESPN_SEASON=2026` secrets. If ESPN does not expose a score, projection or activity field consistently, Fantasheee leaves that field empty/zero rather than inventing a value. ESPN write-back is intentionally not part of this app.

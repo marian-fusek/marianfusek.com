@@ -1,7 +1,10 @@
 const ESPN_LEAGUE_API = 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons';
 const ESPN_SCOREBOARD_API = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
+const ESPN_GAME_SUMMARY_API = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary';
 const TOKEN_TTL_SECONDS = 12 * 60 * 60;
+const SUMMARY_CACHE_MS = 20000;
 const encoder = new TextEncoder();
+const gameSummaryCache = new Map<string, { cachedAt: number; body: Record<string, any> }>();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -269,6 +272,23 @@ function teamName(team: Record<string, any>) {
   return fullName || asText(team.name) || `Team ${team.id || ''}`.trim();
 }
 
+function teamOwnerName(team: Record<string, any>, members: Record<string, any>[]) {
+  const known = asText(team.ownerName || team.owner_name || team.managerName);
+  if (known) return known;
+  const ownerValues = [
+    ...(Array.isArray(team.owners) ? team.owners : [team.owners]),
+    team.ownerId, team.owner_id, team.primaryOwnerId, team.managerId
+  ].filter(Boolean);
+  const ownerIds = new Set(ownerValues.flatMap((value: any) => {
+    if (value && typeof value === 'object') return [value.id, value.memberId, value.guid, value.userId].filter(Boolean).map(String);
+    return [String(value)];
+  }));
+  const member = members.find((item) => ownerIds.has(String(item.id || '')) || ownerIds.has(String(item.guid || '')));
+  if (!member) return '';
+  return asText(member.displayName || member.fullName)
+    || [asText(member.firstName), asText(member.lastName)].filter(Boolean).join(' ');
+}
+
 function playerRecord(entry: Record<string, any>) {
   if (entry.player && typeof entry.player === 'object') return entry.player;
   if (entry.playerPoolEntry?.player && typeof entry.playerPoolEntry.player === 'object') return entry.playerPoolEntry.player;
@@ -311,22 +331,132 @@ function normalizeGames(data: Record<string, any>) {
   for (const event of data.events || []) {
     const competition = event.competitions?.[0];
     const competitors = (competition?.competitors || [])
-      .map((competitor: Record<string, any>) => normalizeTeamCode(competitor.team?.abbreviation))
-      .filter(Boolean);
+      .map((competitor: Record<string, any>) => ({
+        code: normalizeTeamCode(competitor.team?.abbreviation),
+        home: competitor.homeAway === 'home'
+      }))
+      .filter((competitor: Record<string, any>) => Boolean(competitor.code));
     if (competitors.length < 2) continue;
     const type = event.status?.type || competition?.status?.type || {};
     const state = type.state || 'pre';
     const label = state === 'post' ? 'Played' : state === 'in' ? 'In progress' : 'Not played';
-    competitors.forEach((code: string, index: number) => {
-      games[code] = {
+    competitors.forEach((competitor: Record<string, any>, index: number) => {
+      games[competitor.code] = {
         date: event.date || competition?.date || '',
         state,
         label,
-        opponent: competitors[index === 0 ? 1 : 0]
+        opponent: competitors[index === 0 ? 1 : 0].code,
+        home: competitor.home,
+        eventId: String(event.id || competition.id || ''),
+        game: asText(event.shortName || event.name)
       };
     });
   }
   return games;
+}
+
+function eventTeamCodes(event: Record<string, any>) {
+  return (event.competitions?.[0]?.competitors || [])
+    .map((competitor: Record<string, any>) => normalizeTeamCode(competitor.team?.abbreviation))
+    .filter(Boolean);
+}
+
+async function fetchGameSummary(eventId: string) {
+  const cached = gameSummaryCache.get(eventId);
+  if (cached && Date.now() - cached.cachedAt < SUMMARY_CACHE_MS) return cached.body;
+  const summaryUrl = new URL(ESPN_GAME_SUMMARY_API);
+  summaryUrl.searchParams.set('event', eventId);
+  const result = await fetchJson(summaryUrl.toString(), {
+    headers: {
+      Accept: 'application/json',
+      Origin: 'https://www.espn.com',
+      Referer: 'https://www.espn.com/nfl/',
+      'User-Agent': 'Mozilla/5.0 (compatible; Sheeesh/1.0)'
+    }
+  });
+  if (!result.response.ok || !result.body || typeof result.body !== 'object') {
+    throw new Error(`ESPN game summary returned ${result.response.status}.`);
+  }
+  if (gameSummaryCache.size >= 64) {
+    const oldest = gameSummaryCache.keys().next().value;
+    if (oldest) gameSummaryCache.delete(oldest);
+  }
+  gameSummaryCache.set(eventId, { cachedAt: Date.now(), body: result.body });
+  return result.body;
+}
+
+function normalizeFeedPlays(summary: Record<string, any>, event: Record<string, any>) {
+  const eventId = String(event.id || event.competitions?.[0]?.id || '');
+  const competitors = event.competitions?.[0]?.competitors || [];
+  const homeTeamCode = normalizeTeamCode(competitors.find((team: Record<string, any>) => team.homeAway === 'home')?.team?.abbreviation);
+  const awayTeamCode = normalizeTeamCode(competitors.find((team: Record<string, any>) => team.homeAway === 'away')?.team?.abbreviation);
+  const asDrives = (value: unknown) => Array.isArray(value)
+    ? value
+    : value && typeof value === 'object' ? [value] : [];
+  const drives = [
+    ...asDrives(summary.drives?.previous),
+    ...asDrives(summary.drives?.current)
+  ];
+  const seen = new Set<string>();
+  const result: Record<string, any>[] = [];
+  drives.forEach((drive: Record<string, any>) => {
+    (drive.plays || []).forEach((play: Record<string, any>) => {
+      const id = String(play.id || play.sequenceNumber || '');
+      const text = asText(play.text);
+      if (!id || !text || seen.has(id)) return;
+      seen.add(id);
+      const participants = play.teamParticipants || [];
+      const offenseId = participants.find((item: Record<string, any>) => item.type === 'offense')?.id;
+      const defenseId = participants.find((item: Record<string, any>) => item.type === 'defense')?.id;
+      result.push({
+        id: `${eventId}:${id}`,
+        eventId,
+        happenedAt: play.wallclock || event.date || new Date().toISOString(),
+        type: asText(play.type?.text) || 'NFL play',
+        text,
+        statYardage: finiteNumber(play.statYardage),
+        scoringPlay: Boolean(play.scoringPlay),
+        isTurnover: Boolean(play.isTurnover),
+        offenseTeamCode: teamCodeForProTeam(offenseId),
+        defenseTeamCode: teamCodeForProTeam(defenseId),
+        homeTeamCode,
+        awayTeamCode,
+        homeScore: finiteNumber(play.homeScore),
+        awayScore: finiteNumber(play.awayScore),
+        period: finiteNumber(play.period?.number),
+        clock: asText(play.clock?.displayValue),
+        game: asText(event.shortName || event.name)
+      });
+    });
+  });
+  return result;
+}
+
+async function liveFeedData(scoreboard: Record<string, any> | null, rosterCodes: Set<string>) {
+  if (!scoreboard || !Array.isArray(scoreboard.events)) return { feedEvents: [], feedStatus: 'unavailable' };
+  const now = Date.now();
+  const recentWindow = 12 * 60 * 60 * 1000;
+  const relevant = scoreboard.events.filter((event: Record<string, any>) => {
+    const state = event.status?.type?.state || event.competitions?.[0]?.status?.type?.state;
+    const kickoff = new Date(event.date || event.competitions?.[0]?.date || 0).getTime();
+    const recentFinal = state === 'post' && Number.isFinite(kickoff) && now >= kickoff && now - kickoff <= recentWindow;
+    if (state !== 'in' && !recentFinal) return false;
+    return eventTeamCodes(event).some((code: string) => rosterCodes.has(code));
+  });
+  if (!relevant.length) return { feedEvents: [], feedStatus: 'ready' };
+
+  const summaries = await Promise.allSettled(relevant.map(async (event: Record<string, any>) => {
+    const summary = await fetchGameSummary(String(event.id || event.competitions?.[0]?.id || ''));
+    return normalizeFeedPlays(summary, event);
+  }));
+  const successful = summaries.filter((result) => result.status === 'fulfilled').length;
+  const feedEvents = summaries.flatMap((result: any) => result.status === 'fulfilled' ? result.value : []);
+  feedEvents.sort((left: Record<string, any>, right: Record<string, any>) =>
+    new Date(left.happenedAt).getTime() - new Date(right.happenedAt).getTime());
+  return {
+    feedEvents: feedEvents.slice(-600),
+    feedStatus: successful ? 'ready' : 'unavailable'
+  };
 }
 
 function normalizePlayer(entry: Record<string, any>, games: Record<string, any>) {
@@ -533,6 +663,7 @@ Deno.serve(async (request) => {
   const league = leagueResult.body || {};
   const week = requestedWeek || Number(league.status?.currentMatchupPeriod || league.status?.currentScoringPeriod || 1);
   let games: Record<string, any> = {};
+  let scoreboardData: Record<string, any> | null = null;
   try {
     const scoreboardUrl = new URL(ESPN_SCOREBOARD_API);
     scoreboardUrl.searchParams.set('dates', season);
@@ -547,7 +678,10 @@ Deno.serve(async (request) => {
         'User-Agent': 'Mozilla/5.0 (compatible; Sheeesh/1.0)'
       }
     });
-    if (scoreboardResult.response.ok) games = normalizeGames(scoreboardResult.body || {});
+    if (scoreboardResult.response.ok) {
+      scoreboardData = scoreboardResult.body || {};
+      games = normalizeGames(scoreboardData);
+    }
   } catch (_) {
     games = {};
   }
@@ -556,6 +690,7 @@ Deno.serve(async (request) => {
   const matchup = matchupData(league, week);
   const transactions = transactionData(league);
   const rosterSlots = rosterSlotsFromSettings(league);
+  const members = Array.isArray(league.members) ? league.members : [];
   const teams = await Promise.all((league.teams || []).map(async (team: Record<string, any>) => {
     const players = (team.roster?.entries || []).map((entry: Record<string, any>) => normalizePlayer(entry, games));
     const starters = sortStarters(players.filter((player: Record<string, any>) => !player.bench));
@@ -564,6 +699,7 @@ Deno.serve(async (request) => {
     return {
       id: teamId,
       name: teamName(team),
+      ownerName: teamOwnerName(team, members),
       abbreviation: asText(team.abbrev).toUpperCase(),
       logo: await teamLogoDataUrl(team, espnCookie),
       logoFallback: defaultTeamLogo(team),
@@ -576,6 +712,14 @@ Deno.serve(async (request) => {
     };
   }));
 
+  const includeFeed = url.searchParams.get('feed') === '1';
+  const rosterCodes = new Set(teams.flatMap((team: Record<string, any>) =>
+    [...team.starters, ...team.bench].map((player: Record<string, any>) => player.teamCode).filter(Boolean)));
+  const currentWeek = Number(league.status?.currentScoringPeriod || league.status?.currentMatchupPeriod || week);
+  const feed = includeFeed && week === currentWeek
+    ? await liveFeedData(scoreboardData, rosterCodes)
+    : { feedEvents: [], feedStatus: includeFeed ? 'ready' : 'not-requested' };
+
   return json({
     season,
     week,
@@ -584,6 +728,8 @@ Deno.serve(async (request) => {
     matchups: matchup.matchups,
     teamScores: matchup.teamScores,
     transactions,
-    rosterSlots
+    rosterSlots,
+    feedEvents: feed.feedEvents,
+    feedStatus: feed.feedStatus
   });
 });

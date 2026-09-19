@@ -1,7 +1,8 @@
 import { APP_CONFIG } from './config.js?v=10';
 import { getNflState, getWeekData } from './data-provider.js?v=10';
-import { getEspnLeague, hasEspnSession, clearEspnSession, espnSyncConfigured, espnPasswordlessReadAvailable } from './espn-provider.js?v=4';
+import { getEspnLeague, hasEspnSession, clearEspnSession, espnSyncConfigured, espnPasswordlessReadAvailable } from './espn-provider.js?v=5';
 import { initStore, selectedTeamId, selectTeam, clearSelectedTeam, loadLeague, subscribeLeague } from './store.js?v=16';
+import { buildLiveFeed } from './feed.js?v=5';
 
 const root = document.querySelector('#app');
 const state = {
@@ -25,6 +26,9 @@ const state = {
   playerSort: 'rank',
   playerHealth: 'ALL',
   playerView: 'ALL',
+  autoRefresh: readAutoRefreshPreference(),
+  playingNowExpanded: false,
+  feedStatus: 'not-requested',
   sheet: null,
   refreshTimer: null,
   unsub: null,
@@ -66,6 +70,8 @@ async function boot() {
 async function refreshAll({ renderOnStart = false } = {}) {
   state.loading = true;
   state.refreshError = '';
+  const includeFeed = state.tab === 'feed';
+  if (includeFeed) state.feedStatus = 'loading';
   state.espnSession = hasEspnSession();
   if (renderOnStart) render();
   if (!state.networkOnline && state.storeMode === 'cloud') {
@@ -79,11 +85,15 @@ async function refreshAll({ renderOnStart = false } = {}) {
     let espnLeague = null;
     if (state.espnConfigured && (state.espnSession || espnPasswordlessReadAvailable())) {
       try {
-        espnLeague = await getEspnLeague(state.week);
+        espnLeague = await getEspnLeague(state.week, { includeFeed });
         state.espnError = '';
+        if (includeFeed) {
+          state.feedStatus = espnLeague.feedStatus === 'ready' ? 'ready' : 'unavailable';
+        }
       } catch (error) {
         console.error(error);
         state.espnError = error.message || 'ESPN sync failed.';
+        if (includeFeed) state.feedStatus = 'unavailable';
         if (error.status === 401) {
           clearEspnSession();
           state.espnSession = false;
@@ -103,6 +113,7 @@ async function refreshAll({ renderOnStart = false } = {}) {
   } catch (error) {
     console.error(error);
     state.refreshError = 'Live data is unavailable. Showing the last loaded state.';
+    if (includeFeed) state.feedStatus = 'unavailable';
   }
   state.loading = false;
 }
@@ -125,9 +136,14 @@ async function refreshLeague() {
 
 function scheduleAutoRefresh() {
   clearTimeout(state.refreshTimer);
-  if (!state.networkOnline) return;
+  state.refreshTimer = null;
+  if (!state.autoRefresh || !state.networkOnline || document.hidden) return;
   const anyLive = state.players.some((p) => p.game?.started && !p.game?.ended);
-  const wait = anyLive ? 60000 : 300000;
+  const kickoffSoon = state.players.some((p) => {
+    const kickoff = Date.parse(p.game?.kickoff || '');
+    return Number.isFinite(kickoff) && kickoff > Date.now() && kickoff - Date.now() <= 30 * 60000;
+  });
+  const wait = anyLive || kickoffSoon ? 60000 : 300000;
   state.refreshTimer = setTimeout(async () => { await refreshAll(); render(); scheduleAutoRefresh(); }, wait);
 }
 
@@ -181,20 +197,21 @@ function appFrame() {
     <div class="app-shell">
       ${pullRefreshMarkup()}
       <header class="topbar">
-        <button class="brand-button" data-action="home"><span class="brand-mark"></span><span>${APP_CONFIG.appName}</span></button>
+        <button class="brand-button" data-action="home"><span class="brand-ball" aria-hidden="true">🏈</span><span>${APP_CONFIG.appName}</span></button>
         <nav class="primary-nav" aria-label="Primary">
           ${navButton('matchup','Matchup',iconVs())}
           ${navButton('team','Team',iconTeam())}
           ${navButton('players','Players',iconSearch())}
           ${navButton('league','League',iconLeague())}
+          ${navButton('feed','Feed',iconFeed())}
         </nav>
         <div class="topbar-right">
           <span class="sync-dot ${state.dataSource === 'espn' || state.storeMode === 'cloud' ? 'online' : ''}" role="status" aria-label="${state.dataSource === 'espn' ? 'ESPN league connected' : state.storeMode === 'cloud' ? 'Shared league connected' : 'Local preview mode'}"></span>
           <button class="avatar-button" data-action="switch-team">${logoMarkup(team, 'tiny')}</button>
         </div>
       </header>
-      ${state.dataSource === 'espn' ? `<div class="data-status connection-status" role="status"><span>Live ESPN mirror · view only</span><span>${lastRefreshLabel()}</span></div>` : ''}
-      ${state.dataSource !== 'espn' && state.lastRefresh ? `<div class="data-status connection-status" role="status"><span>Local preview · view only</span><span>${lastRefreshLabel()}</span></div>` : ''}
+      ${state.tab !== 'feed' && state.dataSource === 'espn' ? `<div class="data-status connection-status" role="status"><span>Live ESPN mirror · view only</span><span>${lastRefreshLabel()}</span></div>` : ''}
+      ${state.tab !== 'feed' && state.dataSource !== 'espn' && state.lastRefresh ? `<div class="data-status connection-status" role="status"><span>Local preview · view only</span><span>${lastRefreshLabel()}</span></div>` : ''}
       ${state.dataSource !== 'espn' && state.espnError ? `<div class="data-status error" role="alert"><span>Live ESPN mirror unavailable. Local preview data is shown.</span><button class="status-retry" data-action="retry-refresh">Retry live data</button></div>` : ''}
       ${!state.networkOnline && state.storeMode === 'cloud' ? '<div class="data-status error" role="status">Offline · shared league updates paused</div>' : ''}
       ${state.loading ? '<div class="data-status" role="status">Updating live data…</div>' : ''}
@@ -208,6 +225,7 @@ function pageContent() {
   if (state.tab === 'team') return teamPage();
   if (state.tab === 'players') return playersPage();
   if (state.tab === 'league') return leaguePage();
+  if (state.tab === 'feed') return feedPage();
   return matchupPage();
 }
 
@@ -301,6 +319,90 @@ function leaguePage() {
     </div>`;
 }
 
+function feedPage() {
+  const events = buildLiveFeed({
+    plays: state.league?.feedEvents || [],
+    teams: state.league?.teams || [],
+    roster: state.league?.roster || {},
+    lineups: state.league?.lineups || {},
+    players: state.playerMap,
+    selectedTeamId: state.selectedTeam,
+    opponentTeamId: opponentFor(state.selectedTeam),
+  });
+  const liveTeams = liveRosterTeams();
+  const livePlayers = liveTeams.reduce((all, item) => all + item.players.length, 0);
+  const livePoints = liveTeams.reduce((all, item) => all + item.players.reduce((sum, player) => sum + playerPoints(player), 0), 0);
+  return '<section class="view-intro feed-intro"><h1>Feed</h1><p class="feed-week-label">' +
+    escapeHtml(APP_CONFIG.leagueName) + ' · Week ' + state.week + '</p></section>' +
+    '<section class="feed-controls" aria-label="Feed refresh controls">' +
+      '<label class="feed-auto-control"><span>Auto refresh</span><input data-auto-refresh type="checkbox" ' +
+      (state.autoRefresh ? 'checked ' : '') + 'aria-label="Automatically refresh league data"><span class="feed-switch" aria-hidden="true"></span></label>' +
+      '<button class="feed-refresh-button" data-action="refresh-feed" aria-busy="' + state.loading + '"' +
+      (state.loading ? ' disabled' : '') + '>' + iconRefresh() + '<span>Refresh</span></button>' +
+    '</section>' +
+    '<div class="feed-refresh-meta"><span>' + lastRefreshLabel() + '</span><span>' +
+      (state.autoRefresh ? 'Every minute during live games · otherwise every 5 minutes' : 'Auto refresh off · pull down or tap Refresh') + '</span></div>' +
+    feedSourceStatus(events.length) +
+    '<section class="feed-playing"><button class="feed-playing-toggle" data-action="toggle-playing" aria-expanded="' +
+      state.playingNowExpanded + '"><span class="feed-playing-title"><strong>Playing now</strong><small>' +
+      livePlayers + ' roster ' + (livePlayers === 1 ? 'player' : 'players') + ' · ' + fmt(livePoints) +
+      ' pts</small></span><span class="feed-playing-arrow" aria-hidden="true">' +
+      (state.playingNowExpanded ? '−' : '+') + '</span></button>' +
+      (state.playingNowExpanded ? renderLiveRoster(liveTeams) : '') + '</section>' +
+    '<section class="feed-events" aria-label="Live scoring events">' +
+      (events.length ? events.map(feedEventCard).join('') : '<div class="feed-empty">No fantasy scoring changes yet. Live plays will appear here as they happen.</div>') +
+    '</section>';
+}
+
+function feedSourceStatus(eventCount) {
+  if (state.feedStatus === 'loading') return '<div class="feed-live-note" role="status">Connecting to live ESPN play-by-play…</div>';
+  if (state.feedStatus === 'unavailable') return '<div class="feed-live-note error" role="alert">Live ESPN play-by-play is unavailable right now. Sample events are never shown; try refreshing.</div>';
+  if (state.dataSource !== 'espn') return '<div class="feed-live-note error" role="alert">The live ESPN mirror is required to show scoring events. Sample events are never shown.</div>';
+  return '<div class="feed-live-note" role="status">' + (eventCount ? 'Live ESPN plays · newest first' : 'Live ESPN play-by-play connected · waiting for fantasy scoring changes') + '</div>';
+}
+
+function liveRosterTeams() {
+  return (state.league?.teams || []).map((team) => {
+    const players = [...new Set(state.league?.roster?.[team.id] || [])]
+      .map((id) => state.playerMap.get(id))
+      .filter((player) => player?.game?.started && !player.game.ended);
+    return { team, players };
+  }).filter((item) => item.players.length);
+}
+
+function renderLiveRoster(items) {
+  if (!items.length) return '<div class="feed-playing-content"><div class="empty compact">No fantasy-roster players are in live NFL games right now.</div></div>';
+  return '<div class="feed-playing-content">' + items.map((item) =>
+    '<section class="feed-playing-team"><div class="feed-playing-team-head">' + logoMarkup(item.team, 'tiny') +
+    '<strong>' + escapeHtml(item.team.name) + '</strong><span>' +
+    fmt(item.players.reduce((sum, player) => sum + playerPoints(player), 0)) + ' pts</span></div>' +
+    item.players.map((player) => '<div class="feed-playing-player"><span>' +
+      escapeHtml(shortName(player.name)) + '</span><strong>' + fmt(playerPoints(player)) +
+      '</strong></div>').join('') + '</section>'
+  ).join('') + '</div>';
+}
+
+function feedEventCard(event) {
+  const opposingGain = event.team.id === opponentFor(state.selectedTeam);
+  const ownGain = event.team.id === state.selectedTeam;
+  const impact = !event.isStarter ? 'neutral' : event.pointsDelta < 0 || opposingGain ? 'negative' : ownGain ? 'positive' : 'neutral';
+  const context = !event.isStarter ? 'Bench player · no matchup-score impact' : opposingGain ? 'Against you'
+    : ownGain ? 'Your matchup' : 'Around the league';
+  const delta = event.pointsDelta < 0 ? '−' + fmt(Math.abs(event.pointsDelta)) : '+' + fmt(event.pointsDelta);
+  const alert = event.pointsDelta >= 6
+    ? '<span class="feed-alert" aria-label="Big scoring gain" title="Big scoring gain">🚨 <span>Big gain</span></span>'
+    : '';
+  const feedPlayerName = event.player.position === 'DEF' ? 'D/ST' : shortName(event.player.name);
+  return '<article class="feed-event"><div class="feed-event-top ' + impact + '">' +
+    '<div class="feed-event-team">' + logoMarkup(event.team, 'tiny') + '<div class="feed-event-team-copy"><strong>' +
+    escapeHtml(event.team.name) + '</strong><span>' + escapeHtml(feedPlayerName) + (event.isStarter ? '' : ' · BENCH') +
+    '</span></div></div><div class="feed-event-score">' + alert +
+    '<strong class="feed-event-points">' + delta + ' pts</strong></div></div><div class="feed-event-context">' + escapeHtml(context) +
+    ' · ' + escapeHtml(event.playType) + (event.quarter ? ' · Q' + event.quarter + (event.clock ? ' ' + escapeHtml(event.clock) : '') : '') + '</div><p>' + escapeHtml(event.commentary) +
+    '</p><div class="feed-event-foot"><span class="feed-play-description">' + escapeHtml(event.play) + '</span><time>' +
+    formatTimestamp(event.happenedAt) + '</time></div></article>';
+}
+
 function matchupRosterCard(team) {
   if (!team) return '<section class="setup-card roster-card"><div class="empty">Opponent not available.</div></section>';
   return `<section class="setup-card roster-card"><div class="roster-head"><h3>${escapeHtml(team.name)}</h3><span class="small">${fmt(teamScore(team.id))} PTS</span></div><div class="roster-section-label">Starters <span>PROJ · PTS</span></div>${rosterRows(team.id, 'starters')}<div class="roster-section-label bench-title">Bench <span>PROJ · PTS</span></div>${rosterRows(team.id, 'bench')}</section>`;
@@ -387,8 +489,24 @@ function renderSheet() {
 function bindGlobal() {
   root.querySelector('[data-action="home"]')?.addEventListener('click', () => { state.tab='matchup'; state.matchupView='mine'; state.sheet=null; render(); });
   root.querySelectorAll('[data-action="switch-team"]').forEach((b) => b.addEventListener('click', () => { clearSelectedTeam(); state.selectedTeam=''; render(); }));
-  root.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click', () => { state.tab=b.dataset.nav; state.sheet=null; render(); }));
+  root.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click', () => {
+    state.tab = b.dataset.nav;
+    state.sheet = null;
+    if (state.tab === 'feed') state.feedStatus = state.dataSource === 'espn' ? 'loading' : 'unavailable';
+    render();
+    if (state.tab === 'feed' && state.dataSource === 'espn') {
+      refreshAll().then(() => { render(); scheduleAutoRefresh(); });
+    }
+  }));
   root.querySelector('[data-action="refresh"]')?.addEventListener('click', async () => { await refreshAll({ renderOnStart: true }); render(); });
+  root.querySelector('[data-action="refresh-feed"]')?.addEventListener('click', async () => { await refreshAll({ renderOnStart: true }); render(); scheduleAutoRefresh(); });
+  root.querySelector('[data-action="toggle-playing"]')?.addEventListener('click', () => { state.playingNowExpanded = !state.playingNowExpanded; render(); });
+  root.querySelector('[data-auto-refresh]')?.addEventListener('change', (event) => {
+    state.autoRefresh = event.target.checked;
+    try { window.localStorage.setItem('fantasheee.autoRefresh', state.autoRefresh ? 'on' : 'off'); } catch {}
+    scheduleAutoRefresh();
+    render();
+  });
   root.querySelector('[data-action="retry-refresh"]')?.addEventListener('click', async () => { await refreshAll({ renderOnStart: true }); render(); });
   root.querySelectorAll('[data-week]').forEach((button) => button.addEventListener('click', async () => {
     const delta = button.dataset.week === 'next' ? 1 : -1;
@@ -415,6 +533,12 @@ function bindGlobal() {
     document.addEventListener('touchcancel', resetPull, { passive: true });
     window.addEventListener('online', handleConnectivityChange);
     window.addEventListener('offline', handleConnectivityChange);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        clearTimeout(state.refreshTimer);
+        state.refreshTimer = null;
+      } else scheduleAutoRefresh();
+    });
     state.globalEventsBound = true;
   }
 }
@@ -431,6 +555,7 @@ async function handleConnectivityChange() {
   state.networkOnline = typeof navigator === 'undefined' || navigator.onLine !== false;
   if (!state.networkOnline) {
     render();
+    scheduleAutoRefresh();
     return;
   }
   if (state.storeMode === 'cloud') await refreshAll({ renderOnStart: true });
@@ -546,7 +671,7 @@ function scoreTeam(team, score, proj, right) {
   const status = teamGameState(team?.id);
   return `<div class="team-score ${right ? 'right' : ''}"><div class="team-meta">${right ? `<div><div class="team-name">${escapeHtml(team?.name || 'Opponent')}</div></div>${logoMarkup(team,'score')}` : `${logoMarkup(team,'score')}<div><div class="team-name">${escapeHtml(team?.name || 'Opponent')}</div></div>`}</div><div class="score">${fmt(score)}</div><div class="score-label">PPR actual · ${status}</div><div class="score-projection"><span>Projected</span><strong>${fmt(proj)}</strong></div></div>`;
 }
-function navButton(id,label,icon) { return `<button class="nav-item ${state.tab===id?'active':''}" data-nav="${id}" aria-current="${state.tab===id?'page':'false'}">${icon}<span>${label}</span></button>`; }
+function navButton(id,label,icon) { return `<button class="nav-item ${state.tab===id?'active':''}" data-nav="${id}" aria-label="${escapeAttr(label)}" title="${escapeAttr(label)}" aria-current="${state.tab===id?'page':'false'}">${icon}<span>${label}</span></button>`; }
 function teamById(id) { return (state.league?.teams || APP_CONFIG.teams).find((t)=>t.id===id) || APP_CONFIG.teams.find((t)=>t.id===id); }
 function standingsTeams() { return [...(state.league?.teams || APP_CONFIG.teams)].sort((a,b) => Number(b.wins || 0) - Number(a.wins || 0) || Number(b.ties || 0) - Number(a.ties || 0) || Number(a.losses || 0) - Number(b.losses || 0) || Number(b.points_for || b.pointsFor || 0) - Number(a.points_for || a.pointsFor || 0) || Number(a.waiver_priority || 99) - Number(b.waiver_priority || 99)); }
 function opponentFor(id) { return state.league?.matchups?.[id] || (state.dataSource === 'espn' ? '' : nextOpponent(id)); }
@@ -632,8 +757,10 @@ function playerKey(player) {
   return `${String(player?.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${String(player?.nflTeam || '').toUpperCase()}`;
 }
 
+function readAutoRefreshPreference(){ try { return window.localStorage.getItem('fantasheee.autoRefresh') !== 'off'; } catch { return true; } }
 function iconVs(){return '<svg viewBox="0 0 24 24"><path d="M4 7h6l4 10h6M4 17h6L14 7h6"/></svg>'}
 function iconTeam(){return '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 19c.7-4 3-6 6-6s5.3 2 6 6M16 6.5c2.2.1 4 1.9 4 4.2 0 1.6-.8 3-2 3.8"/></svg>'}
 function iconSearch(){return '<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>'}
 function iconLeague(){return '<svg viewBox="0 0 24 24"><path d="M5 20V9m7 11V4m7 16v-7"/></svg>'}
+function iconFeed(){return '<svg viewBox="0 0 24 24"><path d="M13.2 2.8 5.6 13h5l-.8 8.2 8.6-11.3h-5.1l.9-7.1Z"/></svg>'}
 function iconRefresh(){return '<svg viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M18 12a6 6 0 0 0-10.2-4.2L4 12m2 0a6 6 0 0 0 10.2 4.2L20 12"/></svg>'}

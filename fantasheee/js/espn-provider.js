@@ -66,10 +66,11 @@ async function fetchEspn(url, options = {}) {
   }
 }
 
-export async function getEspnLeague(week) {
+export async function getEspnLeague(week, { includeFeed = false } = {}) {
   if (!espnSyncConfigured()) throw new Error('ESPN sync is not configured.');
   const url = new URL(ESPN_SYNC.functionUrl);
   if (week) url.searchParams.set('week', String(week));
+  if (includeFeed) url.searchParams.set('feed', '1');
   return normalizeEspnLeague(await fetchEspn(url.toString()));
 }
 
@@ -84,6 +85,7 @@ function normalizeEspnLeague(payload) {
       externalId: String(team.id || index + 1),
       name: String(team.name || `Team ${index + 1}`),
       abbr: String(team.abbreviation || '').toUpperCase(),
+      ownerName: String(team.ownerName || team.owner_name || team.managerName || team.manager?.name || '').trim(),
       logo: team.logo || '',
       logoFallback: team.logoFallback || '',
       wins: Number(team.wins ?? record.wins ?? record.overall?.wins ?? 0),
@@ -136,6 +138,8 @@ function normalizeEspnLeague(payload) {
     matchups,
     teamScores,
     rosterSlots,
+    feedEvents: Array.isArray(payload?.feedEvents) ? payload.feedEvents.slice(-600) : [],
+    feedStatus: ['ready', 'unavailable'].includes(payload?.feedStatus) ? payload.feedStatus : 'not-requested',
     players
   };
 }

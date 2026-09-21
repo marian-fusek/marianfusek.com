@@ -735,9 +735,21 @@ function emptyWatchLeague(){ return { source:'espn-unavailable', season:APP_CONF
 
 function mergeEspnPlayers(espnPlayers, providerPlayers, weeklyStatsAvailable = false) {
   const fallbackByName = new Map((providerPlayers || []).map((player) => [playerKey(player), player]));
-  const seen = new Set();
+  const fallbackByUniqueName = new Map();
+  (providerPlayers || []).forEach((player) => {
+    const key = playerNamePositionKey(player);
+    const matches = fallbackByUniqueName.get(key) || [];
+    matches.push(player);
+    fallbackByUniqueName.set(key, matches);
+  });
+  const matchedProviderIds = new Set();
   const exact = (espnPlayers || []).map((player) => {
-    const fallback = fallbackByName.get(playerKey(player));
+    let fallback = fallbackByName.get(playerKey(player));
+    if (!fallback && player?.position !== 'DEF' && !/^TEAM_/i.test(String(player?.id || ''))) {
+      const candidates = fallbackByUniqueName.get(playerNamePositionKey(player)) || [];
+      if (candidates.length === 1) fallback = candidates[0];
+    }
+    if (fallback) matchedProviderIds.add(String(fallback.id));
     const merged = fallback ? {
       ...fallback,
       ...player,
@@ -746,10 +758,9 @@ function mergeEspnPlayers(espnPlayers, providerPlayers, weeklyStatsAvailable = f
       rawStats: Object.keys(fallback.rawStats || {}).length ? fallback.rawStats : (player.rawStats || {}),
       game: player.game || fallback.game
     } : { ...player, points: 0 };
-    seen.add(playerKey(player));
     return merged;
   });
-  const extras = (providerPlayers || []).filter((player) => !seen.has(playerKey(player)));
+  const extras = (providerPlayers || []).filter((player) => !matchedProviderIds.has(String(player.id)));
   return [...exact, ...extras];
 }
 
@@ -757,7 +768,22 @@ function playerKey(player) {
   const rawNflTeam = String(player?.nflTeam || '').toUpperCase();
   const nflTeam = ({ JAC: 'JAX', LAR: 'LA', WSH: 'WAS' })[rawNflTeam] || rawNflTeam;
   if (player?.position === 'DEF' || /^TEAM_/i.test(String(player?.id || ''))) return `DEF|${nflTeam}`;
-  return `${String(player?.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${String(player?.nflTeam || '').toUpperCase()}`;
+  return `${normalizePlayerName(player?.name)}|${nflTeam}`;
+}
+
+function playerNamePositionKey(player) {
+  return `${normalizePlayerName(player?.name)}|${String(player?.position || '').toUpperCase()}`;
+}
+
+function normalizePlayerName(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\b(?:jr|sr|ii|iii|iv)\.?\b/ig, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
 }
 
 function readAutoRefreshPreference(){ try { return window.localStorage.getItem('fantasheee.autoRefresh') !== 'off'; } catch { return true; } }

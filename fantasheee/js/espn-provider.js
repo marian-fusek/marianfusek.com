@@ -1,4 +1,4 @@
-import { APP_CONFIG } from './config.js?v=10';
+import { APP_CONFIG } from './config.js?v=11';
 
 const ESPN_SYNC = APP_CONFIG.espnSync || {};
 const SESSION_KEY = ESPN_SYNC.sessionKey || 'sheeesh-session-v1';
@@ -85,7 +85,7 @@ function normalizeEspnLeague(payload) {
       externalId: String(team.id || index + 1),
       name: String(team.name || `Team ${index + 1}`),
       abbr: String(team.abbreviation || '').toUpperCase(),
-      ownerName: String(team.ownerName || team.owner_name || team.managerName || team.manager?.name || '').trim(),
+      ownerName: readableOwnerName(team.ownerName || team.owner_name || team.managerName || team.manager?.name, team.name),
       logo: team.logo || '',
       logoFallback: team.logoFallback || '',
       wins: Number(team.wins ?? record.wins ?? record.overall?.wins ?? 0),
@@ -144,8 +144,16 @@ function normalizeEspnLeague(payload) {
   };
 }
 
+function readableOwnerName(value, teamName) {
+  const name = String(value || '').trim();
+  if (/^ESPNFAN\d+$/i.test(name)) return '';
+  if (name && name.toLowerCase() === String(teamName || '').trim().toLowerCase()) return '';
+  return name;
+}
+
 function normalizePlayer(player) {
-  const position = String(player?.position || '').toUpperCase();
+  const rawPosition = String(player?.position || '').toUpperCase();
+  const position = ['D/ST', 'DST'].includes(rawPosition) ? 'DEF' : rawPosition;
   const rawSlot = String(player?.lineupSlot || (player?.bench ? 'BE' : position)).toUpperCase();
   // ESPN's roster payload can label the flex starter as UTIL when the
   // source entry does not carry a recognized lineupSlotId. Keep that player

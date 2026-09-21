@@ -1,8 +1,8 @@
-import { APP_CONFIG } from './config.js?v=10';
-import { getNflState, getWeekData } from './data-provider.js?v=10';
-import { getEspnLeague, hasEspnSession, clearEspnSession, espnSyncConfigured, espnPasswordlessReadAvailable } from './espn-provider.js?v=5';
-import { initStore, selectedTeamId, selectTeam, clearSelectedTeam, loadLeague, subscribeLeague } from './store.js?v=16';
-import { buildLiveFeed } from './feed.js?v=5';
+import { APP_CONFIG } from './config.js?v=11';
+import { getNflState, getWeekData } from './data-provider.js?v=12';
+import { getEspnLeague, hasEspnSession, clearEspnSession, espnSyncConfigured, espnPasswordlessReadAvailable } from './espn-provider.js?v=7';
+import { initStore, selectedTeamId, selectTeam, clearSelectedTeam, loadLeague, subscribeLeague } from './store.js?v=17';
+import { buildLiveFeed } from './feed.js?v=6';
 
 const root = document.querySelector('#app');
 const state = {
@@ -18,6 +18,7 @@ const state = {
   espnConfigured: espnSyncConfigured(),
   espnSession: hasEspnSession(),
   espnError: '',
+  weeklyStatsAvailable: false,
   loading: true,
   networkOnline: typeof navigator === 'undefined' || navigator.onLine !== false,
   playerQuery: '',
@@ -82,6 +83,7 @@ async function refreshAll({ renderOnStart = false } = {}) {
   }
   try {
     const [nflResult, localLeague] = await Promise.all([getWeekData(state.week), loadLeague(state.week)]);
+    state.weeklyStatsAvailable = Boolean(nflResult.weeklyStatsAvailable);
     let espnLeague = null;
     if (state.espnConfigured && (state.espnSession || espnPasswordlessReadAvailable())) {
       try {
@@ -102,7 +104,7 @@ async function refreshAll({ renderOnStart = false } = {}) {
     }
     const liveReadConfigured = state.espnConfigured && espnPasswordlessReadAvailable();
     state.dataSource = espnLeague ? 'espn' : liveReadConfigured ? 'unavailable' : state.storeMode === 'cloud' ? 'shared' : 'local';
-    state.players = espnLeague ? mergeEspnPlayers(espnLeague.players, nflResult.players) : liveReadConfigured ? [] : nflResult.players;
+    state.players = espnLeague ? mergeEspnPlayers(espnLeague.players, nflResult.players, state.weeklyStatsAvailable) : liveReadConfigured ? [] : nflResult.players;
     state.playerMap = new Map(state.players.map((p) => [p.id,p]));
     state.league = espnLeague || (liveReadConfigured ? emptyWatchLeague() : localLeague);
     if (state.selectedTeam && !state.league.teams.some((team) => team.id === state.selectedTeam)) {
@@ -215,6 +217,7 @@ function appFrame() {
       ${state.dataSource !== 'espn' && state.espnError ? `<div class="data-status error" role="alert"><span>Live ESPN mirror unavailable. Local preview data is shown.</span><button class="status-retry" data-action="retry-refresh">Retry live data</button></div>` : ''}
       ${!state.networkOnline && state.storeMode === 'cloud' ? '<div class="data-status error" role="status">Offline · shared league updates paused</div>' : ''}
       ${state.loading ? '<div class="data-status" role="status">Updating live data…</div>' : ''}
+      ${state.dataSource === 'espn' && !state.loading && !state.weeklyStatsAvailable ? '<div class="data-status error" role="status">Current-week player stats are unavailable. ESPN matchup totals are shown where available; retry to reload weekly stats.</div>' : ''}
       ${state.refreshError ? `<div class="data-status error" role="alert"><span>${escapeHtml(state.refreshError)}</span><button class="status-retry" data-action="retry-refresh">Retry</button></div>` : ''}
       <main class="page"><div class="page-content page-${state.tab}">${pageContent()}</div></main>
       ${state.sheet ? renderSheet() : ''}
@@ -392,7 +395,7 @@ function feedEventCard(event) {
   const alert = event.pointsDelta >= 6
     ? '<span class="feed-alert" aria-label="Big scoring gain" title="Big scoring gain">🚨 <span>Big gain</span></span>'
     : '';
-  const feedPlayerName = event.player.position === 'DEF' ? 'D/ST' : shortName(event.player.name);
+  const feedPlayerName = event.player.position === 'DEF' ? 'D/ST' : event.player.name;
   return '<article class="feed-event"><div class="feed-event-top ' + impact + '">' +
     '<div class="feed-event-team">' + logoMarkup(event.team, 'tiny') + '<div class="feed-event-team-copy"><strong>' +
     escapeHtml(event.team.name) + '</strong><span>' + escapeHtml(feedPlayerName) + (event.isStarter ? '' : ' · BENCH') +
@@ -680,8 +683,10 @@ function ownedPlayerIds() { const set=new Set(); Object.values(state.league?.ros
 function ownerOf(playerId) { return Object.entries(state.league?.roster || {}).find(([,ids])=>ids.includes(playerId))?.[0] || ''; }
 function teamScore(id) {
   const scores = state.league?.teamScores || {};
+  const rosterTotal = activeRosterPlayers(id).reduce((sum,p)=>sum+playerPoints(p),0);
+  if (state.dataSource === 'espn' && state.weeklyStatsAvailable) return rosterTotal;
   if (id && Object.prototype.hasOwnProperty.call(scores, id)) return Number(scores[id]?.points || 0);
-  return activeRosterPlayers(id).reduce((sum,p)=>sum+(p.points||0),0);
+  return rosterTotal;
 }
 function teamProjection(id) {
   const sourced = state.league?.teamScores?.[id]?.projected;
@@ -690,13 +695,7 @@ function teamProjection(id) {
     : activeRosterPlayers(id).reduce((sum,p)=>sum+(p.projection||0),0);
 }
 function playerPoints(player) {
-  const owner = ownerOf(player?.id);
-  const score = state.league?.teamScores?.[owner];
-  if (!score || !Object.prototype.hasOwnProperty.call(state.league?.teamScores || {}, owner)) return Number(player?.points || 0);
-  const currentScore = Number(score.points || 0);
-  if (currentScore === 0) return 0;
-  const starterTotal = activeRosterPlayers(owner).reduce((sum,p) => sum + Number(p.points || 0), 0);
-  return starterTotal > 0 && Math.abs(starterTotal - currentScore) > 0.1 ? 0 : Number(player?.points || 0);
+  return Number(player?.points || 0);
 }
 function matchupStatus(mine, opponent) {
   const states = [mine, opponent].filter(Boolean).map((team) => teamGameState(team.id));
@@ -734,7 +733,7 @@ function escapeAttr(s=''){ return escapeHtml(s).replace(/'/g,'&#39;'); }
 function shellLoading(){ return '<main class="loading-screen"><div class="spinner"></div><span>Loading league…</span></main>'; }
 function emptyWatchLeague(){ return { source:'espn-unavailable', season:APP_CONFIG.season, week:state.week, teams:[], roster:{}, lineups:{}, claims:[], transactions:[], matchups:{}, teamScores:{}, rosterSlots:[] }; }
 
-function mergeEspnPlayers(espnPlayers, providerPlayers) {
+function mergeEspnPlayers(espnPlayers, providerPlayers, weeklyStatsAvailable = false) {
   const fallbackByName = new Map((providerPlayers || []).map((player) => [playerKey(player), player]));
   const seen = new Set();
   const exact = (espnPlayers || []).map((player) => {
@@ -743,9 +742,10 @@ function mergeEspnPlayers(espnPlayers, providerPlayers) {
       ...fallback,
       ...player,
       projection: player.projection || fallback.projection || 0,
-      points: player.points || fallback.points || 0,
+      points: weeklyStatsAvailable ? Number(fallback.points || 0) : 0,
+      rawStats: Object.keys(fallback.rawStats || {}).length ? fallback.rawStats : (player.rawStats || {}),
       game: player.game || fallback.game
-    } : player;
+    } : { ...player, points: 0 };
     seen.add(playerKey(player));
     return merged;
   });
@@ -754,6 +754,9 @@ function mergeEspnPlayers(espnPlayers, providerPlayers) {
 }
 
 function playerKey(player) {
+  const rawNflTeam = String(player?.nflTeam || '').toUpperCase();
+  const nflTeam = ({ JAC: 'JAX', LAR: 'LA', WSH: 'WAS' })[rawNflTeam] || rawNflTeam;
+  if (player?.position === 'DEF' || /^TEAM_/i.test(String(player?.id || ''))) return `DEF|${nflTeam}`;
   return `${String(player?.name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${String(player?.nflTeam || '').toUpperCase()}`;
 }
 

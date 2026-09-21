@@ -1,4 +1,4 @@
-import { APP_CONFIG } from './config.js?v=10';
+import { APP_CONFIG } from './config.js?v=11';
 
 const LOCAL_KEY = 'fantasheee.state.v1';
 const LOCAL_STATE_VERSION = 2;

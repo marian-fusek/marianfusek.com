@@ -1,4 +1,4 @@
-import { APP_CONFIG } from './config.js?v=10';
+import { APP_CONFIG } from './config.js?v=11';
 
 const NFL_TEAM_NAMES = {
   ARI: ['the Cardinals', 'the Cards', 'the desert birds'], ATL: ['the Falcons', 'the Dirty Birds', 'the Atlanta crew'],
@@ -57,6 +57,7 @@ export function buildLiveFeed({ plays = [], teams = [], roster = {}, lineups = {
     const awayScore = Number(play.awayScore ?? previous.awayScore);
     const homeYards = previous.homeYards + (offense === play.homeTeamCode && isOffensiveYardPlay(type) ? yards : 0);
     const awayYards = previous.awayYards + (offense === play.awayTeamCode && isOffensiveYardPlay(type) ? yards : 0);
+    const readablePlay = expandRosterNames(text, owned.map(({ player }) => player));
 
     const add = (entry, pointsDelta, reason) => {
       if (!entry || !Number.isFinite(pointsDelta) || Math.abs(pointsDelta) < 0.0001) return;
@@ -67,7 +68,7 @@ export function buildLiveFeed({ plays = [], teams = [], roster = {}, lineups = {
         isStarter: entry.starter,
         pointsDelta: roundPoints(pointsDelta),
         happenedAt: play.happenedAt || new Date().toISOString(),
-        play: text,
+        play: readablePlay,
         playType: play.type || 'NFL play',
         pointSource: reason,
         nflTeam: entry.player.nflTeam || offense || defense,
@@ -218,6 +219,25 @@ function aliases(name) {
   return [...new Set([`${first[0]} ${surname}`, `${first[0]} ${fullSurname}`].filter((alias) => alias.length > 2))];
 }
 
+function expandRosterNames(text, players) {
+  const references = players.flatMap((player) => {
+    const parts = String(player.name || '').replace(/\b(?:jr|sr|ii|iii|iv)\.?\b/ig, '').split(/\s+/).filter(Boolean);
+    if (parts.length < 2) return [];
+    const surnames = [...new Set([parts.slice(1).join(' '), parts.at(-1)])];
+    return surnames.map((surname) => ({ alias: `${parts[0][0]} ${surname}`, name: player.name }));
+  }).sort((a, b) => b.alias.length - a.alias.length);
+
+  return references.reduce((result, reference) => {
+    const separator = reference.alias.indexOf(' ');
+    const initial = reference.alias.slice(0, separator);
+    const surname = reference.alias.slice(separator + 1)
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\s+/g, '\\s+');
+    const pattern = new RegExp(`(^|[^A-Za-z])${initial}\\.?\\s*${surname}(?=$|[^A-Za-z])`, 'gi');
+    return result.replace(pattern, (_match, prefix) => `${prefix}${reference.name}`);
+  }, String(text || ''));
+}
+
 function normalizeName(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
 }
@@ -276,7 +296,9 @@ function creditedPlayer(team, player) {
   const last = String(player.name || 'Player').trim().split(/\s+/).at(-1);
   if (/\bpickens\b/i.test(player.name || '')) return 'Linda’s Pickens';
   const owner = String(team.ownerName || '').trim();
-  return owner ? `${owner}’s ${last}` : player.name;
+  const genericOwner = /^ESPNFAN\d+$/i.test(owner)
+    || owner.toLowerCase() === String(team.name || '').trim().toLowerCase();
+  return owner && !genericOwner ? `${owner}’s ${last}` : player.name;
 }
 
 function roundPoints(value) {

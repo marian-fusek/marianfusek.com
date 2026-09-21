@@ -50,9 +50,9 @@ export const APP_CONFIG = {
       ],
       yardsAllowed: [
         { max: 99, pts: 5 },
-        { max: 199, pts: 5 },
-        { max: 299, pts: 3 },
-        { max: 399, pts: 1 },
+        { max: 199, pts: 2 },
+        { max: 299, pts: 1 },
+        { max: 399, pts: 0 },
         { max: 449, pts: -1 },
         { max: 499, pts: -3 },
         { max: 549, pts: -5 },

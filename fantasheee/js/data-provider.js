@@ -1,5 +1,5 @@
-import { APP_CONFIG } from './config.js?v=10';
-import { scoreStats } from './scoring.js?v=6';
+import { APP_CONFIG } from './config.js?v=11';
+import { scoreStats } from './scoring.js?v=8';
 
 const teamAlias = { JAC:'JAX', LAR:'LA', WSH:'WAS' };
 const nflTeams = new Set(['ARI','ATL','BAL','BUF','CAR','CHI','CIN','CLE','DAL','DEN','DET','GB','HOU','IND','JAX','KC','LA','LAC','LV','MIA','MIN','NE','NO','NYG','NYJ','PHI','PIT','SEA','SF','TB','TEN','WAS']);
@@ -102,7 +102,7 @@ export async function getWeekData(week) {
   }).filter((player) => APP_CONFIG.data.playerPositions.includes(player.position));
 
   players.sort((a,b) => (b.projection || 0) - (a.projection || 0));
-  return { players, games, sourceOk };
+  return { players, games, sourceOk, weeklyStatsAvailable: stats.status === 'fulfilled' && statsMap.size > 0 };
 }
 
 function normalizeRows(rows) {

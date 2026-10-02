@@ -18,7 +18,7 @@ Private two-person NFL fantasy web app.
 - 9-player starting roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, with an optional 6-slot bench controlled in League settings
 - One player cannot belong to both teams
 - Drop and replace players
-- Per-player kickoff locking from the free schedule feed, with stats-feed fallback
+- Kickoff-aware additions from the free schedule feed, with stats-feed fallback; already-rostered players remain editable until the week is complete
 - Live game labels such as `LIVE · Q3 08:21` when the schedule feed provides them
 - Move owned players between eligible lineup and bench slots when the bench setting is enabled, including safe swaps
 - Weekly PPR scoring
@@ -128,7 +128,7 @@ A player's fantasy score updates when Sleeper updates the weekly stats feed.
 
 If a selected week’s stats request fails, cached data for that same week can remain visible; switching weeks clears the prior week’s stats before loading the new week so scores are never silently carried across weeks.
 
-Each player locks at the scheduled kickoff of their NFL game, including before the first stat is recorded. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
+Kickoff status controls new additions: a player cannot be added after that player's NFL game has started, including before the first stat is recorded. Already-rostered players can still be moved, dropped, or replaced until the week is complete. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
 
 Each week keeps its own lineup snapshot, so moving between weeks does not overwrite another week's choices. When every game in a selected week is final, that week's lineup and starter totals become read-only. A later official stat correction updates the saved score instead of creating a second result.
 
@@ -146,4 +146,4 @@ Each week keeps its own lineup snapshot, so moving between weeks does not overwr
 
 ## Lineup movement
 
-Open an owned player from the matchup or player list and choose `Move player`. The duplicate position slots are distinguished as `RB 1`/`RB 2` and `WR 1`/`WR 2`. Empty eligible slots are available directly; occupied eligible slots can be swapped only when both players are still unlocked. A locked player cannot be moved, dropped, replaced, or added after kickoff.
+Open an owned player from the matchup or player list and choose `Move player`. The duplicate position slots are distinguished as `RB 1`/`RB 2` and `WR 1`/`WR 2`. Empty eligible slots are available directly; occupied eligible slots can be swapped even when the current occupant already played. New additions still must not have started. A completed week remains locked.

@@ -42,7 +42,7 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Never display a prior week’s stats as if they belonged to the selected week. Clear in-memory weekly stats when changing weeks; retain only same-week cached data during a failed refresh.
 - The free public ESPN NFL scoreboard feed is the schedule/live-status source only. Use it for kickoff, game state, and quarter/clock labels; never use it for player identity or fantasy scoring.
 - Defense rows use the committed local helmet assets in `media/defense-helmets/`; keep those assets available for the player list, roster rows, and detail dialog. Do not replace them with arbitrary remote hotlinks.
-- Never fabricate live status, quarter/clock values, scores, projections, or kickoff times. The current build locks from the schedule feed when available and falls back conservatively to stats-feed participation when that schedule feed is unavailable; always make that fallback visible.
+- Never fabricate live status, quarter/clock values, scores, projections, or kickoff times. The current build uses the schedule feed when available to prevent new additions after kickoff and falls back conservatively to stats-feed participation when that schedule feed is unavailable; always make that fallback visible.
 - Refresh sparingly: cached player data, weekly data refresh while the app is open, slower refresh before games, roughly 30–60 seconds during live play, and stop when games are finished. Do not poll continuously when it adds no value.
 
 ## Roster, scoring, and game-lock rules
@@ -53,8 +53,9 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Preserve a separate lineup snapshot for every week. Switching weeks must restore that week’s snapshot instead of sharing one mutable roster across the season.
 - Once a week is complete or has a saved result, treat that week as read-only: no add, drop, replace, or lineup move, while later weeks remain editable.
 - Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; every enabled bench slot accepts any supported fantasy position.
-- Lock each player individually when that player's real NFL game begins. A locked early player cannot be moved, dropped, replaced, or newly added; players whose games have not begun remain editable.
-- A lock is not a whole-roster lock. Preserve later-game flexibility throughout the week.
+- Use kickoff status to prevent adding a new player after that player's real NFL game begins, but keep already-rostered players editable until the week is complete. An owner may still move, drop, or replace an already-played player; this is intentional for the manual weekly redraft.
+- Once an occupied roster slot is being replaced, the existing player's kickoff status must not block the replacement. The incoming player still has to be eligible and addable.
+- A completed week remains read-only. Preserve the per-player game status and the distinction between an already-rostered player and a new addition.
 - Keep Week 1–18 navigation, matchup totals, winner/lead state, weekly results, and the ability to reflect official stat corrections.
 
 ## Responsive behavior and UX expectations
@@ -63,7 +64,7 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Mobile: stack the matchup into a readable vertical comparison without losing the head-to-head relationship; keep rows scannable and controls comfortably tappable. The bottom navigation treatment may remain fixed on small screens.
 - Player setup must feel editorial: searchable large rows, all NFL teams selected by default, deselectable team chips, position filters, ownership filters (`Available`, either team), active/injured filters, top-rated sorting by default, projection/name alternatives, and a focused detail view with photo, status, rank, projection, and weekly stats.
 - Make ownership, availability, projection, score, lock/open state, live state, and sync state clear without forcing the user to infer them.
-- Keep the League view’s concise `Weekly redraft setup` guide visible. It must explain the public shared URL, two-team manual weekly redraft flow, weekly lineup movement, kickoff locks, and the difference between shared sync and local-only mode.
+- Keep the League view’s concise `Weekly redraft setup` guide visible. It must explain the public shared URL, two-team manual weekly redraft flow, weekly lineup movement, the kickoff rule for new additions, and the difference between shared sync and local-only mode.
 - Preserve manual refresh, visible sync feedback, loading/empty/error states, confirmation for destructive reset, and accessible labels/dialog close behavior.
 - Keep the interface usable with long names, missing photos, missing stats, slow feeds, and narrow screens.
 

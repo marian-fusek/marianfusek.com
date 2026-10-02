@@ -672,7 +672,7 @@ function renderMatchup(){
       </section>
       <aside class="week-card">
         <div><span class="eyebrow">Season ${nflState.season || ''}</span><h2>Current week</h2></div>
-        <div><div class="big">${String(state.week).padStart(2,'0')}</div><div class="muted">NFL regular season</div><div class="week-status ${weekRosterLocked()?'closed':''}">${weekRosterLocked()?'Lineup locked':'Lineup open until kickoff'}</div></div>
+        <div><div class="big">${String(state.week).padStart(2,'0')}</div><div class="muted">NFL regular season</div><div class="week-status ${weekRosterLocked()?'closed':''}">${weekRosterLocked()?'Lineup locked':'Roster changes open'}</div></div>
       </aside>
     </div>
     <div class="matchup-columns">
@@ -729,7 +729,7 @@ function rosterRow(team, slot){
   const id = team.roster?.[slot];
   if (!id) return `<div class="player-row" data-empty-slot="${slot}" data-team="${team.id}"><div class="slot">${slotLabel(slot)}</div><div class="avatar"></div><div class="player-main"><div class="player-name">Empty slot</div><div class="player-sub">Assign from Players</div></div><div class="player-points"><strong>—</strong></div></div>`;
   const p = players.find(x=>x.id===id) || {id,name:id,team:'',position:slot};
-  const pts = pointsFor(id), locked = isLocked(id) || weekRosterLocked(), status = gameStatusForPlayer(p);
+  const pts = pointsFor(id), locked = weekRosterLocked(), status = gameStatusForPlayer(p);
   return `<div class="player-row ${locked?'locked':''}" data-player="${id}">
     <div class="slot">${slotLabel(slot)}</div>
     <img class="avatar${playerImageClass(p)}" src="${playerPhoto(p)}" alt="" onerror="this.style.visibility='hidden'">
@@ -815,7 +815,7 @@ function setupGuideCard(){
       ? 'The shared settings are present, but the connection needs attention. Check the sync dot above before drafting.'
       : 'This copy is local-only until Supabase is configured. Two laptops will otherwise create two perfectly independent realities.';
   const setupInstructions=syncReady ? '' : `<div class="sync-setup"><div><div class="eyebrow">One-time connection</div><strong>Make both laptops share one league</strong><span>Supabase stores the league state. It does not host this website, and it does not need your fantasy life story.</span></div><ol class="sync-steps"><li>Create a free Supabase project.</li><li>Run <code>supabase.sql</code> in SQL Editor.</li><li>Paste the Project URL and publishable key into <code>config.js</code>.</li><li>Deploy this folder and open the same URL on both laptops.</li></ol><a class="guide-link" href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">Open Supabase ↗</a></div>`;
-  return `<section class="setup-card guide-card"><div class="guide-head"><div><div class="eyebrow">Start here</div><h2>Weekly redraft setup</h2></div><span class="setup-badge ${syncClass}">${syncLabel}</span></div><p class="guide-intro">${syncIntro}</p>${setupInstructions}<ol class="guide-steps"><li><strong>Open the same public URL</strong><span>Both of you use the deployed site, not separate downloaded copies. Browsers enjoy making this sound more complicated than it is.</span></li><li><strong>Name your teams</strong><span>Set the two team names once, save them, and add logos only if the league deserves branding.</span></li><li><strong>Redraft from Players</strong><span>At the start of each week, search players, drop or replace as needed, and ${rosterPlan}. There is no draft-room engine or commissioner ceremony—just two adults making increasingly confident decisions.</span></li><li><strong>Set the weekly lineup</strong><span>${lineupPlan} Each week keeps its own roster snapshot, and bench players do not score.</span></li><li><strong>Check Matchup before kickoff</strong><span>Review both rosters, projections, and player game status. A player locks at that player’s kickoff, so late heroics are mostly a scheduling problem.</span></li></ol><p class="guide-note">Redraft both teams together at the start of each week, then use Matchup as the weekly scoreboard. No login is used by design, so keep the public link between the two of you.</p></section>`;
+  return `<section class="setup-card guide-card"><div class="guide-head"><div><div class="eyebrow">Start here</div><h2>Weekly redraft setup</h2></div><span class="setup-badge ${syncClass}">${syncLabel}</span></div><p class="guide-intro">${syncIntro}</p>${setupInstructions}<ol class="guide-steps"><li><strong>Open the same public URL</strong><span>Both of you use the deployed site, not separate downloaded copies. Browsers enjoy making this sound more complicated than it is.</span></li><li><strong>Name your teams</strong><span>Set the two team names once, save them, and add logos only if the league deserves branding.</span></li><li><strong>Redraft from Players</strong><span>At the start of each week, search players, drop or replace as needed, and ${rosterPlan}. There is no draft-room engine or commissioner ceremony—just two adults making increasingly confident decisions.</span></li><li><strong>Set the weekly lineup</strong><span>${lineupPlan} Each week keeps its own roster snapshot, and bench players do not score.</span></li><li><strong>Check Matchup throughout the week</strong><span>Review both rosters, projections, and player game status. New additions close at kickoff, but players already on a team can still be moved, dropped, or replaced until the week is complete.</span></li></ol><p class="guide-note">Redraft both teams together at the start of each week, then use Matchup as the weekly scoreboard. No login is used by design, so keep the public link between the two of you.</p></section>`;
 }
 
 function seasonCard(){
@@ -844,16 +844,13 @@ function openPlayer(id){
   $('.close-btn',d).addEventListener('click',()=>d.close());
   $$('[data-assign]',d).forEach(b=>b.addEventListener('click',()=>openAssignDialog(p.id,b.dataset.assign)));
   const move=$('[data-move]',d); if(move) move.addEventListener('click',()=>openMoveDialog(id));
-  const drop=$('[data-drop]',d); if(drop) drop.addEventListener('click',async()=>{ if(weekRosterLocked()){showToast('This week is complete');return;} if(isLocked(id)){showToast('Player is locked for this week');return;} await removePlayer(id); d.close(); });
+  const drop=$('[data-drop]',d); if(drop) drop.addEventListener('click',async()=>{ if(weekRosterLocked()){showToast('This week is complete');return;} await removePlayer(id); d.close(); });
   d.showModal();
 }
 function assignmentButtons(p,owner){
-  const locked = isLocked(p.id) || weekRosterLocked();
-  const lockMessage = weekRosterLocked() ? 'Week complete · lineup changes are locked' : `${gameLabelForPlayer(p)} · lineup changes are locked`;
-  if(owner) return locked
-    ? `<div class="dialog-note">${esc(lockMessage)}</div>`
-    : `<button class="primary" data-move="${p.id}">Move player</button><button class="danger" data-drop="${p.id}">Drop player</button>`;
-  if(locked) return `<div class="dialog-note">${esc(weekRosterLocked() ? 'Week complete · lineup changes are locked' : `${gameLabelForPlayer(p)} · cannot add after kickoff`)}</div>`;
+  if(weekRosterLocked()) return '<div class="dialog-note">Week complete · lineup changes are locked</div>';
+  if(owner) return `<button class="primary" data-move="${p.id}">Move player</button><button class="danger" data-drop="${p.id}">Drop player</button>`;
+  if(isLocked(p.id)) return `<div class="dialog-note">${esc(`${gameLabelForPlayer(p)} · cannot add after kickoff`)}</div>`;
   return state.teams.map(t=>`<button class="primary" data-assign="${t.id}">Add to ${esc(t.name)}</button>`).join('');
 }
 
@@ -865,11 +862,10 @@ function openMoveDialog(id){
   const p=players.find(x=>x.id===id), owner=ownerOf(id), current=owner && rosterSlot(owner,id), d=$('#teamDialog');
   if(!p || !owner || !current) return;
   if(weekRosterLocked()){ showToast('This week is complete'); return; }
-  if(isLocked(id)){ showToast('Player is locked for this week'); return; }
   const options=activeRosterSlots().filter(slot=>slot!==current && slotEligible(p.position,slot)).map(slot=>{
     const occupantId=owner.roster?.[slot];
     const occupant=occupantId && players.find(x=>x.id===occupantId);
-    const canSwap=!occupantId || (occupant && slotEligible(occupant.position,current) && !isLocked(occupantId));
+    const canSwap=!occupantId || (occupant && slotEligible(occupant.position,current));
     const label=occupant ? `Swap with ${esc(occupant.name)}` : 'Empty slot';
     return `<button class="move-option secondary" data-move-slot="${slot}" ${canSwap?'':'disabled'}><span>${slotLabel(slot)}</span><small>${label}</small></button>`;
   }).join('');
@@ -885,12 +881,12 @@ function openMoveDialog(id){
 async function moveRosterPlayer(id,teamId,targetSlot){
   const team=state.teams.find(t=>t.id===teamId), p=players.find(x=>x.id===id);
   if(weekRosterLocked()){ showToast('This week is complete'); return false; }
-  if(!team || !p || isLocked(id)) { showToast('Player is locked for this week'); return false; }
+  if(!team || !p) return false;
   const current=rosterSlot(team,id), existing=team.roster?.[targetSlot];
   if(!current || current===targetSlot || !slotEligible(p.position,targetSlot)) return false;
   if(existing){
     const existingPlayer=players.find(x=>x.id===existing);
-    if(isLocked(existing) || !existingPlayer || !slotEligible(existingPlayer.position,current)){
+    if(!existingPlayer || !slotEligible(existingPlayer.position,current)){
       showToast('That slot cannot be swapped');
       return false;
     }
@@ -913,7 +909,6 @@ function openAssignDialog(id,teamId){
   $('.close-btn',d).addEventListener('click',()=>d.close());
   $$('[data-slot]',d).forEach(b=>b.addEventListener('click',async()=>{
     const slot=b.dataset.slot; const existing=team.roster?.[slot];
-    if(existing && isLocked(existing)){showToast('That roster slot is locked');return;}
     if(!team.roster)team.roster={};
     if(existing) delete team.roster[slot];
     team.roster[slot]=id;
@@ -934,7 +929,6 @@ function slotEligible(pos,slot){
 }
 async function removePlayer(id,log=true){
   if(weekRosterLocked()){showToast('This week is complete');return false;}
-  if(isLocked(id)){showToast('Player is locked for this week');return false;}
   for(const t of state.teams){ for(const [slot,pid] of Object.entries(t.roster||{})){ if(pid===id){ delete t.roster[slot]; if(log){ const p=players.find(x=>x.id===id); state.transactions.push({ts:Date.now(),text:`${t.name} dropped ${p?.name||id}`}); } await pushSharedState(); renderAll(); return true; } } }
   return false;
 }

@@ -347,10 +347,11 @@ async function loadNFLData(force=false){
     await recordCompletedWeek();
     renderAll();
     configureAutoRefresh();
-    if (feedWarning) showToast(feedWarning);
+    if (feedWarning) console.warn('W-N refresh fallback:', feedWarning);
   } catch (e) {
     console.error(e);
-    showToast(players.length ? 'NFL refresh incomplete · showing available data' : 'NFL data could not refresh');
+    if (players.length) console.warn('W-N refresh incomplete · showing available data', e);
+    else showToast('NFL data could not refresh');
     try { renderAll(); } catch (renderError) { console.error('W-N render failed after feed error', renderError); }
     setBootState('NFL data is unavailable. Your local league is ready; try Refresh when you are back online.', !players.length);
   } finally {

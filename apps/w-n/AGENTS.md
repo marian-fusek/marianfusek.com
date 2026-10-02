@@ -39,7 +39,7 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Sleeper is the current free source for the active NFL player pool, player metadata/headshots, NFL state, weekly stats, and projections.
 - Keep all provider URLs and normalization in the existing data-loading area so a source can be replaced without rewriting the UI.
 - The weekly stats/projection routes are less formally documented than the player endpoint. Handle failed or partial responses gracefully, retain cached data where appropriate, and keep the manual refresh fallback.
-- Never display a prior week’s stats as if they belonged to the selected week. Clear in-memory weekly stats when changing weeks; retain only same-week cached data during a failed refresh.
+- Never display a prior week’s stats or projections as if they belonged to the selected week. Clear in-memory weekly data when changing weeks; retain only same-week cached data during a failed refresh.
 - The free public ESPN NFL scoreboard feed is the schedule/live-status source only. Use it for kickoff, game state, and quarter/clock labels; never use it for player identity or fantasy scoring.
 - Defense rows use the committed local helmet assets in `media/defense-helmets/`; keep those assets available for the player list, roster rows, and detail dialog. Do not replace them with arbitrary remote hotlinks.
 - Never fabricate live status, quarter/clock values, scores, projections, or kickoff times. The current build uses the schedule feed when available to prevent new additions after kickoff and falls back conservatively to stats-feed participation when that schedule feed is unavailable; always make that fallback visible.

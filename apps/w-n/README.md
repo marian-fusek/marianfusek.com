@@ -126,7 +126,7 @@ The manual refresh button is always available.
 
 A player's fantasy score updates when Sleeper updates the weekly stats feed.
 
-If a selected week’s stats request fails, cached data for that same week can remain visible; switching weeks clears the prior week’s stats before loading the new week so scores are never silently carried across weeks.
+If a selected week’s stats or projection request fails, cached data for that same week can remain visible, including after a manual refresh; switching weeks clears the prior week’s data before loading the new week so scores and forecasts are never silently carried across weeks.
 
 Kickoff status controls new additions: a player cannot be added after that player's NFL game has started, including before the first stat is recorded. Already-rostered players can still be moved, dropped, or replaced until the week is complete. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
 

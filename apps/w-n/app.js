@@ -307,25 +307,37 @@ function markSaved(mode, timestamp){
 
 async function loadNFLData(force=false){
   $('#refreshBtn').disabled = true;
+  let feedWarning = '';
   try {
-    const stateRes = await fetch(`${SLEEPER}/state/nfl`, {cache: force ? 'reload' : 'default'});
-    if (stateRes.ok) nflState = await stateRes.json();
+    try {
+      const stateRes = await fetch(`${SLEEPER}/state/nfl`, {cache: force ? 'reload' : 'default'});
+      if (stateRes.ok) nflState = await stateRes.json();
+    } catch {
+      feedWarning = 'NFL state feed unavailable';
+    }
     state.week ||= Number(nflState.week || 1);
 
     const cacheKey = 'wn-player-cache-v2';
     const legacyCacheKey = 'wn-player-cache-v1';
-    const cache = JSON.parse(localStorage.getItem(cacheKey) || localStorage.getItem(legacyCacheKey) || 'null');
+    let cache = null;
+    try { cache = JSON.parse(localStorage.getItem(cacheKey) || localStorage.getItem(legacyCacheKey) || 'null'); } catch {}
     if (!force && cache && Date.now() - cache.ts < 24*60*60*1000) {
       players = cache.players.map(normalizeCachedPlayer);
       if (!localStorage.getItem(cacheKey)) localStorage.setItem(cacheKey, JSON.stringify({ts:cache.ts, players}));
     } else {
-      const res = await fetch(`${SLEEPER}/players/nfl?active=true`);
-      if (!res.ok) throw new Error('Player feed unavailable');
-      const map = await res.json();
-      players = Object.values(map)
-        .filter(p => p && p.player_id && (p.team || p.position === 'DEF') && ['QB','RB','WR','TE','K','DEF'].includes(p.position))
-        .map(normalizePlayer);
-      localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), players}));
+      try {
+        const res = await fetch(`${SLEEPER}/players/nfl?active=true`);
+        if (!res.ok) throw new Error('Player feed unavailable');
+        const map = await res.json();
+        players = Object.values(map)
+          .filter(p => p && p.player_id && (p.team || p.position === 'DEF') && ['QB','RB','WR','TE','K','DEF'].includes(p.position))
+          .map(normalizePlayer);
+        localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), players}));
+      } catch (error) {
+        if (!players.length && cache?.players?.length) players = cache.players.map(normalizeCachedPlayer);
+        if (!players.length) throw error;
+        feedWarning = 'Player feed unavailable · using cached player pool';
+      }
     }
 
     await Promise.all([
@@ -335,6 +347,7 @@ async function loadNFLData(force=false){
     await recordCompletedWeek();
     renderAll();
     configureAutoRefresh();
+    if (feedWarning) showToast(feedWarning);
   } catch (e) {
     console.error(e);
     showToast('NFL data could not refresh');
@@ -487,27 +500,35 @@ async function loadWeekStats(week, force=false){
     weeklyProjections = {};
     statsKey = key;
   }
-  if (!force) {
-    try {
-      const sc = JSON.parse(localStorage.getItem(key) || 'null');
-      const pc = JSON.parse(localStorage.getItem(pkey) || 'null');
-      if (sc && Date.now()-sc.ts < 60_000) weeklyStats = sc.data;
-      if (pc && Date.now()-pc.ts < 5*60_000) weeklyProjections = pc.data;
-      if (sc && pc) return;
-    } catch {}
-  }
+  let cachedStats = null;
+  let cachedProjections = null;
+  try {
+    cachedStats = JSON.parse(localStorage.getItem(key) || 'null');
+    cachedProjections = JSON.parse(localStorage.getItem(pkey) || 'null');
+    if (cachedStats?.data && (!Object.keys(weeklyStats).length || force)) weeklyStats = cachedStats.data;
+    if (cachedProjections?.data && (!Object.keys(weeklyProjections).length || force)) weeklyProjections = cachedProjections.data;
+    if (!force && cachedStats && cachedProjections && Date.now()-cachedStats.ts < 60_000 && Date.now()-cachedProjections.ts < 5*60_000) return;
+  } catch {}
   const urls = [
     `${STATS}/stats/nfl/regular/${season}/${week}`,
     `${STATS}/projections/nfl/regular/${season}/${week}`
   ];
   const [sr, pr] = await Promise.all(urls.map(u => fetch(u).catch(()=>null)));
-  if (sr?.ok) {
-    weeklyStats = await sr.json();
+  const [statsData, projectionData] = await Promise.all([
+    sr?.ok ? sr.json().catch(()=>null) : Promise.resolve(null),
+    pr?.ok ? pr.json().catch(()=>null) : Promise.resolve(null)
+  ]);
+  if (statsData !== null) {
+    weeklyStats = statsData;
     localStorage.setItem(key, JSON.stringify({ts:Date.now(), data:weeklyStats}));
+  } else if (cachedStats?.data) {
+    weeklyStats = cachedStats.data;
   }
-  if (pr?.ok) {
-    weeklyProjections = await pr.json();
+  if (projectionData !== null) {
+    weeklyProjections = projectionData;
     localStorage.setItem(pkey, JSON.stringify({ts:Date.now(), data:weeklyProjections}));
+  } else if (cachedProjections?.data) {
+    weeklyProjections = cachedProjections.data;
   }
 }
 

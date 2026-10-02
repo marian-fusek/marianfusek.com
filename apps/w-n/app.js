@@ -350,10 +350,11 @@ async function loadNFLData(force=false){
     if (feedWarning) showToast(feedWarning);
   } catch (e) {
     console.error(e);
-    showToast('NFL data could not refresh');
-    renderAll();
-    setBootState('NFL data is unavailable. Your local league is ready; try Refresh when you are back online.', true);
+    showToast(players.length ? 'NFL refresh incomplete · showing available data' : 'NFL data could not refresh');
+    try { renderAll(); } catch (renderError) { console.error('W-N render failed after feed error', renderError); }
+    setBootState('NFL data is unavailable. Your local league is ready; try Refresh when you are back online.', !players.length);
   } finally {
+    if (players.length) setBootState('', false);
     $('#refreshBtn').disabled = false;
   }
 }

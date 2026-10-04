@@ -1,18 +1,29 @@
 const CONFIG = {
-  // Replace with the live App Store URL after approval.
+  // Add the live App Store URL at launch. Every store CTA updates automatically.
   appStoreURL: ""
 };
 
+const isAppStoreLive = Boolean(CONFIG.appStoreURL);
+
 document.querySelectorAll('[data-app-store]').forEach(link => {
-  if (CONFIG.appStoreURL) {
+  const label = link.querySelector('[data-store-label]');
+  const kicker = link.querySelector('[data-store-kicker]');
+
+  if (isAppStoreLive) {
     link.href = CONFIG.appStoreURL;
     link.target = '_blank';
     link.rel = 'noopener';
+    link.removeAttribute('aria-disabled');
+    if (kicker) kicker.textContent = 'Download on the';
+    if (label) label.textContent = 'App Store';
   } else {
-    link.addEventListener('click', event => {
-      if (link.getAttribute('href') === '#download') return;
-      event.preventDefault();
-    });
+    link.removeAttribute('href');
+    link.removeAttribute('target');
+    link.removeAttribute('rel');
+    link.setAttribute('aria-disabled', 'true');
+    if (label && !kicker) label.textContent = 'Coming soon';
+    if (kicker) kicker.textContent = 'Coming soon';
+    if (label && kicker) label.textContent = 'on the App Store';
   }
 });
 

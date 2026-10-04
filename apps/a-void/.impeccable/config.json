@@ -1,0 +1,62 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "styles.css"
+        ],
+        "createdAt": "2026-10-04T08:16:24.119Z",
+        "reason": "Existing A-Void Plus accent preserved because the user directed this pass not to alter big design elements."
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-04T08:28:00.068Z",
+        "reason": "The remaining report is the intentionally decorative countdown ghost; meaningful body and operational text were raised for contrast in this pass."
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-04T08:28:10.231Z",
+        "reason": "The A-Void Plus eyebrow uses the existing brand gradient, preserved because the user explicitly requested no redesign of major visual elements."
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-04T08:28:31.596Z",
+        "reason": "The existing cyan, violet and magenta glow system is the A-Void visual identity; the user explicitly requested that major visual elements remain unchanged."
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-04T08:28:40.483Z",
+        "reason": "The site intentionally clips decorative orb and gallery overflow; it does not contain clipped menus, tooltips or popovers."
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-04T08:51:38.556Z",
+        "reason": "Agent: 11px text is the deliberate App Store badge kicker, not body copy."
+      }
+    ]
+  }
+}

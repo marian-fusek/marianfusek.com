@@ -1145,7 +1145,7 @@
     addEventListener('resize',syncMobileInitiativeGroups,{passive:true});
     syncMobileInitiativeGroups();
     const initiativeData={
-      'a-void':{name:'A-Void',image:'media/initiatives/vibe-coding/app_a-void.jpg',copy:'An iOS app for keeping track of the things that quietly become problems when you forget them. Passports, renewals, appointments, birthdays and anything else with a future attached. Instead of treating every date with equal urgency, A-Void understands when something actually starts to matter, gradually shifting its interface, color and personality as pressure builds.',type:'iOS App',status:'Awaiting AppStore Submission'},
+      'a-void':{name:'A‑Void',image:'media/initiatives/vibe-coding/app_a-void.jpg',copy:'An iOS app for keeping future obligations in view. Track passports, renewals, subscriptions, appointments and dates that matter on quiet timelines. A‑Void shows what is approaching, when it starts to matter, and how long you have.',type:'iOS App',status:'Live on the App Store ↗',statusURL:'https://apps.apple.com/us/app/a-void/id6804468353'},
       taiki:{name:'Taiki',image:'media/initiatives/vibe-coding/app_taiki.jpg',copy:'Taiki is a quiet place for the links you don’t want to lose. Save something once and it slips into your library with barely any effort, already sorted and easy to find later. Pre-defined folders based on your creative style. The whole thing is built to feel light: visual folders, soft movement, quick search, and none of the usual “organize your life” pressure. It’s less about managing bookmarks and more about keeping a small, useful corner of the internet tidy.',type:'Browser Extension',status:'Waiting For Launch'},
       'aww-wake':{name:'Aww-wake',image:'media/initiatives/vibe-coding/app_n7-awake.jpg',copy:'A tiny macOS utility for when your Mac just needs to stay awake. Pick 30 minutes, set your own time, or leave it on until you turn it off. That’s basically it — except the app treats the whole thing like a live state instead of a boring system toggle. The glassy interface shifts with the session, the countdown stays quietly visible, and the menu bar keeps everything close without getting in the way. Simple job, slightly obsessive execution.',type:'MacOS App',status:'Final Tweaks'},
       kokoji:{name:'Kokoji',image:'media/initiatives/vibe-coding/app_kokoji.jpg',copy:['Kokoji is a tiny opinionated creature living somewhere on your Mac, mostly concerned with your water intake, the state of his room, and your questionable decisions. You check in, add a drink, poke around, and over time the place starts changing, new things appear, conversations get stranger, and Kokoji develops more reasons to comment on what you’re doing.','There are no streaks, guilt trips, or productivity sermons. Just a weird little world, dry jokes, occasional insults, and a creature who somehow became involved in your hydration.'],type:'MacOS App',status:'Final Tweaks'},
@@ -1168,12 +1168,27 @@
       else initiativeImage.addEventListener('load',()=>applyInitiativeMediaAR(initiativeImage.naturalWidth,initiativeImage.naturalHeight),{once:true});
     }
     const initialInitiative=initiativeData['a-void'];
+    const renderInitiativeStatus=initiative=>{
+      if(!initiativeStatus)return;
+      initiativeStatus.replaceChildren();
+      if(initiative.statusURL){
+        const link=document.createElement('a');
+        link.href=initiative.statusURL;
+        link.target='_blank';
+        link.rel='noopener noreferrer';
+        link.textContent=initiative.status;
+        initiativeStatus.append(link);
+        return;
+      }
+      initiativeStatus.textContent=initiative.status;
+    };
     if(initialInitiative&&initiativeCopy){
       initiativeCopy.replaceChildren(...(Array.isArray(initialInitiative.copy)?initialInitiative.copy:[initialInitiative.copy]).map(copy=>{
         const paragraph=document.createElement('p');
         paragraph.textContent=copy;
         return paragraph;
       }));
+      renderInitiativeStatus(initialInitiative);
     }
     let activeInitiative='a-void';
     initiativeApps.forEach(app=>app.setAttribute('aria-pressed',String(app.dataset.initiative===activeInitiative)));
@@ -1264,7 +1279,7 @@
         initiativesGrid.classList.toggle('is-meta-hidden',!!next.sideQuest||!!next.noMeta);
         if(!next.sideQuest&&!next.noMeta){
           initiativeType.textContent=next.type;
-          initiativeStatus.textContent=next.status;
+          renderInitiativeStatus(next);
         }
         initiativeApps.forEach(app=>{
           const active=app.dataset.initiative===key;

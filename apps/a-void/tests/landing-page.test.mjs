@@ -8,12 +8,14 @@ test('uses one launch state for every App Store call to action', async () => {
   const [html, script] = await Promise.all([readSource('index.html'), readSource('script.js')]);
 
   assert.equal((html.match(/data-app-store/g) ?? []).length, 3);
-  assert.match(html, /styles\.css\?v=prelaunch-copy-6/);
-  assert.match(html, /script\.js\?v=prelaunch-copy-6/);
+  assert.match(script, /appStoreURL: "https:\/\/apps\.apple\.com\/us\/app\/a-void\/id6804468353"/);
+  assert.match(html, /styles\.css\?v=prelaunch-copy-7/);
+  assert.match(html, /script\.js\?v=prelaunch-copy-7/);
   assert.match(script, /const isAppStoreLive = Boolean\(CONFIG\.appStoreURL\);/);
   assert.match(script, /aria-disabled/);
   assert.match(html, /data-store-kicker>Coming soon/);
   assert.match(html, /data-store-label>on the App Store/);
+  assert.match(html, /A‑Void is now available on the App Store\./);
 });
 
 test('states the product value and privacy promise without the old guilt copy', async () => {
@@ -60,8 +62,8 @@ test('uses one calm headline scale and shared label rhythm', async () => {
 
   assert.match(css, /font-size:clamp\(40px,4\.4vw,64px\)/);
   assert.match(css, /\.product-copy \.eyebrow,[^}]*\.final-copy \.eyebrow\{margin:0 0 54px\}/);
-  assert.match(html, /styles\.css\?v=prelaunch-copy-6/);
-  assert.match(html, /script\.js\?v=prelaunch-copy-6/);
+  assert.match(html, /styles\.css\?v=prelaunch-copy-7/);
+  assert.match(html, /script\.js\?v=prelaunch-copy-7/);
 });
 
 test('keeps every section label out of the body-copy type scale', async () => {

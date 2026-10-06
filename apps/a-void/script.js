@@ -1,6 +1,6 @@
 const CONFIG = {
-  // Add the live App Store URL at launch. Every store CTA updates automatically.
-  appStoreURL: ""
+  // The live App Store product page. Every store CTA updates automatically.
+  appStoreURL: "https://apps.apple.com/us/app/a-void/id6804468353"
 };
 
 const isAppStoreLive = Boolean(CONFIG.appStoreURL);

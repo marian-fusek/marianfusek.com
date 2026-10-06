@@ -5,3 +5,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://marianfusek.com/sitemap.xml
+Sitemap: https://www.marianfusek.com/apps/a-void/sitemap.xml

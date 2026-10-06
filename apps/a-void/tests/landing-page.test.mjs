@@ -149,8 +149,10 @@ test('makes the live app’s calendar, document, and Lock Screen behaviour expli
   const privacy = await readSource('privacy/index.html');
 
   assert.match(privacy, /A‑Void requests Full Access to calendar events only when you choose Calendar Import\./);
-  assert.match(privacy, /the current release initially reads events from all of your available calendars for the coming year to present possible imports/i);
+  assert.match(privacy, /first asks you to choose the calendars it may search/i);
+  assert.match(privacy, /does not read event data from a calendar until you select it/i);
   assert.match(privacy, /does not create a timeline until you choose and confirm an item/i);
+  assert.match(privacy, /iOS Data Protection with the <strong>Complete<\/strong> protection level/i);
   assert.match(privacy, /Document Capture processes document images on your device and does not upload those images to A‑Void or the developer\./);
   assert.match(privacy, /Widgets and notifications may show timeline names, dates, countdowns or reminder messages on a Home Screen or Lock Screen/i);
   assert.match(privacy, /hide previews or sensitive content in iOS notification and Lock Screen settings/i);

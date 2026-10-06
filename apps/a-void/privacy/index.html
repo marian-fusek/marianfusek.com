@@ -7,7 +7,7 @@
   <meta name="description" content="A‑Void privacy policy: local by default, with optional iCloud sync, backups and exports." />
   <title>A‑Void — Privacy</title>
   <link rel="icon" type="image/png" href="../assets/a-void-favicon.png" />
-  <link rel="stylesheet" href="../styles.css?v=legal-privacy-9" />
+  <link rel="stylesheet" href="../styles.css?v=legal-privacy-10" />
 </head>
 <body class="legal-page">
   <header class="site-nav legal-nav">
@@ -40,6 +40,7 @@
           <h2>What A‑Void stores</h2>
           <p>The app does not require an account. It stores the information you choose to enter into timelines, including names, groups, notes, dates, reminder plans, recurrence settings, custom types, custom groups and whether a timeline has been resolved.</p>
           <p>It also stores app preferences such as appearance, notification settings, haptics, sorting and A‑Void Plus feature settings. These are kept on the device.</p>
+          <p>From A‑Void 1.0.1, the primary local timeline file and its local recovery backup use iOS Data Protection with the <strong>Complete</strong> protection level. Those two files are unavailable while the device is locked. This does not change the protection applied to manual exports, iCloud copies, widget snapshots or app preferences.</p>
           <p><strong>No ads or tracking.</strong> The current app contains no advertising, analytics SDKs, advertising identifiers or cross-app tracking.</p>
           <div class="legal-note"><p><strong>You control the content.</strong> A‑Void can contain personal or sensitive information if you enter it—for example information about documents, insurance, subscriptions, medication or appointments. Do not enter information you do not want stored in the locations described below.</p></div>
         </section>
@@ -47,7 +48,7 @@
         <section id="permissions">
           <h2>Permissions and on-device processing</h2>
           <h3>Calendar Import</h3>
-          <p>A‑Void requests Full Access to calendar events only when you choose Calendar Import. Apple requires this level of permission to let the app read calendar event information and present possible imports. After you grant access, the current release initially reads events from all of your available calendars for the coming year to present possible imports. It does not create a timeline until you choose and confirm an item.</p>
+          <p>A‑Void requests Full Access to calendar events only when you choose Calendar Import. Apple requires this level of permission to let the app read calendar event information and present possible imports. After you grant access, A‑Void first asks you to choose the calendars it may search. It does not read event data from a calendar until you select it, and it does not create a timeline until you choose and confirm an item.</p>
           <p>You can avoid Calendar Import, stop using it, or revoke calendar access later in iOS Settings.</p>
 
           <h3>Document Capture</h3>

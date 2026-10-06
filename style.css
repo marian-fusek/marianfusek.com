@@ -109,6 +109,7 @@
   --accent: #ff2d78;
   --ink-deep: #0c0c0c;
   --sage: #5b8a72;
+  --availability-green: #00e85a;
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --slow: cubic-bezier(0.22, 0.61, 0.36, 1);
   --pad: 32px;
@@ -1086,7 +1087,7 @@ body.is-curtain-active .scroll-progress {
   height: 9px;
   margin-right: 9px;
   clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-  background: #00e85a;
+  background: var(--availability-green);
   box-shadow: 0 0 7px rgba(0, 232, 90, 0.72);
   vertical-align: middle;
   position: relative;
@@ -3433,6 +3434,15 @@ body.is-curtain-active .site-nav {
 .bio-about-lines .bio-copy-switch:hover .bio-copy-switch-name,
 .initiatives-apps .bio-copy-switch:hover .bio-copy-switch-name {
   color: var(--ink) !important;
+}
+.initiatives-apps .initiatives-live-badge {
+  display: inline;
+  margin-left: 4px;
+  color: var(--availability-green) !important;
+  font-size: 0.82em;
+  font-weight: var(--weight-regular);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 .initiatives-meta {
   grid-template-columns: repeat(3, minmax(0, 1fr));

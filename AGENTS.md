@@ -7,7 +7,7 @@ This is a hand-built static portfolio site. The working files are:
 - `script.js` — interaction state, smooth scrolling, scroll-driven sections, project details, overlays, media, and animation timing
 - `media/` — local images and videos grouped by project
 
-The user normally previews `staging/index.html` directly or through a local server. Preserve that workflow. Do not create a second competing `index.html`, staging folder, or alternate preview entry point.
+The deployable source of truth is this repository root. Work only in the root `index.html`, `style.css`, `script.js`, and related root assets. Never read, edit, preview, compare against, or use `staging/` as a source or destination unless the user explicitly asks for it. Do not create a second competing `index.html`, staging folder, or alternate preview entry point.
 
 ## Working relationship and response style
 

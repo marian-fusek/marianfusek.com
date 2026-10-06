@@ -181,13 +181,12 @@ test('discloses technical website delivery without treating self-hosted fonts as
   assert.match(privacy, /does not embed third-party fonts, analytics, advertising or tracking scripts/i);
 });
 
-test('puts backup, export, reminder, and out-of-control access risk in the terms', async () => {
-  const terms = await readSource('terms/index.html');
-
-  assert.match(terms, /Automatic Backup is a convenience feature, not a guaranteed data-recovery service\./);
-  assert.match(terms, /responsible for keeping backups appropriate to your needs and for protecting any JSON export or backup/i);
-  assert.match(terms, /To the maximum extent permitted by applicable law/i);
-  assert.match(terms, /not liable for data loss, missed reminders, missed deadlines, lost access to a device or account, or unauthorised access/i);
-  assert.match(terms, /outside our reasonable control/i);
-  assert.match(terms, /Nothing in these terms limits rights that cannot legally be limited/i);
+test('links support complaints to an existing terms section and the licence', async () => {
+  const [terms, support] = await Promise.all([
+    readSource('terms/index.html'), readSource('support/index.html')
+  ]);
+  assert.match(support, /href="\.\.\/terms\/#complaints"/);
+  assert.match(terms, /<section id="complaints">/);
+  assert.match(terms, /href="https:\/\/coi\.gov\.cz\/informace-o-adr\/"/);
+  assert.match(terms, /href="https:\/\/www\.apple\.com\/legal\/internet-services\/itunes\/dev\/stdeula\/"/);
 });

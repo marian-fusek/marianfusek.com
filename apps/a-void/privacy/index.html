@@ -7,9 +7,7 @@
   <meta name="description" content="A‑Void privacy policy: local by default, with optional iCloud sync, backups and exports." />
   <title>A‑Void — Privacy</title>
   <link rel="icon" type="image/png" href="../assets/a-void-favicon.png" />
-  <link rel="preconnect" href="https://api.fontshare.com" />
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap" />
-  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../styles.css?v=legal-privacy-9" />
 </head>
 <body class="legal-page">
   <header class="site-nav legal-nav">
@@ -23,12 +21,12 @@
       <p class="eyebrow">A‑VOID / PRIVACY</p>
       <h1>Local by default.</h1>
       <p class="lede">A‑Void is designed to keep your timelines on your devices unless you deliberately turn on a feature that moves a copy elsewhere.</p>
-      <div class="legal-meta"><span>Last updated: 23 August 2026</span><span>Applies to A‑Void and this website</span></div>
+      <div class="legal-meta"><span>Last updated: 6 October 2026</span><span>Applies to A‑Void and this website</span></div>
     </header>
 
     <div class="legal-layout">
       <nav class="legal-index" aria-label="On this page">
-        <a href="#controller">Who is responsible</a><a href="#stored">What is stored</a><a href="#leaves">When data leaves</a><a href="#deletion">Deletion</a><a href="#rights">Your choices</a>
+        <a href="#controller">Who is responsible</a><a href="#stored">What is stored</a><a href="#permissions">Permissions</a><a href="#leaves">When data leaves</a><a href="#deletion">Deletion</a><a href="#support-data">Support email</a><a href="#rights">Your rights</a>
       </nav>
 
       <div class="legal-copy">
@@ -46,10 +44,20 @@
           <div class="legal-note"><p><strong>You control the content.</strong> A‑Void can contain personal or sensitive information if you enter it—for example information about documents, insurance, subscriptions, medication or appointments. Do not enter information you do not want stored in the locations described below.</p></div>
         </section>
 
+        <section id="permissions">
+          <h2>Permissions and on-device processing</h2>
+          <h3>Calendar Import</h3>
+          <p>A‑Void requests Full Access to calendar events only when you choose Calendar Import. Apple requires this level of permission to let the app read calendar event information and present possible imports. After you grant access, the current release initially reads events from all of your available calendars for the coming year to present possible imports. It does not create a timeline until you choose and confirm an item.</p>
+          <p>You can avoid Calendar Import, stop using it, or revoke calendar access later in iOS Settings.</p>
+
+          <h3>Document Capture</h3>
+          <p>Document Capture processes document images on your device and does not upload those images to A‑Void or the developer. Only the timeline information you choose to save is added to A‑Void.</p>
+        </section>
+
         <section id="leaves">
           <h2>When data leaves the device</h2>
           <h3>Optional iCloud Sync</h3>
-          <p>If you have A‑Void Plus and turn on iCloud Sync, timeline, custom type and custom group data are copied to A‑Void’s private iCloud container so your Apple devices can stay aligned. The app does not operate a separate A‑Void account server.</p>
+          <p>If you have A‑Void Plus and turn on iCloud Sync, timeline, custom type and custom group data are copied to A‑Void’s private iCloud container associated with your Apple Account so your Apple devices can stay aligned. The app does not operate a separate A‑Void account server.</p>
 
           <h3>Automatic backups</h3>
           <p>If you turn on A‑Void Plus Automatic Backup, A‑Void writes rolling JSON copies to local app storage and, when available, iCloud Documents. The app keeps a rolling maximum of seven copies. These copies may contain the same timeline data, notes and dates as the app.</p>
@@ -58,26 +66,33 @@
           <p>You can export a JSON backup through the iOS share sheet. Once you share or save that file, it is controlled by the destination you choose, such as Files, iCloud Drive, email or another app.</p>
 
           <h3>Widgets and notifications</h3>
-          <p>Widgets use a local shared app-group snapshot containing selected timeline names, groups, dates and countdown information. Local notifications are scheduled by iOS and may show a timeline name and reminder message on your devices or Lock Screen, depending on your settings.</p>
+          <p>Widgets use a local shared app-group snapshot containing selected timeline names, groups, dates and countdown information. Widgets and notifications may show timeline names, dates, countdowns or reminder messages on a Home Screen or Lock Screen, depending on your settings. If other people may see your device, you can hide previews or sensitive content in iOS notification and Lock Screen settings.</p>
 
           <h3>Purchases</h3>
           <p>A‑Void Plus purchases are handled by Apple through the App Store. A‑Void uses Apple’s StoreKit to read product and entitlement status. Payment card details are handled by Apple, not collected by A‑Void.</p>
 
           <h3>Website</h3>
-          <p>The marketing website does not intentionally use advertising, analytics or tracking scripts. It loads the General Sans web font from Fontshare, so your browser may make a technical request to that provider. The website has no A‑Void account or support-ticket form.</p>
+          <p>This website is hosted through GitHub Pages and its delivery infrastructure. When you visit, GitHub Pages and its delivery providers receive technical connection data, including your IP address, required to deliver and secure the site. This website does not embed third-party fonts, analytics, advertising or tracking scripts. The website has no A‑Void account or support-ticket form.</p>
         </section>
 
         <section id="deletion">
           <h2>Deletion and retention</h2>
           <p>A‑Void provides an <strong>Erase all data</strong> action that removes local timelines, groups and reusable types and cancels the app’s scheduled reminder notifications. If iCloud Sync is enabled, the deletion is prepared for synchronization to your other devices.</p>
           <p>Manual exports are separate files and remain wherever you saved or shared them. Automatic backup files are separate copies too; they are replaced as the rolling backup set changes and are not the same thing as the live local timeline.</p>
-          <p>A‑Void does not operate a support ticketing system or separate support database. If you contact us by email, your message is processed through email services so we can respond. We delete support correspondence from our mailbox when it is no longer needed. Email providers may retain copies according to their own policies.</p>
+        </section>
+
+        <section id="support-data">
+          <h2>Support email</h2>
+          <p>If you contact us by email, we process your name, email address and the information you choose to send so we can respond, troubleshoot and maintain the service. We do not operate a separate A‑Void support database.</p>
+          <p>Our legal basis is our legitimate interest in responding to support requests and maintaining A‑Void (GDPR Article 6(1)(f)), or the performance of a contract where your message concerns a purchase or subscription. The email service provider processes the message as part of operating the mailbox.</p>
+          <p>We retain support correspondence for 24 months after the last substantive contact, unless it is necessary to keep it longer to establish, exercise or defend a legal claim or to meet a legal obligation. Email providers may retain copies according to their own policies.</p>
         </section>
 
         <section id="rights">
           <h2>Your choices</h2>
           <p>You can use A‑Void without enabling iCloud Sync, Automatic Backup or widgets. You can deny notification permission, export your data, erase local data and stop using the app at any time.</p>
-          <p>For questions about personal data or to make a request relating to your rights, email <a href="mailto:email@marianfusek.com">email@marianfusek.com</a>. We may need enough information to understand and verify the request.</p>
+          <p>Subject to the conditions in applicable law, you have the right to access, correct, erase, restrict or object to processing of the personal data we hold about you, and to data portability where it applies. For questions about personal data or to make a request relating to your rights, email <a href="mailto:email@marianfusek.com">email@marianfusek.com</a>. We may need enough information to understand and verify the request.</p>
+          <p>You also have the right to lodge a complaint with the <a href="https://uoou.gov.cz/">Office for Personal Data Protection (ÚOOÚ)</a>, the Czech data-protection authority.</p>
           <p>We may update this policy when the app or website changes. The latest version will remain available at this address.</p>
         </section>
       </div>

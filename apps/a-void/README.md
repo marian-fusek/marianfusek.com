@@ -17,7 +17,7 @@ No build step is required. Open `index.html` directly or serve the folder from a
    - `/apps/a-void/privacy`
    - `/apps/a-void/support`
    - `/apps/a-void/terms`
-3. The page loads General Sans from Fontshare. No font files are bundled.
+3. The page self-hosts the licensed General Sans webfonts in `assets/fonts/`; it does not load Fontshare in visitors’ browsers.
 4. Replace or add App Store screenshots in `assets/` if you want the final gallery to use the full approved screenshot set.
 
 ## Motion

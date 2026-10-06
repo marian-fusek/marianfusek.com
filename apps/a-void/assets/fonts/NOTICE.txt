@@ -1,0 +1,9 @@
+General Sans
+
+Copyright © Indian Type Foundry.
+
+This website self-hosts the General Sans webfont files supplied by Fontshare.
+They are used under the ITF Free Font License, which permits self-hosting for
+websites and applications. License information and source:
+https://www.fontshare.com/fonts/general-sans
+https://fontshare.com/licenses/itf-ffl

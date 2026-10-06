@@ -52,7 +52,7 @@ test('uses one launch state for every App Store call to action', async () => {
 
   assert.equal((html.match(/data-app-store/g) ?? []).length, 3);
   assert.match(script, /appStoreURL: "https:\/\/apps\.apple\.com\/us\/app\/a-void\/id6804468353"/);
-  assert.match(html, /styles\.css\?v=live-search-8/);
+  assert.match(html, /styles\.css\?v=legal-privacy-9/);
   assert.match(html, /script\.js\?v=live-search-8/);
   assert.match(script, /const isAppStoreLive = Boolean\(CONFIG\.appStoreURL\);/);
   assert.match(script, /aria-disabled/);
@@ -105,7 +105,7 @@ test('uses one calm headline scale and shared label rhythm', async () => {
 
   assert.match(css, /font-size:clamp\(40px,4\.4vw,64px\)/);
   assert.match(css, /\.product-copy \.eyebrow,[^}]*\.final-copy \.eyebrow\{margin:0 0 54px\}/);
-  assert.match(html, /styles\.css\?v=live-search-8/);
+  assert.match(html, /styles\.css\?v=legal-privacy-9/);
   assert.match(html, /script\.js\?v=live-search-8/);
 });
 
@@ -120,4 +120,72 @@ test('keeps a deliberate gap between each feature headline and its body copy', a
   const css = await readSource('styles.css');
 
   assert.match(css, /\.product-copy>p:not\(\.eyebrow\),\.give-copy>p:not\(\.eyebrow\),\.reminder-copy>p:not\(\.eyebrow\),\.widgets-copy>p:not\(\.eyebrow\),\.plus-head>p:not\(\.eyebrow\)\{[^}]*margin:24px 0 0/);
+});
+
+test('self-hosts General Sans instead of loading Fontshare in visitors’ browsers', async () => {
+  const pages = await Promise.all([
+    readSource('index.html'),
+    readSource('privacy/index.html'),
+    readSource('support/index.html'),
+    readSource('terms/index.html')
+  ]);
+  const css = await readSource('styles.css');
+
+  for (const page of pages) assert.doesNotMatch(page, /fontshare\.com/i);
+  assert.doesNotMatch(css, /fontshare\.com/i);
+  assert.match(css, /assets\/fonts\/general-sans-400\.woff2/);
+  assert.match(css, /assets\/fonts\/general-sans-500\.woff2/);
+  assert.match(css, /assets\/fonts\/general-sans-600\.woff2/);
+  await Promise.all([
+    fileExists('../assets/fonts/general-sans-400.woff2'),
+    fileExists('../assets/fonts/general-sans-500.woff2'),
+    fileExists('../assets/fonts/general-sans-600.woff2'),
+    fileExists('../assets/fonts/NOTICE.txt')
+  ].map(async exists => assert.equal(await exists, true)));
+  assert.match(await readSource('assets/fonts/NOTICE.txt'), /ITF Free Font License/);
+});
+
+test('makes the live app’s calendar, document, and Lock Screen behaviour explicit', async () => {
+  const privacy = await readSource('privacy/index.html');
+
+  assert.match(privacy, /A‑Void requests Full Access to calendar events only when you choose Calendar Import\./);
+  assert.match(privacy, /the current release initially reads events from all of your available calendars for the coming year to present possible imports/i);
+  assert.match(privacy, /does not create a timeline until you choose and confirm an item/i);
+  assert.match(privacy, /Document Capture processes document images on your device and does not upload those images to A‑Void or the developer\./);
+  assert.match(privacy, /Widgets and notifications may show timeline names, dates, countdowns or reminder messages on a Home Screen or Lock Screen/i);
+  assert.match(privacy, /hide previews or sensitive content in iOS notification and Lock Screen settings/i);
+});
+
+test('states the support-email legal basis, retention period, data rights, and Czech complaint route', async () => {
+  const [privacy, support] = await Promise.all([
+    readSource('privacy/index.html'),
+    readSource('support/index.html')
+  ]);
+
+  assert.match(privacy, /legitimate interest in responding to support requests/i);
+  assert.match(privacy, /GDPR Article 6\(1\)\(f\)/);
+  assert.match(privacy, /24 months after the last substantive contact/i);
+  assert.match(privacy, /right to access, correct, erase, restrict or object to processing/i);
+  assert.match(privacy, /Office for Personal Data Protection \(ÚOOÚ\)/);
+  assert.match(privacy, /https:\/\/uoou\.gov\.cz/);
+  assert.match(support, /24 months after the last substantive contact/i);
+});
+
+test('discloses technical website delivery without treating self-hosted fonts as a no-hosting-data claim', async () => {
+  const privacy = await readSource('privacy/index.html');
+
+  assert.match(privacy, /hosted through GitHub Pages and its delivery infrastructure/i);
+  assert.match(privacy, /technical connection data, including your IP address, required to deliver and secure the site/i);
+  assert.match(privacy, /does not embed third-party fonts, analytics, advertising or tracking scripts/i);
+});
+
+test('puts backup, export, reminder, and out-of-control access risk in the terms', async () => {
+  const terms = await readSource('terms/index.html');
+
+  assert.match(terms, /Automatic Backup is a convenience feature, not a guaranteed data-recovery service\./);
+  assert.match(terms, /responsible for keeping backups appropriate to your needs and for protecting any JSON export or backup/i);
+  assert.match(terms, /To the maximum extent permitted by applicable law/i);
+  assert.match(terms, /not liable for data loss, missed reminders, missed deadlines, lost access to a device or account, or unauthorised access/i);
+  assert.match(terms, /outside our reasonable control/i);
+  assert.match(terms, /Nothing in these terms limits rights that cannot legally be limited/i);
 });

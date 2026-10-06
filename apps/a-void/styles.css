@@ -1,3 +1,7 @@
+@font-face{font-family:"General Sans";src:url("assets/fonts/general-sans-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"General Sans";src:url("assets/fonts/general-sans-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"General Sans";src:url("assets/fonts/general-sans-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+
 :root {
   --bg:#05060a;
   --panel:#0a0c12;

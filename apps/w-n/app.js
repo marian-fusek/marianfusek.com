@@ -10,6 +10,8 @@ const BENCH_SLOTS = ['BENCH1','BENCH2','BENCH3','BENCH4','BENCH5','BENCH6'];
 const ALL_SLOTS = [...STARTER_SLOTS, ...BENCH_SLOTS];
 const STORAGE_KEY = 'wn-state-v1';
 const WEEK_NAV = window.WN_WEEK_NAV;
+const REFRESH_HELPERS = window.WN_REFRESH_HELPERS;
+const FEED_TIMEOUT_MS = 12_000;
 
 let nflState = { week: 1, season: new Date().getFullYear().toString(), season_type: 'regular' };
 let players = [];
@@ -39,6 +41,16 @@ let weekNavigationBusy = false;
 
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+
+async function fetchWithTimeout(url, options={}, timeout=FEED_TIMEOUT_MS){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(), timeout);
+  try {
+    return await fetch(url, {...options, signal:controller.signal});
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 function defaultState(){
   return {
@@ -339,15 +351,23 @@ function runRefresh(task, label='Refreshing…'){
   setRefreshUi(true, label);
   const operation=(async()=>{
     let success=false;
+    let partial=false;
     try {
       const result=await task();
       success=result !== false;
+      partial=Boolean(result?.partial);
       return result;
     } finally {
-      setRefreshUi(false, success ? 'Updated just now' : 'Refresh incomplete · retry');
+      const message=success
+        ? REFRESH_HELPERS.refreshCompletionLabel({partial})
+        : 'Refresh incomplete · retry';
+      setRefreshUi(false, message);
     }
   })();
-  refreshPromise=operation.finally(()=>{ refreshPromise=null; });
+  refreshPromise=operation.finally(()=>{
+    refreshPromise=null;
+    if(!weekNavigationBusy) renderMatchup();
+  });
   return refreshPromise;
 }
 
@@ -355,12 +375,15 @@ function loadNFLData(force=false){
   const requestedWeek=state.week;
   return runRefresh(async()=>{
     let feedWarning = '';
+    let partial = false;
     try {
       try {
-        const stateRes = await fetch(`${SLEEPER}/state/nfl`, {cache: force ? 'reload' : 'default'});
-        if (stateRes.ok) nflState = await stateRes.json();
+        const stateRes = await fetchWithTimeout(`${SLEEPER}/state/nfl`, {cache: force ? 'reload' : 'default'});
+        if (stateRes?.ok) nflState = await stateRes.json();
+        else partial = true;
       } catch {
         feedWarning = 'NFL state feed unavailable';
+        partial = true;
       }
       state.week ||= Number(nflState.week || 1);
 
@@ -368,13 +391,13 @@ function loadNFLData(force=false){
       const legacyCacheKey = 'wn-player-cache-v1';
       let cache = null;
       try { cache = JSON.parse(localStorage.getItem(cacheKey) || localStorage.getItem(legacyCacheKey) || 'null'); } catch {}
-      if (!force && cache && Date.now() - cache.ts < 24*60*60*1000) {
+      if (REFRESH_HELPERS.shouldUsePlayerCache(cache)) {
         players = cache.players.map(normalizeCachedPlayer);
         if (!localStorage.getItem(cacheKey)) localStorage.setItem(cacheKey, JSON.stringify({ts:cache.ts, players}));
       } else {
         try {
-          const res = await fetch(`${SLEEPER}/players/nfl?active=true`);
-          if (!res.ok) throw new Error('Player feed unavailable');
+          const res = await fetchWithTimeout(`${SLEEPER}/players/nfl?active=true`, {cache: force ? 'reload' : 'default'});
+          if (!res?.ok) throw new Error('Player feed unavailable');
           const map = await res.json();
           players = Object.values(map)
             .filter(p => p && p.player_id && (p.team || p.position === 'DEF') && ['QB','RB','WR','TE','K','DEF'].includes(p.position))
@@ -384,20 +407,22 @@ function loadNFLData(force=false){
           if (!players.length && cache?.players?.length) players = cache.players.map(normalizeCachedPlayer);
           if (!players.length) throw error;
           feedWarning = 'Player feed unavailable · using cached player pool';
+          partial = true;
         }
       }
 
-      await Promise.all([
+      const [statsResult, scheduleResult] = await Promise.all([
         loadWeekStats(requestedWeek, force),
         loadWeekSchedule(requestedWeek, force)
       ]);
+      partial = partial || Boolean(statsResult?.partial) || Boolean(scheduleResult?.partial);
       selectWeekRoster(requestedWeek);
       await recordCompletedWeek();
       selectWeekRoster(requestedWeek);
       renderAll();
       configureAutoRefresh();
       if (feedWarning) console.warn('W-N refresh fallback:', feedWarning);
-      return true;
+      return {partial};
     } catch (e) {
       console.error(e);
       if (players.length) console.warn('W-N refresh incomplete · showing available data', e);
@@ -427,16 +452,18 @@ async function loadWeekSchedule(week, force=false){
 
   try {
     const url = `${SCOREBOARD}?dates=${season}&seasontype=2&week=${week}`;
-    const res = await fetch(url, {cache: force ? 'reload' : 'default'});
-    if (!res.ok) throw new Error('Schedule feed unavailable');
+    const res = await fetchWithTimeout(url, {cache: force ? 'reload' : 'default'});
+    if (!res?.ok) throw new Error('Schedule feed unavailable');
     const data = await res.json();
     weeklySchedule = (data.events || []).map(normalizeGame).filter(Boolean);
     localStorage.setItem(key, JSON.stringify({ts: Date.now(), data: weeklySchedule}));
     scheduleUnavailable = false;
+    return {partial:false};
   } catch (e) {
     console.warn('Schedule unavailable', e);
     scheduleUnavailable = true;
     if (cached?.data) weeklySchedule = cached.data;
+    return {partial:true};
   }
 }
 
@@ -566,7 +593,7 @@ async function loadWeekStats(week, force=false){
     `${STATS}/stats/nfl/regular/${season}/${week}`,
     `${STATS}/projections/nfl/regular/${season}/${week}`
   ];
-  const [sr, pr] = await Promise.all(urls.map(u => fetch(u).catch(()=>null)));
+  const [sr, pr] = await Promise.all(urls.map(u => fetchWithTimeout(u, {cache: force ? 'reload' : 'default'}).catch(()=>null)));
   const [statsData, projectionData] = await Promise.all([
     sr?.ok ? sr.json().catch(()=>null) : Promise.resolve(null),
     pr?.ok ? pr.json().catch(()=>null) : Promise.resolve(null)
@@ -583,6 +610,7 @@ async function loadWeekStats(week, force=false){
   } else if (cachedProjections?.data) {
     weeklyProjections = cachedProjections.data;
   }
+  return {partial:statsData === null || projectionData === null};
 }
 
 function configureAutoRefresh(){
@@ -603,7 +631,7 @@ function refreshCurrentWeek(){
   if (document.hidden || weekNavigationBusy) return Promise.resolve(false);
   const requestedWeek=state.week;
   return runRefresh(async()=>{
-    await Promise.all([
+    const [statsResult, scheduleResult] = await Promise.all([
       loadWeekStats(requestedWeek, true),
       loadWeekSchedule(requestedWeek, true)
     ]);
@@ -612,7 +640,7 @@ function refreshCurrentWeek(){
     selectWeekRoster(requestedWeek);
     renderAll();
     configureAutoRefresh();
-    return true;
+    return {partial:Boolean(statsResult?.partial) || Boolean(scheduleResult?.partial)};
   });
 }
 
@@ -745,7 +773,7 @@ async function switchWeek(direction){
     await runRefresh(async()=>{
       await pushSharedState();
       selectWeekRoster(requestedWeek);
-      await Promise.all([
+      const [statsResult, scheduleResult] = await Promise.all([
         loadWeekStats(requestedWeek, true),
         loadWeekSchedule(requestedWeek, true)
       ]);
@@ -753,7 +781,7 @@ async function switchWeek(direction){
       await recordCompletedWeek();
       selectWeekRoster(requestedWeek);
       configureAutoRefresh();
-      return true;
+      return {partial:Boolean(statsResult?.partial) || Boolean(scheduleResult?.partial)};
     }, `Loading Week ${requestedWeek}…`);
   } catch (error) {
     console.error('W-N week switch failed', error);

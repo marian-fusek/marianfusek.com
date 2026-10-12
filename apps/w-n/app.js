@@ -10,6 +10,7 @@ const BENCH_SLOTS = ['BENCH1','BENCH2','BENCH3','BENCH4','BENCH5','BENCH6'];
 const ALL_SLOTS = [...STARTER_SLOTS, ...BENCH_SLOTS];
 const STORAGE_KEY = 'wn-state-v1';
 const WEEK_NAV = window.WN_WEEK_NAV;
+const WEEK_LOCK = window.WN_WEEK_LOCK;
 const REFRESH_HELPERS = window.WN_REFRESH_HELPERS;
 const FEED_TIMEOUT_MS = 12_000;
 
@@ -284,7 +285,7 @@ function selectWeekRoster(week){
 }
 
 function weekRosterLocked(){
-  return Boolean(resultForWeek(state.week)) || weekIsComplete();
+  return WEEK_LOCK.shouldLockWeek({result:resultForWeek(state.week), schedule:weeklySchedule});
 }
 
 function setSync(online, title){
@@ -835,7 +836,7 @@ function teamScoreBlock(team, score, right){
   </div>`;
 }
 function winnerText(a,b){
-  const result=resultForWeek(state.week);
+  const result=WEEK_LOCK.visibleResult({result:resultForWeek(state.week), schedule:weeklySchedule});
   if (result || weekIsComplete()) {
     if (result?.winner === 'tie' || (!result && a===b)) return 'Week tied';
     const winnerId=result?.winner || (a>b ? state.teams[0].id : state.teams[1].id);

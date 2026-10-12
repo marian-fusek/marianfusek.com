@@ -51,8 +51,13 @@ button:not(:disabled), select, input[type="file"] { cursor: pointer; }
 .save-status { color: var(--muted); font-size: 11px; white-space: nowrap; }
 .save-status.saving { color: #8a6500; }
 .save-status.local { color: var(--muted); }
-.icon-btn { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.45); cursor: pointer; transition: .2s ease; }
-.icon-btn:hover { background: white; }
+.refresh-status { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.refresh-status.loading { color: #8a6500; }
+.icon-btn { width: 46px; height: 46px; display: inline-grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.45); cursor: pointer; transition: .2s ease; }
+.icon-btn:hover:not(:disabled) { background: white; }
+.icon-btn:disabled { cursor: wait; opacity: .72; }
+.icon-btn.is-loading .refresh-icon { display: inline-block; animation: refresh-spin .8s linear infinite; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
 
 main { padding: 52px 0 96px; }
 .boot-message { display: none; align-items: center; justify-content: center; min-height: 54px; margin-bottom: 14px; padding: 14px 18px; border-radius: 16px; background: var(--soft); color: var(--muted); font-size: 13px; text-align: center; }
@@ -77,6 +82,7 @@ main { padding: 52px 0 96px; }
 .week-picker { display: inline-flex; gap: 8px; align-items: center; }
 .week-picker button { border: 0; background: transparent; color: white; cursor: pointer; font-size: 22px; padding: 3px 6px; opacity: .8; }
 .week-picker button:hover { opacity: 1; }
+.week-picker button:disabled { cursor: wait; opacity: .35; }
 .score-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin-top: 18px; }
 .team-score { min-width: 0; }
 .team-score.right { text-align: right; }
@@ -309,6 +315,8 @@ main { padding: 52px 0 96px; }
 @media (max-width: 520px) {
   .brand { font-size: 21px; }
   .save-status { max-width: 92px; overflow: hidden; text-overflow: ellipsis; }
+  .top-actions { gap: 6px; }
+  .refresh-status { max-width: 88px; overflow: hidden; text-overflow: ellipsis; }
   .score-body { grid-template-columns: 1fr auto 1fr; gap: 8px; }
   .score-card .logo-box { width: 56px; height: 56px; border-radius: 17px; }
   .logo-box { width: 42px; height: 42px; border-radius: 14px; }

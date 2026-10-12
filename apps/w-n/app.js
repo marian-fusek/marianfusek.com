@@ -9,6 +9,7 @@ const STARTER_SLOTS = ['QB','RB1','RB2','WR1','WR2','TE','FLEX','K','DEF'];
 const BENCH_SLOTS = ['BENCH1','BENCH2','BENCH3','BENCH4','BENCH5','BENCH6'];
 const ALL_SLOTS = [...STARTER_SLOTS, ...BENCH_SLOTS];
 const STORAGE_KEY = 'wn-state-v1';
+const WEEK_NAV = window.WN_WEEK_NAV;
 
 let nflState = { week: 1, season: new Date().getFullYear().toString(), season_type: 'regular' };
 let players = [];
@@ -32,6 +33,9 @@ let saveStatusTimer = null;
 let saveStatusMode = 'local';
 let lastSavedAt = Number(localStorage.getItem('wn-last-saved-at') || 0);
 let sharedBaseState = null;
+let refreshPromise = null;
+let refreshStatusTimer = null;
+let weekNavigationBusy = false;
 
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
@@ -196,7 +200,10 @@ async function initSupabase(){
       .on('postgres_changes', { event:'*', schema:'public', table:'wn_state', filter:`league_id=eq.${CFG.leagueId}` }, payload => {
         const remote = payload.new?.state;
         if (remote && remote.updatedAt > (state.updatedAt || 0)) {
-          state = normalizeState(remote); sharedBaseState = cloneState(state); saveLocal(); markSaved('shared', Number(state.updatedAt) || Date.now()); renderAll(); showToast('League synced');
+          const localWeek = state.week;
+          state = normalizeState(remote);
+          selectWeekRoster(localWeek);
+          sharedBaseState = cloneState(state); saveLocal(); markSaved('shared', Number(state.updatedAt) || Date.now()); renderAll(); showToast('League synced');
         }
       }).subscribe();
   } catch (e) {
@@ -224,6 +231,7 @@ async function pushSharedState(){
     const remoteState=data?.state ? normalizeState(data.state) : null;
     const baseState=sharedBaseState || localState;
     state=normalizeState(mergeLeagueState(baseState, localState, remoteState));
+    selectWeekRoster(localState.week);
     state.updatedAt=savedAt;
     saveLocal();
     const {error}=await supabaseClient.from('wn_state').upsert({ league_id: CFG.leagueId, state, updated_at: new Date().toISOString() });
@@ -251,7 +259,11 @@ function saveCurrentLineup(){
 
 function activateWeek(week){
   saveCurrentLineup();
-  state.week=Math.min(18,Math.max(1,Number(week)||1));
+  selectWeekRoster(week);
+}
+
+function selectWeekRoster(week){
+  state.week=WEEK_NAV.clampWeek(week);
   state.teams.forEach(team=>{
     team.lineups ||= {};
     if(team.lineups[state.week]) team.roster={...team.lineups[state.week]};
@@ -305,59 +317,98 @@ function markSaved(mode, timestamp){
   renderSaveStatus();
 }
 
-async function loadNFLData(force=false){
-  $('#refreshBtn').disabled = true;
-  let feedWarning = '';
-  try {
-    try {
-      const stateRes = await fetch(`${SLEEPER}/state/nfl`, {cache: force ? 'reload' : 'default'});
-      if (stateRes.ok) nflState = await stateRes.json();
-    } catch {
-      feedWarning = 'NFL state feed unavailable';
-    }
-    state.week ||= Number(nflState.week || 1);
-
-    const cacheKey = 'wn-player-cache-v2';
-    const legacyCacheKey = 'wn-player-cache-v1';
-    let cache = null;
-    try { cache = JSON.parse(localStorage.getItem(cacheKey) || localStorage.getItem(legacyCacheKey) || 'null'); } catch {}
-    if (!force && cache && Date.now() - cache.ts < 24*60*60*1000) {
-      players = cache.players.map(normalizeCachedPlayer);
-      if (!localStorage.getItem(cacheKey)) localStorage.setItem(cacheKey, JSON.stringify({ts:cache.ts, players}));
-    } else {
-      try {
-        const res = await fetch(`${SLEEPER}/players/nfl?active=true`);
-        if (!res.ok) throw new Error('Player feed unavailable');
-        const map = await res.json();
-        players = Object.values(map)
-          .filter(p => p && p.player_id && (p.team || p.position === 'DEF') && ['QB','RB','WR','TE','K','DEF'].includes(p.position))
-          .map(normalizePlayer);
-        localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), players}));
-      } catch (error) {
-        if (!players.length && cache?.players?.length) players = cache.players.map(normalizeCachedPlayer);
-        if (!players.length) throw error;
-        feedWarning = 'Player feed unavailable · using cached player pool';
-      }
-    }
-
-    await Promise.all([
-      loadWeekStats(state.week, force),
-      loadWeekSchedule(state.week, force)
-    ]);
-    await recordCompletedWeek();
-    renderAll();
-    configureAutoRefresh();
-    if (feedWarning) console.warn('W-N refresh fallback:', feedWarning);
-  } catch (e) {
-    console.error(e);
-    if (players.length) console.warn('W-N refresh incomplete · showing available data', e);
-    else showToast('NFL data could not refresh');
-    try { renderAll(); } catch (renderError) { console.error('W-N render failed after feed error', renderError); }
-    setBootState('NFL data is unavailable. Your local league is ready; try Refresh when you are back online.', !players.length);
-  } finally {
-    if (players.length) setBootState('', false);
-    $('#refreshBtn').disabled = false;
+function setRefreshUi(loading, message=''){
+  const btn=$('#refreshBtn');
+  const status=$('#refreshStatus');
+  if(btn){
+    btn.disabled=loading;
+    btn.classList.toggle('is-loading', loading);
+    btn.setAttribute('aria-busy', String(loading));
+    btn.title=loading ? message || 'Refreshing NFL data' : 'Refresh NFL data';
+    btn.setAttribute('aria-label', btn.title);
   }
+  if(!status) return;
+  clearTimeout(refreshStatusTimer);
+  status.classList.toggle('loading', loading);
+  status.textContent=message;
+  if(!loading && message) refreshStatusTimer=setTimeout(()=>{ status.textContent=''; }, 3200);
+}
+
+function runRefresh(task, label='Refreshing…'){
+  if(refreshPromise) return refreshPromise;
+  setRefreshUi(true, label);
+  const operation=(async()=>{
+    let success=false;
+    try {
+      const result=await task();
+      success=result !== false;
+      return result;
+    } finally {
+      setRefreshUi(false, success ? 'Updated just now' : 'Refresh incomplete · retry');
+    }
+  })();
+  refreshPromise=operation.finally(()=>{ refreshPromise=null; });
+  return refreshPromise;
+}
+
+function loadNFLData(force=false){
+  const requestedWeek=state.week;
+  return runRefresh(async()=>{
+    let feedWarning = '';
+    try {
+      try {
+        const stateRes = await fetch(`${SLEEPER}/state/nfl`, {cache: force ? 'reload' : 'default'});
+        if (stateRes.ok) nflState = await stateRes.json();
+      } catch {
+        feedWarning = 'NFL state feed unavailable';
+      }
+      state.week ||= Number(nflState.week || 1);
+
+      const cacheKey = 'wn-player-cache-v2';
+      const legacyCacheKey = 'wn-player-cache-v1';
+      let cache = null;
+      try { cache = JSON.parse(localStorage.getItem(cacheKey) || localStorage.getItem(legacyCacheKey) || 'null'); } catch {}
+      if (!force && cache && Date.now() - cache.ts < 24*60*60*1000) {
+        players = cache.players.map(normalizeCachedPlayer);
+        if (!localStorage.getItem(cacheKey)) localStorage.setItem(cacheKey, JSON.stringify({ts:cache.ts, players}));
+      } else {
+        try {
+          const res = await fetch(`${SLEEPER}/players/nfl?active=true`);
+          if (!res.ok) throw new Error('Player feed unavailable');
+          const map = await res.json();
+          players = Object.values(map)
+            .filter(p => p && p.player_id && (p.team || p.position === 'DEF') && ['QB','RB','WR','TE','K','DEF'].includes(p.position))
+            .map(normalizePlayer);
+          localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), players}));
+        } catch (error) {
+          if (!players.length && cache?.players?.length) players = cache.players.map(normalizeCachedPlayer);
+          if (!players.length) throw error;
+          feedWarning = 'Player feed unavailable · using cached player pool';
+        }
+      }
+
+      await Promise.all([
+        loadWeekStats(requestedWeek, force),
+        loadWeekSchedule(requestedWeek, force)
+      ]);
+      selectWeekRoster(requestedWeek);
+      await recordCompletedWeek();
+      selectWeekRoster(requestedWeek);
+      renderAll();
+      configureAutoRefresh();
+      if (feedWarning) console.warn('W-N refresh fallback:', feedWarning);
+      return true;
+    } catch (e) {
+      console.error(e);
+      if (players.length) console.warn('W-N refresh incomplete · showing available data', e);
+      else showToast('NFL data could not refresh');
+      try { renderAll(); } catch (renderError) { console.error('W-N render failed after feed error', renderError); }
+      setBootState('NFL data is unavailable. Your local league is ready; try Refresh when you are back online.', !players.length);
+      return false;
+    } finally {
+      if (players.length) setBootState('', false);
+    }
+  });
 }
 
 async function loadWeekSchedule(week, force=false){
@@ -548,15 +599,21 @@ function configureAutoRefresh(){
   refreshTimer = setInterval(refreshCurrentWeek, cadence);
 }
 
-async function refreshCurrentWeek(){
-  if (document.hidden) return;
-  await Promise.all([
-    loadWeekStats(state.week, true),
-    loadWeekSchedule(state.week, true)
-  ]);
-  await recordCompletedWeek();
-  renderAll();
-  configureAutoRefresh();
+function refreshCurrentWeek(){
+  if (document.hidden || weekNavigationBusy) return Promise.resolve(false);
+  const requestedWeek=state.week;
+  return runRefresh(async()=>{
+    await Promise.all([
+      loadWeekStats(requestedWeek, true),
+      loadWeekSchedule(requestedWeek, true)
+    ]);
+    selectWeekRoster(requestedWeek);
+    await recordCompletedWeek();
+    selectWeekRoster(requestedWeek);
+    renderAll();
+    configureAutoRefresh();
+    return true;
+  });
 }
 
 function getStat(id){ return weeklyStats?.[id] || {}; }
@@ -675,16 +732,50 @@ function setBootState(message, visible){
 
 function renderAll(){ renderMatchup(); renderPlayers(); renderLeague(); setBootState('', false); }
 
+async function switchWeek(direction){
+  if (weekNavigationBusy || refreshPromise) return;
+  const request=WEEK_NAV.requestWeek(state.week, direction, weekNavigationBusy || Boolean(refreshPromise));
+  if (!request.accepted || request.week === state.week) return;
+
+  const requestedWeek=request.week;
+  weekNavigationBusy=true;
+  activateWeek(requestedWeek);
+  renderAll();
+  try {
+    await runRefresh(async()=>{
+      await pushSharedState();
+      selectWeekRoster(requestedWeek);
+      await Promise.all([
+        loadWeekStats(requestedWeek, true),
+        loadWeekSchedule(requestedWeek, true)
+      ]);
+      selectWeekRoster(requestedWeek);
+      await recordCompletedWeek();
+      selectWeekRoster(requestedWeek);
+      configureAutoRefresh();
+      return true;
+    }, `Loading Week ${requestedWeek}…`);
+  } catch (error) {
+    console.error('W-N week switch failed', error);
+    showToast(`Week ${requestedWeek} could not load`);
+  } finally {
+    selectWeekRoster(requestedWeek);
+    weekNavigationBusy=false;
+    renderAll();
+  }
+}
+
 function renderMatchup(){
   const el = $('#view-matchup');
   const [a,b] = state.teams;
   const aScore = teamTotal(a), bScore = teamTotal(b);
+  const navigationBusy=weekNavigationBusy || Boolean(refreshPromise);
   el.innerHTML = `
     <div class="hero-grid">
       <section class="score-card">
         <div class="score-head">
           <span class="eyebrow">Head to head</span>
-          <div class="week-picker"><button data-week="prev">←</button><span>Week ${state.week}</span><button data-week="next">→</button></div>
+          <div class="week-picker${navigationBusy?' is-loading':''}" aria-busy="${navigationBusy}"><button data-week="prev" aria-label="Previous week" title="Previous week"${navigationBusy || state.week <= 1 ? ' disabled' : ''}>←</button><span>Week ${state.week}</span><button data-week="next" aria-label="Next week" title="Next week"${navigationBusy || state.week >= 18 ? ' disabled' : ''}>→</button></div>
         </div>
         <div class="score-body">
           ${teamScoreBlock(a,aScore,false)}
@@ -702,18 +793,7 @@ function renderMatchup(){
       ${rosterCard(a)}
       ${rosterCard(b)}
     </div>`;
-  $$('[data-week]', el).forEach(btn => btn.addEventListener('click', async () => {
-    const next = btn.dataset.week === 'next' ? state.week+1 : state.week-1;
-    activateWeek(next);
-    await pushSharedState();
-    await Promise.all([
-      loadWeekStats(state.week,true),
-      loadWeekSchedule(state.week,true)
-    ]);
-    await recordCompletedWeek();
-    configureAutoRefresh();
-    renderAll();
-  }));
+  $$('[data-week]', el).forEach(btn => btn.addEventListener('click', () => switchWeek(btn.dataset.week)));
   $$('.player-row[data-player]', el).forEach(r => r.addEventListener('click', () => openPlayer(r.dataset.player)));
 }
 

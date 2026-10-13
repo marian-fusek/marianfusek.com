@@ -11,6 +11,7 @@ const ALL_SLOTS = [...STARTER_SLOTS, ...BENCH_SLOTS];
 const STORAGE_KEY = 'wn-state-v1';
 const WEEK_NAV = window.WN_WEEK_NAV;
 const WEEK_LOCK = window.WN_WEEK_LOCK;
+const RESULT_READINESS = window.WN_RESULT_READINESS;
 const REFRESH_HELPERS = window.WN_REFRESH_HELPERS;
 const FEED_TIMEOUT_MS = 12_000;
 
@@ -418,7 +419,7 @@ function loadNFLData(force=false){
       ]);
       partial = partial || Boolean(statsResult?.partial) || Boolean(scheduleResult?.partial);
       selectWeekRoster(requestedWeek);
-      await recordCompletedWeek();
+      await recordCompletedWeek(statsResult);
       selectWeekRoster(requestedWeek);
       renderAll();
       configureAutoRefresh();
@@ -588,7 +589,9 @@ async function loadWeekStats(week, force=false){
     cachedProjections = JSON.parse(localStorage.getItem(pkey) || 'null');
     if (cachedStats?.data && (!Object.keys(weeklyStats).length || force)) weeklyStats = cachedStats.data;
     if (cachedProjections?.data && (!Object.keys(weeklyProjections).length || force)) weeklyProjections = cachedProjections.data;
-    if (!force && cachedStats && cachedProjections && Date.now()-cachedStats.ts < 60_000 && Date.now()-cachedProjections.ts < 5*60_000) return;
+    if (!force && cachedStats && cachedProjections && Date.now()-cachedStats.ts < 60_000 && Date.now()-cachedProjections.ts < 5*60_000) {
+      return {partial:false, statsPartial:false};
+    }
   } catch {}
   const urls = [
     `${STATS}/stats/nfl/regular/${season}/${week}`,
@@ -611,7 +614,11 @@ async function loadWeekStats(week, force=false){
   } else if (cachedProjections?.data) {
     weeklyProjections = cachedProjections.data;
   }
-  return {partial:statsData === null || projectionData === null};
+  const statsAvailable = statsData !== null || Boolean(cachedStats?.data);
+  return {
+    partial: !statsAvailable || projectionData === null,
+    statsPartial: !statsAvailable
+  };
 }
 
 function configureAutoRefresh(){
@@ -637,7 +644,7 @@ function refreshCurrentWeek(){
       loadWeekSchedule(requestedWeek, true)
     ]);
     selectWeekRoster(requestedWeek);
-    await recordCompletedWeek();
+    await recordCompletedWeek(statsResult);
     selectWeekRoster(requestedWeek);
     renderAll();
     configureAutoRefresh();
@@ -717,8 +724,15 @@ function resultForWeek(week){
   return state.results?.[week] || null;
 }
 
-async function recordCompletedWeek(){
-  if (!weekIsComplete()) return false;
+async function recordCompletedWeek(statsResult={}){
+  const rosterIds = state.teams.flatMap(team => STARTER_SLOTS.map(slot => team.roster?.[slot]));
+  const ready = RESULT_READINESS.canRecordCompletedWeek({
+    weekComplete: weekIsComplete(),
+    stats: weeklyStats,
+    rosterIds,
+    statsPartial: Boolean(statsResult?.statsPartial)
+  });
+  if (!ready) return false;
   const [a,b] = state.teams;
   const aScore = teamTotal(a), bScore = teamTotal(b);
   const winner = aScore === bScore ? 'tie' : aScore > bScore ? a.id : b.id;
@@ -779,7 +793,7 @@ async function switchWeek(direction){
         loadWeekSchedule(requestedWeek, true)
       ]);
       selectWeekRoster(requestedWeek);
-      await recordCompletedWeek();
+      await recordCompletedWeek(statsResult);
       selectWeekRoster(requestedWeek);
       configureAutoRefresh();
       return {partial:Boolean(statsResult?.partial) || Boolean(scheduleResult?.partial)};

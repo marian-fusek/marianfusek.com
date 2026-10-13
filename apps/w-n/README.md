@@ -126,6 +126,8 @@ The manual refresh button is always available.
 
 Manual refresh reuses the fresh player catalog cache instead of downloading the full NFL player database again. It refreshes the selected week's stats, projections, and schedule with bounded requests; if one public feed is slow or unavailable, same-week cached values remain visible and the control reports `Updated with cached data` rather than pretending the whole league vanished.
 
+Browser storage is only a cache, not a requirement for live scoring. If a browser quota is full, new stats/projection cache writes are skipped while the freshly fetched data continues in memory, so quota pressure cannot abort refresh or create a false result.
+
 A player's fantasy score updates when Sleeper updates the weekly stats feed.
 
 If a selected week’s stats or projection request fails, cached data for that same week can remain visible, including after a manual refresh; switching weeks clears the prior week’s data before loading the new week so scores and forecasts are never silently carried across weeks.

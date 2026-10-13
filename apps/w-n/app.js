@@ -12,6 +12,7 @@ const STORAGE_KEY = 'wn-state-v1';
 const WEEK_NAV = window.WN_WEEK_NAV;
 const WEEK_LOCK = window.WN_WEEK_LOCK;
 const RESULT_READINESS = window.WN_RESULT_READINESS;
+const SAFE_STORAGE = window.WN_SAFE_STORAGE;
 const REFRESH_HELPERS = window.WN_REFRESH_HELPERS;
 const FEED_TIMEOUT_MS = 12_000;
 
@@ -72,7 +73,7 @@ function loadLocalState(){
   try { return normalizeState(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')); }
   catch { return defaultState(); }
 }
-function saveLocal(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveLocal(){ SAFE_STORAGE.setItemSafe(localStorage, STORAGE_KEY, JSON.stringify(state)); }
 
 function normalizeState(raw={}){
   const defaults=defaultState();
@@ -327,7 +328,7 @@ function renderSaveStatus(){
 function markSaved(mode, timestamp){
   saveStatusMode = mode;
   lastSavedAt = Number(timestamp) || Date.now();
-  localStorage.setItem('wn-last-saved-at', String(lastSavedAt));
+  SAFE_STORAGE.setItemSafe(localStorage, 'wn-last-saved-at', String(lastSavedAt));
   renderSaveStatus();
 }
 
@@ -395,7 +396,7 @@ function loadNFLData(force=false){
       try { cache = JSON.parse(localStorage.getItem(cacheKey) || localStorage.getItem(legacyCacheKey) || 'null'); } catch {}
       if (REFRESH_HELPERS.shouldUsePlayerCache(cache)) {
         players = cache.players.map(normalizeCachedPlayer);
-        if (!localStorage.getItem(cacheKey)) localStorage.setItem(cacheKey, JSON.stringify({ts:cache.ts, players}));
+        if (!localStorage.getItem(cacheKey)) SAFE_STORAGE.setItemSafe(localStorage, cacheKey, JSON.stringify({ts:cache.ts, players}));
       } else {
         try {
           const res = await fetchWithTimeout(`${SLEEPER}/players/nfl?active=true`, {cache: force ? 'reload' : 'default'});
@@ -404,7 +405,7 @@ function loadNFLData(force=false){
           players = Object.values(map)
             .filter(p => p && p.player_id && (p.team || p.position === 'DEF') && ['QB','RB','WR','TE','K','DEF'].includes(p.position))
             .map(normalizePlayer);
-          localStorage.setItem(cacheKey, JSON.stringify({ts: Date.now(), players}));
+          SAFE_STORAGE.setItemSafe(localStorage, cacheKey, JSON.stringify({ts: Date.now(), players}));
         } catch (error) {
           if (!players.length && cache?.players?.length) players = cache.players.map(normalizeCachedPlayer);
           if (!players.length) throw error;
@@ -458,7 +459,7 @@ async function loadWeekSchedule(week, force=false){
     if (!res?.ok) throw new Error('Schedule feed unavailable');
     const data = await res.json();
     weeklySchedule = (data.events || []).map(normalizeGame).filter(Boolean);
-    localStorage.setItem(key, JSON.stringify({ts: Date.now(), data: weeklySchedule}));
+    SAFE_STORAGE.setItemSafe(localStorage, key, JSON.stringify({ts: Date.now(), data: weeklySchedule}));
     scheduleUnavailable = false;
     return {partial:false};
   } catch (e) {
@@ -604,13 +605,13 @@ async function loadWeekStats(week, force=false){
   ]);
   if (statsData !== null) {
     weeklyStats = statsData;
-    localStorage.setItem(key, JSON.stringify({ts:Date.now(), data:weeklyStats}));
+    SAFE_STORAGE.setItemSafe(localStorage, key, JSON.stringify({ts:Date.now(), data:weeklyStats}));
   } else if (cachedStats?.data) {
     weeklyStats = cachedStats.data;
   }
   if (projectionData !== null) {
     weeklyProjections = projectionData;
-    localStorage.setItem(pkey, JSON.stringify({ts:Date.now(), data:weeklyProjections}));
+    SAFE_STORAGE.setItemSafe(localStorage, pkey, JSON.stringify({ts:Date.now(), data:weeklyProjections}));
   } else if (cachedProjections?.data) {
     weeklyProjections = cachedProjections.data;
   }

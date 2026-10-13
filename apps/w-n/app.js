@@ -41,6 +41,7 @@ let sharedBaseState = null;
 let refreshPromise = null;
 let refreshStatusTimer = null;
 let weekNavigationBusy = false;
+let resultRepairPromise = null;
 
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
@@ -745,6 +746,58 @@ async function recordCompletedWeek(statsResult={}){
   return true;
 }
 
+async function repairKnownIncompleteResults(){
+  if (resultRepairPromise) return resultRepairPromise;
+  const weeks = Object.entries(state.results || {})
+    .filter(([, result]) => RESULT_READINESS.needsResultRepair(result))
+    .map(([week]) => Number(week))
+    .filter(week => Number.isInteger(week) && week >= 1 && week <= 18);
+  if (!weeks.length) return 0;
+
+  const currentWeek = state.week;
+  const snapshot = {
+    stats: weeklyStats,
+    projections: weeklyProjections,
+    statsKey,
+    schedule: weeklySchedule,
+    scheduleKey,
+    scheduleUnavailable
+  };
+  resultRepairPromise = (async()=>{
+    let repaired = 0;
+    saveCurrentLineup();
+    for (const week of weeks) {
+      state.week = week;
+      selectWeekRoster(week);
+      try {
+        const [statsResult, scheduleResult] = await Promise.all([
+          loadWeekStats(week, true),
+          loadWeekSchedule(week, true)
+        ]);
+        if (scheduleResult?.partial) continue;
+        if (await recordCompletedWeek(statsResult)) repaired++;
+      } catch (error) {
+        console.warn(`W-N could not repair Week ${week}`, error);
+      }
+    }
+    state.week = currentWeek;
+    selectWeekRoster(currentWeek);
+    weeklyStats = snapshot.stats;
+    weeklyProjections = snapshot.projections;
+    statsKey = snapshot.statsKey;
+    weeklySchedule = snapshot.schedule;
+    scheduleKey = snapshot.scheduleKey;
+    scheduleUnavailable = snapshot.scheduleUnavailable;
+    saveLocal();
+    if (repaired) {
+      renderAll();
+      showToast(`${repaired} saved result${repaired === 1 ? '' : 's'} repaired`);
+    }
+    return repaired;
+  })().finally(()=>{ resultRepairPromise = null; });
+  return resultRepairPromise;
+}
+
 function seasonRecord(teamId){
   const summary = {wins:0, losses:0, ties:0, pointsFor:0, pointsAgainst:0};
   for (const result of Object.values(state.results || {})) {
@@ -1089,6 +1142,7 @@ function showToast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add
 $$('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{
   $$('.nav-btn').forEach(b=>b.classList.toggle('active',b===btn));
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${btn.dataset.view}`));
+  if (btn.dataset.view === 'league') void repairKnownIncompleteResults();
 }));
 $('#refreshBtn').addEventListener('click',()=>loadNFLData(true));
 

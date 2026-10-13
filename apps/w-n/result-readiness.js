@@ -10,5 +10,9 @@
     return ids.every(id => Object.prototype.hasOwnProperty.call(stats, id));
   }
 
-  return {canRecordCompletedWeek};
+  function needsResultRepair(result={}){
+    return Number(result?.aScore) === 0 && Number(result?.bScore) === 0;
+  }
+
+  return {canRecordCompletedWeek, needsResultRepair};
 });

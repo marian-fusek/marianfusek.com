@@ -5,6 +5,21 @@ import test from 'node:test';
 const readSource = file => readFile(new URL(`../${file}`, import.meta.url), 'utf8');
 const fileExists = file => access(new URL(file, import.meta.url)).then(() => true, () => false);
 
+test('uses the approved two-line headline and Apple logos on both download buttons', async () => {
+  const [html, css] = await Promise.all([readSource('index.html'), readSource('styles.css')]);
+
+  assert.match(html, /<h1 id="hero-title">Track expiry dates<br\s*\/>and renewals\.<\/h1>/);
+  const buttons = html.match(/<a class="store-button"[\s\S]*?<\/a>/g) ?? [];
+  assert.equal(buttons.length, 2);
+  for (const button of buttons) {
+    assert.match(button, /<img class="store-icon" src="assets\/apple-logo\.svg" width="24" height="28" alt="" aria-hidden="true" \/>/);
+    assert.match(button, /data-store-label>App Store/);
+    assert.match(button, /href="https:\/\/apps\.apple\.com\/us\/app\/a-void\/id6804468353"/);
+  }
+  assert.match(css, /\.store-icon\{width:24px;height:28px;flex-shrink:0;object-fit:contain\}/);
+  assert.equal(await fileExists('../assets/apple-logo.svg'), true);
+});
+
 test('publishes a crawlable product identity for A-Void', async () => {
   const html = await readSource('index.html');
 
@@ -52,7 +67,7 @@ test('uses one launch state for every App Store call to action', async () => {
 
   assert.equal((html.match(/data-app-store/g) ?? []).length, 3);
   assert.match(script, /appStoreURL: "https:\/\/apps\.apple\.com\/us\/app\/a-void\/id6804468353"/);
-  assert.match(html, /styles\.css\?v=legal-privacy-9/);
+  assert.match(html, /styles\.css\?v=hero-download-10/);
   assert.match(html, /script\.js\?v=live-search-8/);
   assert.match(script, /const isAppStoreLive = Boolean\(CONFIG\.appStoreURL\);/);
   assert.match(script, /aria-disabled/);
@@ -105,7 +120,7 @@ test('uses one calm headline scale and shared label rhythm', async () => {
 
   assert.match(css, /font-size:clamp\(40px,4\.4vw,64px\)/);
   assert.match(css, /\.product-copy \.eyebrow,[^}]*\.final-copy \.eyebrow\{margin:0 0 54px\}/);
-  assert.match(html, /styles\.css\?v=legal-privacy-9/);
+  assert.match(html, /styles\.css\?v=hero-download-10/);
   assert.match(html, /script\.js\?v=live-search-8/);
 });
 

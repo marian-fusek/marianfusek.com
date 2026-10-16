@@ -99,11 +99,14 @@
     }
     max(){return Math.max(0,document.documentElement.scrollHeight-innerHeight)}
     overlayMax(overlay){return Math.max(0,overlay.scrollHeight-overlay.clientHeight)}
+    activeOverlay(){
+      return ['caseOverlay','coachingOverlay'].map(id=>document.getElementById(id)).find(overlay=>overlay?.classList.contains('is-open'))||null;
+    }
     onWheel(e){
       if(this.slowRaf){cancelAnimationFrame(this.slowRaf);this.slowRaf=0;document.body.classList.remove('is-nav-jump');}
-      if(document.body.classList.contains('case-overlay-open')){
-        const overlay=document.getElementById('caseOverlay');
-        if(!overlay||!e.target?.closest?.('.case-overlay')){e.preventDefault();return;}
+      const overlay=this.activeOverlay();
+      if(overlay){
+        if(!e.target?.closest?.('.case-overlay,.coaching-overlay')){e.preventDefault();return;}
         if(e.ctrlKey)return;
         e.preventDefault();
         const d=e.deltaMode===1?e.deltaY*16:e.deltaMode===2?e.deltaY*innerHeight:e.deltaY;
@@ -116,10 +119,10 @@
     }
     onKey(e){
       if(this.slowRaf){cancelAnimationFrame(this.slowRaf);this.slowRaf=0;document.body.classList.remove('is-nav-jump');}
-      if(document.body.classList.contains('case-overlay-open')){
+      const overlay=this.activeOverlay();
+      if(overlay){
         if(e.metaKey||e.ctrlKey)return;
-        const overlay=document.getElementById('caseOverlay');
-        if(!overlay||!(e.target?.closest?.('.case-overlay')||document.activeElement?.closest?.('.case-overlay'))){e.preventDefault();return;}
+        if(!(e.target?.closest?.('.case-overlay,.coaching-overlay')||document.activeElement?.closest?.('.case-overlay,.coaching-overlay'))){e.preventDefault();return;}
         const map={ArrowDown:72,ArrowUp:-72,PageDown:innerHeight*.8,PageUp:-innerHeight*.8,' ':innerHeight*.8};
         if(e.key==='Home'){e.preventDefault();this.overlayTarget=0;return this.startOverlay()}
         if(e.key==='End'){e.preventDefault();this.overlayTarget=this.overlayMax(overlay);return this.startOverlay()}
@@ -143,8 +146,8 @@
     }
     startOverlay(){if(!this.overlayRaf)this.overlayRaf=requestAnimationFrame(()=>this.tickOverlay())}
     tickOverlay(){
-      const overlay=document.getElementById('caseOverlay');
-      if(!overlay||!document.body.classList.contains('case-overlay-open')){this.overlayRaf=0;return;}
+      const overlay=this.activeOverlay();
+      if(!overlay){this.overlayRaf=0;return;}
       this.overlayCurrent=lerp(this.overlayCurrent,this.overlayTarget,.095);
       if(Math.abs(this.overlayTarget-this.overlayCurrent)<.2)this.overlayCurrent=this.overlayTarget;
       overlay.scrollTop=this.overlayCurrent;
@@ -995,6 +998,12 @@
       bioAboutCopy.addEventListener('animationend',()=>{
           bioAboutCopy.innerHTML=bioCopy[next];
           activeBioCopy=next;
+          if(next==='coaching'){
+            const links=bioAboutCopy.querySelector('.case-project-links');
+            if(links&&!links.querySelector('[data-coaching-page-link]')){
+              links.insertAdjacentHTML('afterbegin','<a data-coaching-page-link href="coaching.html" target="_blank" rel="noopener noreferrer"><span class="case-project-link-arrow" aria-hidden="true">↗</span><span class="case-project-link-label">Coaching for creatives</span></a>');
+            }
+          }
           bioCopySwitches.forEach(control=>control.classList.toggle('is-active',control.dataset.bioCopy===next));
           syncBioCopyState();
         bioAboutCopy.classList.remove('is-copy-wiping-out');
@@ -1516,6 +1525,7 @@
   let activeReviewMode='coaching';
   let activeCoachingReviewPart=0;
   let coachingEntryAnimations=[];
+  let coachingReviewTrigger=null;
   const renderCoachingReview=(index,partIndex=0)=>{
     const isLeadership=activeReviewMode==='leadership';
     const reviews=isLeadership?leadershipReviews:coachingReviews;
@@ -1544,6 +1554,8 @@
   let coachingRevealTimer=0;
   let coachingCloseTimer=0;
   const openCoachingOverlay=(mode='coaching')=>{
+    if(!coachingOverlay)return;
+    if(!coachingReviewTrigger&&!coachingOverlay.contains(document.activeElement))coachingReviewTrigger=document.activeElement;
     activeReviewMode=mode;
     const isLeadership=mode==='leadership';
     coachingOverlay.classList.toggle('is-leadership-reviews',isLeadership);
@@ -1554,11 +1566,13 @@
     clearTimeout(coachingCloseTimer);coachingCloseTimer=0;
     coachingOverlay.classList.remove('is-closing','is-content-exiting','is-content-reveal','is-close-visible');
     coachingOverlay.classList.add('is-open');
+    coachingOverlay.inert=false;
     coachingOverlay.setAttribute('aria-hidden','false');
     document.body.classList.add('coaching-overlay-open');
     coachingRevealTimer=setTimeout(()=>{
       coachingOverlay.classList.add('is-content-reveal','is-close-visible');
       playCoachingEntry();
+      coachingOverlayClose?.focus({preventScroll:true});
       coachingRevealTimer=0;
     },900);
   };
@@ -1572,21 +1586,36 @@
     cursor?.classList.remove('is-close-target');
     coachingOverlay.classList.remove('is-content-reveal','is-close-visible');
     coachingOverlay.classList.add('is-content-exiting');
+    coachingOverlay.inert=true;
+    coachingOverlayClose?.blur();
     coachingOverlay.setAttribute('aria-hidden','true');
     coachingCloseTimer=setTimeout(()=>{
       coachingOverlay.classList.remove('is-content-exiting');
       coachingOverlay.classList.add('is-closing');
       coachingCloseTimer=setTimeout(()=>{
         coachingOverlay.classList.remove('is-open','is-closing','is-content-reveal','is-content-exiting','is-close-visible');
+        coachingOverlay.inert=false;
         document.body.classList.remove('coaching-overlay-open');
+        coachingReviewTrigger?.focus?.({preventScroll:true});
+        coachingReviewTrigger=null;
         coachingCloseTimer=0;
       },900);
     },900);
   };
   postServicesNext?.addEventListener('click',event=>{if(event.target.closest('#openCoachingReviews'))openCoachingOverlay();if(event.target.closest('#openLeadershipReviews'))openCoachingOverlay('leadership')});
+  document.querySelectorAll('[data-open-coaching-reviews]').forEach(trigger=>trigger.addEventListener('click',event=>{event.preventDefault();openCoachingOverlay()}));
   coachingReviewIndex?.addEventListener('click',event=>{const button=event.target.closest('[data-review]');if(!button)return;coachingOverlay.classList.add('is-review-switching');setTimeout(()=>{renderCoachingReview(Number(button.dataset.review));coachingOverlay.classList.remove('is-review-switching')},350)});
   coachingReviewCopy?.addEventListener('click',event=>{const button=event.target.closest('[data-review-part]');if(!button||coachingOverlay.classList.contains('is-part-switching'))return;const nextPart=Number(button.dataset.reviewPart);if(nextPart===activeCoachingReviewPart)return;coachingOverlay.classList.add('is-part-switching');setTimeout(()=>{renderCoachingReview(activeCoachingReview,nextPart);coachingOverlay.scrollTo({top:0,behavior:'smooth'});requestAnimationFrame(()=>coachingOverlay.classList.remove('is-part-switching'))},350)});
   coachingOverlayClose?.addEventListener('click',closeCoachingOverlay);
+  coachingOverlay?.addEventListener('keydown',event=>{
+    if(event.key!=='Tab'||!coachingOverlay.classList.contains('is-open'))return;
+    const focusable=[...coachingOverlay.querySelectorAll('button,[href],[tabindex]:not([tabindex="-1"])')].filter(item=>!item.disabled&&item.offsetParent!==null);
+    if(!focusable.length)return;
+    const first=focusable[0];
+    const last=focusable[focusable.length-1];
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+  });
   addEventListener('keydown',event=>{if(event.key==='Escape'&&coachingOverlay?.classList.contains('is-open'))closeCoachingOverlay()});
 
   /* Support overlay: same curtain-overlay mechanism as case/coaching overlays
@@ -1872,6 +1901,181 @@
     updateNavProgress();
     addEventListener('scroll',updateNavProgress,{passive:true});
     addEventListener('resize',()=>{measureNavRanges();updateNavProgress();},{passive:true});
+  }
+
+  if(document.body.classList.contains('coaching-page')){
+    const coachingHero=document.querySelector('.coaching-page-hero');
+    if(coachingHero&&!reduce){
+      const lineTargets=[...coachingHero.querySelectorAll(
+        '.coaching-page-title, .coaching-page-intro, .coaching-page-credentials h2, .coaching-page-credentials p'
+      )];
+      const cue=coachingHero.querySelector('.coaching-page-scroll-cue');
+      let lineRevealStarted=false;
+      let lineRevealCompleted=false;
+      let lineRevealRun=0;
+      const buildCoachingHeroLines=(animate)=>{
+        const orderedLines=[];
+        cue?.classList.remove('coaching-load-block','coaching-load-block-pending','coaching-load-block-static');
+        lineTargets.forEach(element=>{
+          const words=element.textContent.match(/\S+\s*/g)||[];
+          element.replaceChildren();
+          const measurements=words.map(word=>{
+            const span=document.createElement('span');
+            span.className='coaching-line-measure';
+            span.textContent=word;
+            element.appendChild(span);
+            return span;
+          });
+          const rows=[];
+          measurements.forEach(span=>{
+            const top=Math.round(span.getBoundingClientRect().top);
+            let row=rows[rows.length-1];
+            if(!row||Math.abs(row.top-top)>1){
+              row={top,text:''};
+              rows.push(row);
+            }
+            row.text+=span.textContent;
+          });
+          const lines=rows.map(row=>{
+            const line=document.createElement('span');
+            line.className=animate?'coaching-load-line-pending':'coaching-load-line-static';
+            line.textContent=row.text;
+            orderedLines.push({element:line,top:row.top});
+            return line;
+          });
+          element.replaceChildren(...lines);
+        });
+        if(cue){
+          cue.classList.add(animate?'coaching-load-block-pending':'coaching-load-block-static');
+          orderedLines.push({element:cue,top:Math.round(cue.getBoundingClientRect().top)});
+        }
+        orderedLines.sort((a,b)=>a.top-b.top);
+        orderedLines.forEach((line,index)=>{
+          line.element.style.setProperty('--coaching-line-order',index);
+          if(animate){
+            line.element.classList.replace('coaching-load-line-pending','coaching-load-line');
+            line.element.classList.replace('coaching-load-block-pending','coaching-load-block');
+          }
+        });
+        return animate?orderedLines.map(line=>line.element):[];
+      };
+      const initializeCoachingHeroLines=(forceAnimate=false)=>{
+        requestAnimationFrame(()=>{
+          const animate=forceAnimate||!lineRevealCompleted;
+          coachingHero.classList.toggle('coaching-load-complete',!animate);
+          const animatedLines=buildCoachingHeroLines(animate);
+          lineRevealStarted=true;
+          if(!animate)return;
+
+          const run=++lineRevealRun;
+          let remaining=animatedLines.length;
+          const finish=()=>{
+            if(run!==lineRevealRun)return;
+            lineRevealCompleted=true;
+            coachingHero.classList.add('coaching-load-complete');
+          };
+          if(!remaining){finish();return;}
+          animatedLines.forEach(line=>line.addEventListener('animationend',()=>{
+            if(run===lineRevealRun&&--remaining===0)finish();
+          },{once:true}));
+        });
+      };
+      const coachingFontsReady=document.fonts?.ready;
+      if(coachingFontsReady)coachingFontsReady.then(()=>initializeCoachingHeroLines());
+      else initializeCoachingHeroLines();
+      addEventListener('pageshow',event=>{
+        if(!event.persisted||!lineRevealStarted)return;
+        lineRevealCompleted=false;
+        coachingHero.classList.remove('coaching-load-complete');
+        initializeCoachingHeroLines(true);
+      });
+      addEventListener('resize',()=>{
+        if(!lineRevealStarted)return;
+        initializeCoachingHeroLines();
+      },{passive:true});
+    }
+    const coachingNavLinks=[...document.querySelectorAll('.site-menu a[data-coaching-nav]')].map(link=>({
+      link,
+      fill:link.querySelector('.nav-link-fill'),
+      el:document.querySelector(link.getAttribute('href'))
+    })).filter(item=>item.el&&item.fill);
+    let coachingNavRanges=[];
+    const measureCoachingNavRanges=()=>{
+      coachingNavRanges=coachingNavLinks.map(({el})=>{
+        const top=el.getBoundingClientRect().top+scrollY;
+        const span=Math.max(innerHeight*.72,el.offsetHeight*.86);
+        return {start:Math.max(0,top-innerHeight*.18),end:top+span};
+      });
+    };
+    const updateCoachingNav=()=>{
+      if(isMobileLayout()){
+        coachingNavLinks.forEach(item=>{
+          item.fill.style.clipPath='inset(0 100% 0 0)';
+          item.link.classList.remove('is-nav-active');
+          item.link.removeAttribute('aria-current');
+        });
+        return;
+      }
+      coachingNavLinks.forEach((item,index)=>{
+        const {start,end}=coachingNavRanges[index];
+        const raw=clamp((scrollY-start)/Math.max(1,end-start),0,1);
+        item.fill.style.clipPath=`inset(0 ${(1-raw)*100}% 0 0)`;
+        item.link.classList.toggle('is-nav-active',raw>0&&raw<1);
+        if(raw>0&&raw<1)item.link.setAttribute('aria-current','location');
+        else item.link.removeAttribute('aria-current');
+      });
+    };
+
+    const coachingWipes=[...document.querySelectorAll('.coaching-wipe')];
+    const coachingHeroWipe=document.querySelector('.coaching-page-hero .coaching-wipe');
+    const coachingSectionWipes=coachingWipes.filter(item=>!item.closest('.coaching-page-hero'));
+    const showCoachingWipe=(item)=>{
+      item.style.opacity='1';
+      item.style.clipPath='none';
+      item.style.transform='none';
+    };
+    const updateCoachingWipes=()=>{
+      if(reduce){
+        coachingWipes.forEach(showCoachingWipe);
+        return;
+      }
+
+      /* Keep the hero stable through the first small scroll movement. Its
+         exit is owned by the hero itself, rather than by the section-entry
+         formula used by content farther down the page. */
+      const heroStart=Math.min(64,innerHeight*.08);
+      const heroEnd=Math.max(heroStart+1,innerHeight*.58);
+      const heroProgress=smoothstep(0,1,clamp((scrollY-heroStart)/(heroEnd-heroStart),0,1));
+      if(coachingHeroWipe){
+        coachingHeroWipe.style.opacity=String(1-heroProgress);
+        coachingHeroWipe.style.clipPath=`inset(${heroProgress*100}% 0 0 0)`;
+        coachingHeroWipe.style.transform=`translateY(${-heroProgress*8}px)`;
+      }
+
+      coachingSectionWipes.forEach((item,index)=>{
+        const order=Number(item.dataset.coachingOrder||index);
+        const offset=Math.min(order*.018,.18);
+        const start=innerHeight*(.9-offset);
+        const end=innerHeight*(.28-offset*.35);
+        const progress=smoothstep(0,1,clamp((start-item.getBoundingClientRect().top)/Math.max(1,start-end),0,1));
+        item.style.opacity=String(progress);
+        item.style.clipPath=`inset(0 0 ${(1-progress)*100}% 0)`;
+        item.style.transform=`translateY(${(1-progress)*8}px)`;
+      });
+    };
+    let coachingFrame=0;
+    const scheduleCoachingFrame=()=>{
+      if(coachingFrame)return;
+      coachingFrame=requestAnimationFrame(()=>{
+        coachingFrame=0;
+        updateCoachingNav();
+        updateCoachingWipes();
+      });
+    };
+    if(coachingNavLinks.length)measureCoachingNavRanges();
+    addEventListener('scroll',scheduleCoachingFrame,{passive:true});
+    addEventListener('resize',()=>{measureCoachingNavRanges();scheduleCoachingFrame()},{passive:true});
+    scheduleCoachingFrame();
   }
 
   /* Whole-page scroll progress, top of the document to the very bottom. Runs

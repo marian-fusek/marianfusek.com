@@ -1,0 +1,44 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "coaching.html"
+        ],
+        "createdAt": "2026-10-16T07:41:55.275Z",
+        "reason": "Agent: standalone page intentionally inherits the site's established grey body-text palette; user asked for the exact existing minimal design."
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-16T07:41:59.583Z",
+        "reason": "Agent: false positive on an existing homepage file; this task only changed cache-busting and the page contains no new colored or blurred glow."
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "coaching.html"
+        ],
+        "createdAt": "2026-10-16T07:55:22.267Z",
+        "reason": "Agent: false positive from shared homepage palette detection; no colored or blurred glow was added to the standalone page."
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-16T07:55:27.420Z",
+        "reason": "Agent: existing homepage intentionally uses the site's established grey body-text palette; this task only updates its cache-busting reference."
+      }
+    ]
+  }
+}

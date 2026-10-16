@@ -5,6 +5,493 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* STANDALONE COACHING PAGE */
+.coaching-page {
+  background: var(--bg);
+  --body: #858583;
+  --coaching-hero-top: 25svh;
+  --coaching-hero-bottom: 18px;
+  --coaching-hero-copy-max: 60ch;
+  --coaching-hero-title-max: 18ch;
+  --coaching-hero-intro-size: clamp(18px, 1.2vw, 24px);
+}
+.coaching-page-main {
+  width: 100%;
+  padding: 0 var(--pad);
+}
+.coaching-page .footer-section {
+  margin-top: 0;
+}
+.coaching-page-hero,
+.coaching-page-section {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+}
+.coaching-page-hero {
+  position: relative;
+  height: auto;
+  min-height: 100svh;
+  padding: var(--coaching-hero-top) 0 var(--coaching-hero-bottom);
+  grid-template-rows: minmax(min-content, 1fr) auto;
+  align-content: stretch;
+  align-items: start;
+}
+.coaching-load-line,
+.coaching-load-line-static {
+  display: block;
+}
+.coaching-load-line-pending,
+.coaching-load-block-pending {
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+}
+.coaching-line-measure {
+  display: inline;
+}
+.coaching-load-line,
+.coaching-load-block {
+  opacity: 0;
+  clip-path: inset(0 0 100% 0);
+  animation: coaching-load-line-in 780ms var(--ease) both;
+  animation-delay: calc(var(--coaching-line-order, 0) * 90ms);
+}
+@keyframes coaching-load-line-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+  }
+}
+.coaching-page-hero.coaching-load-complete .coaching-load-line,
+.coaching-page-hero.coaching-load-complete .coaching-load-block {
+  opacity: 1;
+  clip-path: none;
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .coaching-page-hero .coaching-load-line,
+  .coaching-page-hero .coaching-load-block {
+    animation: none;
+    opacity: 1;
+    clip-path: none;
+  }
+}
+.coaching-page-label {
+  grid-column: 1 / span 3;
+  position: sticky;
+  top: calc(var(--nav-h) + 32px);
+  margin: 0;
+  color: var(--body);
+  font-size: var(--type-3);
+  line-height: 1.2;
+}
+.coaching-page-hero-copy {
+  grid-column: 4 / -1;
+  grid-row: 1;
+  justify-self: start;
+  align-self: start;
+  width: 100%;
+  max-width: none;
+}
+.coaching-page-title {
+  width: 100%;
+  max-width: var(--coaching-hero-title-max);
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(42px, 5.4vw, 96px);
+  font-weight: var(--weight-regular);
+  line-height: 0.96;
+  letter-spacing: -0.055em !important;
+  text-align: left;
+  text-wrap: balance;
+}
+.coaching-page-intro {
+  width: 100%;
+  max-width: var(--coaching-hero-copy-max);
+  margin: 5vh 0 0;
+  color: var(--body);
+  font: var(--weight-regular) var(--coaching-hero-intro-size) / 1.2 var(--font-family), sans-serif;
+  letter-spacing: normal !important;
+  text-align: left;
+  text-wrap: pretty;
+}
+.coaching-page-credentials {
+  grid-column: 2 / -1;
+  grid-row: 2;
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+  width: 100%;
+  margin: 0;
+}
+.coaching-page-credentials > :first-child {
+  grid-column: 3 / span 4;
+}
+.coaching-page-credentials > :last-child {
+  grid-column: 9 / span 3;
+}
+.coaching-page-credentials h2 {
+  margin: 0 0 2px;
+  color: var(--ink);
+  font: var(--weight-black-text) var(--type-project-title) / 20px var(--font-family), sans-serif;
+  letter-spacing: normal;
+}
+.coaching-page-credentials p {
+  margin: 0;
+  color: var(--body);
+  font: var(--weight-regular) var(--type-project-title) / 20px var(--font-family), sans-serif;
+  letter-spacing: normal;
+}
+.coaching-page-scroll-cue {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  bottom: 18px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  width: fit-content;
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--type-3);
+  line-height: 1.2;
+  text-decoration: none;
+}
+.coaching-page-scroll-cue span:first-child {
+  color: var(--body);
+  font-size: 18px;
+  transition: transform 0.35s var(--ease);
+}
+.coaching-page-scroll-cue:hover span:first-child {
+  transform: translateY(4px);
+}
+.coaching-page-section {
+  min-height: 78svh;
+  padding: 13vh 0;
+  border-top: 1px solid var(--line);
+  align-items: start;
+  scroll-margin-top: calc(var(--nav-h) + 16px);
+}
+.coaching-page-content {
+  grid-column: 4 / -1;
+  max-width: none;
+}
+.coaching-page-content h2 {
+  max-width: 24ch;
+  margin: 0 0 40px;
+  color: var(--ink);
+  font: var(--weight-black-text) clamp(36px, 3.4vw, 72px) / 1 var(--font-family), sans-serif;
+  letter-spacing: normal !important;
+  text-wrap: balance;
+}
+.coaching-page-content > p {
+  max-width: 68ch;
+  margin: 0 0 24px;
+  color: var(--body);
+  font: var(--weight-regular) var(--type-project-title) / 20px var(--font-family), sans-serif;
+  letter-spacing: normal !important;
+}
+.coaching-page-content > p:last-of-type {
+  margin-bottom: 0;
+}
+.coaching-questions-title {
+  margin: 64px 0 28px;
+  color: var(--ink);
+  font: var(--weight-black-text) clamp(26px, 2.4vw, 48px) / 1 var(--font-family), sans-serif;
+  letter-spacing: normal !important;
+}
+.coaching-questions {
+  max-width: 68ch;
+  margin: 0;
+  padding-left: 2em;
+  color: var(--body);
+  font: var(--weight-regular) var(--type-project-title) / 20px var(--font-family), sans-serif;
+}
+.coaching-questions li {
+  padding-left: 0.35em;
+}
+.coaching-questions li + li {
+  margin-top: 16px;
+}
+.coaching-questions li::marker {
+  color: var(--ink);
+}
+.coaching-page-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(24px, 2.5vw, 40px);
+  max-width: calc((var(--grid-column) * 8) + (var(--grid-gap) * 7));
+  margin-top: 3vh;
+}
+.coaching-page-two-column h3,
+.coaching-package-heading h3 {
+  margin: 0 0 18px;
+  color: var(--ink);
+  font-size: var(--type-3);
+  font-weight: var(--weight-3b);
+  line-height: 1.2;
+}
+.coaching-page-two-column ul {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.coaching-page-two-column li {
+  position: relative;
+  padding-left: 28px;
+  color: var(--body);
+  font-size: var(--type-project-body);
+  line-height: 1.25;
+}
+.coaching-page-two-column li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+.coaching-page-section--soft {
+  min-height: 66svh;
+}
+.coaching-page-section--packages {
+  min-height: auto;
+}
+.coaching-packages-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  margin-top: 10vh;
+}
+.coaching-package {
+  min-height: 260px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.coaching-package-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 42px;
+}
+.coaching-package-heading .coaching-package-number {
+  margin: 0 0 18px;
+  color: var(--body);
+  font-size: var(--type-3);
+  line-height: 1.2;
+}
+.coaching-package-heading h3 {
+  margin: 0;
+  white-space: nowrap;
+  font-size: var(--type-project-title);
+  font-weight: var(--weight-3b);
+  letter-spacing: 0.03em !important;
+}
+.coaching-package-heading p {
+  margin: 0;
+  color: var(--body);
+  font-size: var(--type-3);
+  line-height: 1.2;
+}
+.coaching-package-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.coaching-package-examples li {
+  position: relative;
+  max-width: 28ch;
+  padding-left: 28px;
+  margin: 0;
+  color: var(--body);
+  font-size: var(--type-project-body);
+  line-height: 1.25;
+}
+.coaching-package-examples li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+.coaching-page-section--voices {
+  min-height: auto;
+  overflow: visible;
+}
+.coaching-page-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 36px;
+  padding: 0;
+  color: var(--ink);
+  font-size: var(--type-project-body);
+  line-height: 1.25;
+  text-decoration: none;
+  transition: color 0.25s var(--ease);
+}
+.coaching-page-link span:last-child {
+  transition: transform 0.35s var(--ease);
+}
+.coaching-page-link:hover {
+  color: var(--body);
+}
+.coaching-page-link:hover span:last-child {
+  transform: translateX(5px);
+}
+.coaching-feedback-examples {
+  grid-column: 4 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: start;
+  column-gap: var(--grid-gap);
+  margin-top: 52px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  overflow: visible;
+}
+.coaching-feedback-column {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 36px;
+}
+.coaching-feedback-example {
+  max-width: 36ch;
+  margin: 0;
+  color: var(--ink) !important;
+  font: var(--weight-regular) var(--type-project-body) / 1.3 var(--font-family), sans-serif !important;
+}
+.coaching-feedback-example p {
+  margin: 0;
+}
+.coaching-feedback-example cite {
+  display: block;
+  margin-top: 12px;
+  color: var(--ink);
+  font-size: var(--type-3);
+  font-weight: var(--weight-3b);
+  font-style: normal;
+  line-height: 1.2;
+}
+.coaching-feedback-example cite span {
+  display: block;
+}
+.coaching-feedback-example cite span:first-child {
+  color: var(--ink);
+}
+.coaching-feedback-example .coaching-feedback-position {
+  margin-top: 4px;
+  color: var(--body);
+  font-weight: var(--weight-regular);
+}
+.coaching-wipe {
+  will-change: opacity, clip-path, transform;
+}
+
+@media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
+  .coaching-page-main {
+    padding: 0 var(--pad);
+  }
+  .coaching-page-hero,
+  .coaching-page-section {
+    display: block;
+  }
+  .coaching-page-hero {
+    height: auto;
+    min-height: 100svh;
+    padding: calc(var(--nav-h) + 12vh) 0 12vh;
+  }
+  .coaching-page-hero-copy {
+    width: 100%;
+    max-width: none;
+  }
+  .coaching-page-label {
+    position: static;
+    margin-bottom: 18vh;
+  }
+  .coaching-page-title {
+    max-width: 14ch;
+    font-size: clamp(38px, 10vw, 58px);
+    line-height: 0.94;
+  }
+  .coaching-page-intro {
+    max-width: 34ch;
+    margin-top: 8vh;
+    font-size: 18px;
+  }
+  .coaching-page-credentials {
+    position: static;
+    z-index: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 10vh;
+  }
+  .coaching-page-credentials > :first-child,
+  .coaching-page-credentials > :last-child {
+    grid-column: auto;
+  }
+  .coaching-page-scroll-cue {
+    bottom: 22px;
+  }
+  .coaching-page-section {
+    min-height: auto;
+    padding: 12vh 0 16vh;
+  }
+  .coaching-page-content {
+    max-width: none;
+  }
+  .coaching-page-content h2 {
+    max-width: 24ch;
+    margin-bottom: 32px;
+    font: var(--weight-black-text) clamp(30px, 8.5vw, 48px) / 1 var(--font-family), sans-serif;
+    letter-spacing: normal !important;
+  }
+  .coaching-page-content > p {
+    max-width: 34ch;
+    font: var(--weight-regular) var(--type-project-title) / 20px var(--font-family), sans-serif;
+  }
+  .coaching-page-two-column,
+  .coaching-packages-list {
+    grid-template-columns: 1fr;
+    max-width: none;
+    gap: 56px;
+    margin-top: 6vh;
+  }
+  .coaching-package {
+    min-height: 0;
+    padding-top: 14px;
+  }
+  .coaching-package-heading {
+    margin-bottom: 28px;
+  }
+  .coaching-package-heading h3 {
+    white-space: normal;
+  }
+  .coaching-package-examples li {
+    max-width: 32ch;
+  }
+  .coaching-feedback-examples {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 40px;
+  }
+  .coaching-feedback-column {
+    gap: 32px;
+  }
+  .coaching-feedback-example {
+    max-width: 30ch;
+  }
+}
 @font-face {
   font-family: "Nollie Oracle";
   src: url("fonts/NollieOracle-Thin.woff2") format("woff2");
@@ -3478,6 +3965,13 @@ body.is-curtain-active .site-nav {
   }
 }
 
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
 @media (max-width: 900px), ((pointer: coarse) and (hover: none) and (orientation: portrait)) {
   :root {
     --pad: clamp(16px, 4.6vw, 22px);
@@ -3513,12 +4007,6 @@ body.is-curtain-active .site-nav {
   button,
   [role="button"] {
     cursor: pointer !important;
-  }
-  a:focus-visible,
-  button:focus-visible,
-  [role="button"]:focus-visible {
-    outline: 1px solid var(--ink);
-    outline-offset: 4px;
   }
   body.is-nav-open,
   body.case-overlay-open {

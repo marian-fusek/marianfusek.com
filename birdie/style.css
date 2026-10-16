@@ -116,13 +116,13 @@ a {
   position: absolute;
   z-index: 2;
   left: clamp(26px, 4vw, 56px);
-  bottom: clamp(30px, 5vw, 68px);
+  bottom: clamp(52px, 7vw, 96px);
   max-width: 490px;
 }
 
 .hero-copy h1 {
   max-width: 470px;
-  margin: 0 0 10px;
+  margin: 0 0 clamp(18px, 1.8vw, 28px);
   font-size: clamp(28px, 3.65vw, 54px);
   font-weight: 400;
   letter-spacing: -0.04em;
@@ -486,7 +486,7 @@ mark {
 
   .hero-copy {
     right: 22px;
-    bottom: 27px;
+    bottom: 40px;
     left: 22px;
   }
 

@@ -183,19 +183,21 @@ a {
 }
 
 mark {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 1px 4px;
-  border-radius: 7px;
+  display: inline;
+  margin-right: 0.16em;
+  padding: 0.08em 0.14em 0.08em 0.28em;
+  border-radius: 0.45em;
   background: var(--yellow);
   color: var(--ink);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 .tap-icon {
+  display: inline-block;
   width: 1.05em;
   height: 1.05em;
-  flex: 0 0 auto;
+  margin-right: 0.12em;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;

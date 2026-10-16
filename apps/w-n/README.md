@@ -18,7 +18,7 @@ Private two-person NFL fantasy web app.
 - 9-player starting roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, with an optional 6-slot bench controlled in League settings
 - One player cannot belong to both teams
 - Drop and replace players
-- Kickoff-aware additions from the free schedule feed, with stats-feed fallback; already-rostered players remain editable until the week is complete
+- Kickoff-aware game labels from the free schedule feed, with stats-feed fallback; every player remains addable, movable, replaceable, and droppable until the week is complete
 - Live game labels such as `LIVE · Q3 08:21` when the schedule feed provides them
 - Move owned players between eligible lineup and bench slots when the bench setting is enabled, including safe swaps
 - Weekly PPR scoring
@@ -136,7 +136,7 @@ Completed weekly results are saved only when the selected schedule is fully fina
 
 When the League view opens, the app also checks previously saved `0–0` rows and quietly re-fetches those specific completed weeks so an outage-created placeholder can be corrected without reloading every week in the season.
 
-Kickoff status controls new additions: a player cannot be added after that player's NFL game has started, including before the first stat is recorded. Already-rostered players can still be moved, dropped, or replaced until the week is complete. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
+Kickoff status is informational during an open week: any player can be added, moved, dropped, or replaced even after that player's NFL game begins. A completed week remains read-only. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
 
 Each week keeps its own lineup snapshot, so moving between weeks does not overwrite another week's choices. When every game in a selected week is final, that week's lineup and starter totals become read-only. A later official stat correction updates the saved score instead of creating a second result.
 

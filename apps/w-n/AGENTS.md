@@ -53,8 +53,8 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Preserve a separate lineup snapshot for every week. Switching weeks must restore that week’s snapshot instead of sharing one mutable roster across the season.
 - Once a week is complete or has a saved result, treat that week as read-only: no add, drop, replace, or lineup move, while later weeks remain editable.
 - Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; every enabled bench slot accepts any supported fantasy position.
-- Use kickoff status to prevent adding a new player after that player's real NFL game begins, but keep already-rostered players editable until the week is complete. An owner may still move, drop, or replace an already-played player; this is intentional for the manual weekly redraft.
-- Once an occupied roster slot is being replaced, the existing player's kickoff status must not block the replacement. The incoming player still has to be eligible and addable.
+- Use kickoff status as informational context only during an open week. Any player may be added, moved, dropped, or replaced after their game begins; this is intentional for the manual weekly redraft. A completed week remains read-only.
+- Do not reintroduce a kickoff-based roster-action block. The only roster lock is a fully completed week.
 - A completed week remains read-only. Preserve the per-player game status and the distinction between an already-rostered player and a new addition.
 - Keep Week 1–18 navigation, matchup totals, winner/lead state, weekly results, and the ability to reflect official stat corrections.
 

@@ -11,5 +11,11 @@ test('safe storage reports a successful cache write', () => {
 
 test('safe storage absorbs quota failures without aborting refresh', () => {
   const storage = {setItem(){ throw new Error('QuotaExceededError'); }};
-  assert.equal(setItemSafe(storage, 'projections', 'too-large'), false);
+  const originalWarn = console.warn;
+  console.warn = () => {};
+  try {
+    assert.equal(setItemSafe(storage, 'projections', 'too-large'), false);
+  } finally {
+    console.warn = originalWarn;
+  }
 });

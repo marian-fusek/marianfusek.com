@@ -13,6 +13,7 @@ const WEEK_NAV = window.WN_WEEK_NAV;
 const WEEK_LOCK = window.WN_WEEK_LOCK;
 const RESULT_READINESS = window.WN_RESULT_READINESS;
 const SAFE_STORAGE = window.WN_SAFE_STORAGE;
+const ROSTER_POLICY = window.WN_ROSTER_POLICY;
 const REFRESH_HELPERS = window.WN_REFRESH_HELPERS;
 const FEED_TIMEOUT_MS = 12_000;
 
@@ -811,15 +812,6 @@ function seasonRecord(teamId){
   }
   return summary;
 }
-function isLocked(id){
-  if (!id) return false;
-  const player = players.find(p => p.id === id);
-  const scheduleLock = gameStatusForPlayer(player).locked;
-  if (!scheduleUnavailable && player && gameForTeam(player.team)) return scheduleLock;
-  const s = getStat(id);
-  return Boolean(s.game_id || s.gp || s.pass_att || s.rush_att || s.rec || s.snap || s.pts_ppr);
-}
-
 function setBootState(message, visible){
   const el=$('#bootMessage');
   if(!el) return;
@@ -1015,7 +1007,7 @@ function setupGuideCard(){
       ? 'The shared settings are present, but the connection needs attention. Check the sync dot above before drafting.'
       : 'This copy is local-only until Supabase is configured. Two laptops will otherwise create two perfectly independent realities.';
   const setupInstructions=syncReady ? '' : `<div class="sync-setup"><div><div class="eyebrow">One-time connection</div><strong>Make both laptops share one league</strong><span>Supabase stores the league state. It does not host this website, and it does not need your fantasy life story.</span></div><ol class="sync-steps"><li>Create a free Supabase project.</li><li>Run <code>supabase.sql</code> in SQL Editor.</li><li>Paste the Project URL and publishable key into <code>config.js</code>.</li><li>Deploy this folder and open the same URL on both laptops.</li></ol><a class="guide-link" href="https://supabase.com/dashboard" target="_blank" rel="noreferrer">Open Supabase ↗</a></div>`;
-  return `<section class="setup-card guide-card"><div class="guide-head"><div><div class="eyebrow">Start here</div><h2>Weekly redraft setup</h2></div><span class="setup-badge ${syncClass}">${syncLabel}</span></div><p class="guide-intro">${syncIntro}</p>${setupInstructions}<ol class="guide-steps"><li><strong>Open the same public URL</strong><span>Both of you use the deployed site, not separate downloaded copies. Browsers enjoy making this sound more complicated than it is.</span></li><li><strong>Name your teams</strong><span>Set the two team names once, save them, and add logos only if the league deserves branding.</span></li><li><strong>Redraft from Players</strong><span>At the start of each week, search players, drop or replace as needed, and ${rosterPlan}. There is no draft-room engine or commissioner ceremony—just two adults making increasingly confident decisions.</span></li><li><strong>Set the weekly lineup</strong><span>${lineupPlan} Each week keeps its own roster snapshot, and bench players do not score.</span></li><li><strong>Check Matchup throughout the week</strong><span>Review both rosters, projections, and player game status. New additions close at kickoff, but players already on a team can still be moved, dropped, or replaced until the week is complete.</span></li></ol><p class="guide-note">Redraft both teams together at the start of each week, then use Matchup as the weekly scoreboard. No login is used by design, so keep the public link between the two of you.</p></section>`;
+  return `<section class="setup-card guide-card"><div class="guide-head"><div><div class="eyebrow">Start here</div><h2>Weekly redraft setup</h2></div><span class="setup-badge ${syncClass}">${syncLabel}</span></div><p class="guide-intro">${syncIntro}</p>${setupInstructions}<ol class="guide-steps"><li><strong>Open the same public URL</strong><span>Both of you use the deployed site, not separate downloaded copies. Browsers enjoy making this sound more complicated than it is.</span></li><li><strong>Name your teams</strong><span>Set the two team names once, save them, and add logos only if the league deserves branding.</span></li><li><strong>Redraft from Players</strong><span>At the start of each week, search players, drop or replace as needed, and ${rosterPlan}. There is no draft-room engine or commissioner ceremony—just two adults making increasingly confident decisions.</span></li><li><strong>Set the weekly lineup</strong><span>${lineupPlan} Each week keeps its own roster snapshot, and bench players do not score.</span></li><li><strong>Check Matchup throughout the week</strong><span>Review both rosters, projections, and player game status. In an open week, any player can be added, dropped, replaced, or moved, even after their game has started.</span></li></ol><p class="guide-note">Redraft both teams together at the start of each week, then use Matchup as the weekly scoreboard. No login is used by design, so keep the public link between the two of you.</p></section>`;
 }
 
 function seasonCard(){
@@ -1048,9 +1040,9 @@ function openPlayer(id){
   d.showModal();
 }
 function assignmentButtons(p,owner){
-  if(weekRosterLocked()) return '<div class="dialog-note">Week complete · lineup changes are locked</div>';
+  const weekComplete=weekRosterLocked();
+  if(!ROSTER_POLICY.canChangeRoster({weekComplete})) return '<div class="dialog-note">Week complete · lineup changes are locked</div>';
   if(owner) return `<button class="primary" data-move="${p.id}">Move player</button><button class="danger" data-drop="${p.id}">Drop player</button>`;
-  if(isLocked(p.id)) return `<div class="dialog-note">${esc(`${gameLabelForPlayer(p)} · cannot add after kickoff`)}</div>`;
   return state.teams.map(t=>`<button class="primary" data-assign="${t.id}">Add to ${esc(t.name)}</button>`).join('');
 }
 

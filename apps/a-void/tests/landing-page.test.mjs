@@ -67,7 +67,7 @@ test('uses one launch state for every App Store call to action', async () => {
 
   assert.equal((html.match(/data-app-store/g) ?? []).length, 3);
   assert.match(script, /appStoreURL: "https:\/\/apps\.apple\.com\/us\/app\/a-void\/id6804468353"/);
-  assert.match(html, /styles\.css\?v=hero-download-10/);
+  assert.match(html, /styles\.css\?v=mobile-layout-11/);
   assert.match(html, /script\.js\?v=live-search-8/);
   assert.match(script, /const isAppStoreLive = Boolean\(CONFIG\.appStoreURL\);/);
   assert.match(script, /aria-disabled/);
@@ -120,7 +120,7 @@ test('uses one calm headline scale and shared label rhythm', async () => {
 
   assert.match(css, /font-size:clamp\(40px,4\.4vw,64px\)/);
   assert.match(css, /\.product-copy \.eyebrow,[^}]*\.final-copy \.eyebrow\{margin:0 0 54px\}/);
-  assert.match(html, /styles\.css\?v=hero-download-10/);
+  assert.match(html, /styles\.css\?v=mobile-layout-11/);
   assert.match(html, /script\.js\?v=live-search-8/);
 });
 

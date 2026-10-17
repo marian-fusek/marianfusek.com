@@ -26,7 +26,7 @@ try {
       };
       return {
         scrollWidth: document.documentElement.scrollWidth,
-        ring: box('.void-stage'), copy: box('.hero-copy'),
+        ring: box('.void-stage'), heroCanvas: box('.void-orb-canvas'), copy: box('.hero-copy'),
         bottomRing: box('.final-orb-canvas'), bottomCopy: box('.final-copy'),
         pairs: [...document.querySelectorAll('h2+p')].map(p => {
           const head = p.previousElementSibling.getBoundingClientRect();
@@ -36,6 +36,12 @@ try {
       };
     });
     assert.equal(layout.scrollWidth, width, `${width}px: page must not overflow horizontally`);
+    if (width > 900) {
+      assert.ok(layout.heroCanvas.width >= layout.ring.width*1.19, 'Desktop hero ring must gain breathing room without scaling the copy');
+      assert.ok(Math.abs(layout.heroCanvas.x+layout.heroCanvas.width/2-width/2)<1, 'Desktop hero ring must stay centered');
+      assert.ok(layout.bottomRing.width>=983, 'Desktop bottom ring must gain breathing room');
+      assert.equal(layout.copy.width,510,'Desktop text measure must remain unchanged');
+    }
     if (width <= 560) {
       for (const [name, ring] of [['hero', layout.ring], ['bottom', layout.bottomRing]]) {
         assert.ok(ring.width >= Math.max(width*1.5, 540)-1, `${width}px: ${name} ring must surround the copy`);

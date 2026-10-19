@@ -20,7 +20,8 @@
   <link rel="apple-touch-icon" sizes="512x512" type="image/png" href="/favicon/favicon.png">
   <link rel="manifest" href="/site.webmanifest">
   <link rel="icon" type="image/png" href="favicon/favicon.png">
-  <link rel="stylesheet" href="./style.css?v=776">
+  <link rel="stylesheet" href="./style.css?v=800">
+  <link rel="stylesheet" href="./fluid-glass.bundle.css?v=6">
 </head>
 <body class="coaching-page">
   <div class="scroll-progress" id="scrollProgress" aria-hidden="true"><span class="scroll-progress-fill"></span></div>
@@ -43,8 +44,10 @@
   <main class="coaching-page-main">
     <section class="coaching-page-hero" id="coaching-top" aria-labelledby="coaching-page-title">
       <div class="coaching-page-hero-copy coaching-wipe" data-coaching-order="1">
-        <h1 class="coaching-page-title" id="coaching-page-title">I coach the people who make creative work happen — and the people responsible for it.</h1>
-        <p class="coaching-page-intro">Most of us spend years learning how to perform. Coaching is time spent learning what is actually true for you. I ask the questions you might rather avoid, until your own answer gets harder to ignore.</p>
+        <div class="coaching-page-title" id="coaching-page-title" role="heading" aria-level="1">
+          <span class="coaching-fluid-glass-copy" data-fluid-glass-copy="title">I coach the people who make creative work happen — and the people responsible for it.</span>
+        </div>
+        <p class="coaching-page-intro">Designer first, executive later. I coach from having done both.</p>
       </div>
       <div class="coaching-page-credentials" aria-label="Coaching experience and accreditation">
         <div>
@@ -56,7 +59,32 @@
           <p>ICF (ACSTH) &amp; EMCC</p>
         </div>
       </div>
-      <a class="coaching-page-scroll-cue" href="#coaching-for"><span aria-hidden="true">↓</span><span>What this is</span></a>
+      <a class="coaching-page-scroll-cue" href="#coaching-statement"><span aria-hidden="true">↓</span><span>What this is</span></a>
+    </section>
+
+    <section class="coaching-page-section coaching-page-section--statement" id="coaching-statement" aria-labelledby="coaching-about-title">
+      <p class="coaching-page-label coaching-wipe" data-coaching-order="2" id="coaching-about-title">About coaching</p>
+      <div class="coaching-page-statement coaching-wipe" data-coaching-order="2">
+        <p class="coaching-page-statement-copy coaching-fluid-glass-copy">Most of us spend years learning how to perform. Coaching is time spent learning what is actually true for you. I ask the questions you might rather avoid, until your own answer gets harder to ignore.</p>
+        <div class="coaching-page-two-column coaching-definition-groups">
+          <div class="coaching-definition-group" role="group" aria-labelledby="coaching-definition-is-title">
+            <h2 class="coaching-definition-heading" id="coaching-definition-is-title">What it is</h2>
+            <ul class="coaching-page-principles" aria-label="What coaching offers">
+              <li class="coaching-page-principle"><strong>Partnership:</strong> A shared process to explore what matters and decide what comes next, with shared intent.</li>
+              <li class="coaching-page-principle"><strong>Fresh perspective:</strong> Questions that challenge familiar thinking and reveal new options you hadn’t seen.</li>
+              <li class="coaching-page-principle"><strong>Your own progress:</strong> Build on your strengths to move toward goals that matter to you in everyday life.</li>
+            </ul>
+          </div>
+          <div class="coaching-definition-group" role="group" aria-labelledby="coaching-definition-isnt-title">
+            <h2 class="coaching-definition-heading" id="coaching-definition-isnt-title">What it isn’t</h2>
+            <ul class="coaching-page-principles" aria-label="What coaching is not">
+              <li class="coaching-page-principle"><strong>Not mentoring:</strong> I won’t prescribe a path based on my experience; we work from yours, with you leading.</li>
+              <li class="coaching-page-principle"><strong>Not consulting:</strong> I won’t hand you a ready-made fix; we clarify your next step together in each conversation.</li>
+              <li class="coaching-page-principle"><strong>Not therapy:</strong> Coaching looks ahead and supports action; it isn’t mental-health treatment or formal diagnosis.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="coaching-page-section" id="coaching-for" aria-labelledby="coaching-for-title">
@@ -72,6 +100,7 @@
               <li>Work that has lost its shape</li>
               <li>Burnout, self-doubt or low energy</li>
               <li>A role that grew faster than you did</li>
+              <li>Pressure to prove yourself</li>
             </ul>
           </div>
           <div>
@@ -81,6 +110,7 @@
               <li>A conversation you need to have</li>
               <li>The confidence to be more visible</li>
               <li>A plan for what comes next</li>
+              <li>What “enough” looks like on your terms</li>
             </ul>
           </div>
         </div>
@@ -160,6 +190,7 @@
         </div>
         <div class="coaching-on-call" role="group" aria-label="Optional coaching add-on">
           <div class="coaching-on-call-heading">
+            <p class="coaching-package-number" aria-hidden="true">✻</p>
             <h3>COACH ON CALL</h3>
             <p>MONTHLY ADD-ON TO ANY FORMAT</p>
           </div>
@@ -211,6 +242,10 @@
     </section>
   </main>
 
+  <div class="coaching-fluid-glass-stage" data-fluid-glass-stage data-active="true" aria-hidden="true">
+    <div data-fluid-glass-mount></div>
+  </div>
+
   <aside class="coaching-overlay curtain-overlay" id="coachingOverlay" role="dialog" aria-modal="true" aria-label="Client feedback" aria-hidden="true" inert>
     <header class="coaching-overlay-nav"><span>MF</span><button id="coachingOverlayClose" type="button" aria-label="Close coaching reviews">×</button></header>
     <div class="coaching-overlay-rule" aria-hidden="true"></div>
@@ -234,6 +269,7 @@
     <span class="layout-grid-column" data-column="A"></span><span class="layout-grid-column" data-column="B"></span><span class="layout-grid-column" data-column="C"></span><span class="layout-grid-column" data-column="D"></span><span class="layout-grid-column" data-column="E"></span><span class="layout-grid-column" data-column="F"></span><span class="layout-grid-column" data-column="G"></span><span class="layout-grid-column" data-column="H"></span><span class="layout-grid-column" data-column="I"></span><span class="layout-grid-column" data-column="J"></span><span class="layout-grid-column" data-column="K"></span><span class="layout-grid-column" data-column="L"></span>
   </div>
 
-  <script src="./script.js?v=582"></script>
+  <script src="./script.js?v=589"></script>
+  <script src="./fluid-glass.bundle.js?v=24"></script>
 </body>
 </html>

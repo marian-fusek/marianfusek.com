@@ -1907,7 +1907,7 @@
     const coachingHero=document.querySelector('.coaching-page-hero');
     if(coachingHero&&!reduce){
       const lineTargets=[...coachingHero.querySelectorAll(
-        '.coaching-page-title, .coaching-page-intro, .coaching-page-credentials h2, .coaching-page-credentials p'
+        '.coaching-page-credentials h2, .coaching-page-credentials p'
       )];
       const cue=coachingHero.querySelector('.coaching-page-scroll-cue');
       let lineRevealStarted=false;
@@ -2029,12 +2029,23 @@
     const coachingWipes=[...document.querySelectorAll('.coaching-wipe')];
     const coachingHeroWipe=document.querySelector('.coaching-page-hero .coaching-wipe');
     const coachingSectionWipes=coachingWipes.filter(item=>!item.closest('.coaching-page-hero'));
+    const coachingPrismStage=document.querySelector('[data-fluid-glass-stage]');
+    const coachingHeroSection=document.querySelector('#coaching-top');
     const showCoachingWipe=(item)=>{
       item.style.opacity='1';
       item.style.clipPath='none';
       item.style.transform='none';
     };
     const updateCoachingWipes=()=>{
+      if(coachingPrismStage&&coachingHeroSection){
+        const heroBottom=coachingHeroSection.getBoundingClientRect().bottom;
+        const fadeStart=innerHeight*.92;
+        const fadeEnd=innerHeight*.22;
+        const fadeProgress=smoothstep(0,1,clamp((fadeStart-heroBottom)/Math.max(1,fadeStart-fadeEnd),0,1));
+        coachingPrismStage.style.opacity=String(1-fadeProgress);
+        const prismActive=fadeProgress<1;
+        if(coachingPrismStage.dataset.active!==String(prismActive))coachingPrismStage.dataset.active=String(prismActive);
+      }
       if(reduce){
         coachingWipes.forEach(showCoachingWipe);
         return;
@@ -2058,8 +2069,9 @@
         const start=innerHeight*(.9-offset);
         const end=innerHeight*(.28-offset*.35);
         const progress=smoothstep(0,1,clamp((start-item.getBoundingClientRect().top)/Math.max(1,start-end),0,1));
-        item.style.opacity=String(progress);
-        item.style.clipPath=`inset(0 0 ${(1-progress)*100}% 0)`;
+        const opacity=item.matches('.coaching-page-statement')?1:progress;
+        item.style.opacity=String(opacity);
+        item.style.clipPath=item.matches('.coaching-page-statement')?'none':`inset(0 0 ${(1-progress)*100}% 0)`;
         item.style.transform=`translateY(${(1-progress)*8}px)`;
       });
     };

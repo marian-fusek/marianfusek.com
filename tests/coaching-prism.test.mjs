@@ -3,20 +3,21 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const html = await readFile(new URL('../coaching.html', import.meta.url), 'utf8');
-const intro = 'Most of us spend years learning how to perform. Coaching is time spent learning what is actually true for you. I ask the questions you might rather avoid, until your own answer gets harder to ignore.';
+const intro = 'I ask the questions you might avoid, so you can hear what’s true for you and decide what to do next.';
 const section = id => html.match(new RegExp(`<section\\b[^>]*id="${id}"[^>]*>[\\s\\S]*?<\\/section>`))?.[0] ?? '';
 
-test('the coaching statement follows the hero and precedes who this is for', () => {
+test('the coaching story follows the hero and keeps its three chapters in order', () => {
   const heroStart = html.indexOf('id="coaching-top"');
-  const statementStart = html.indexOf('id="coaching-statement"');
-  const audienceStart = html.indexOf('id="coaching-for"');
+  const statementStart = html.indexOf('id="coaching2-step-about"');
+  const audienceStart = html.indexOf('id="coaching2-step-audience"');
+  const approachStart = html.indexOf('id="coaching2-step-approach"');
 
-  assert.ok(heroStart >= 0 && statementStart > heroStart && audienceStart > statementStart);
+  assert.ok(heroStart >= 0 && statementStart > heroStart && audienceStart > statementStart && approachStart > audienceStart);
 });
 
 test('the exact intro appears once in its own section and not in the hero', () => {
   const hero = section('coaching-top');
-  const statement = section('coaching-statement');
+  const statement = section('coaching2-story');
 
   assert.ok(statement.includes(intro));
   assert.equal(html.split(intro).length - 1, 1);
@@ -26,7 +27,7 @@ test('the exact intro appears once in its own section and not in the hero', () =
 test('one fullscreen prism stage is reserved for the hero title', () => {
   const copies = [...html.matchAll(/class="[^"]*\bcoaching-fluid-glass-copy\b[^"]*"/g)];
 
-  assert.equal(copies.length, 2, 'both text blocks should remain available as source copy');
+  assert.equal(copies.length, 1, 'only the hero title supplies prism text');
   assert.equal([...html.matchAll(/data-fluid-glass-stage/g)].length, 1, 'one shared prism layer should cover the hero');
   assert.equal([...html.matchAll(/data-fluid-glass-mount/g)].length, 1, 'one shared FluidGlass instance should span the page');
   assert.match(html, /id="coaching-page-title"[^>]*role="heading"/);
@@ -90,7 +91,7 @@ test('one FluidGlass instance measures only the title for its text texture', asy
   const entry = await readFile(new URL('../fluid-glass-entry.jsx', import.meta.url), 'utf8');
 
   assert.match(section('coaching-top'), /data-fluid-glass-copy="title"/);
-  assert.doesNotMatch(section('coaching-statement'), /data-fluid-glass-copy/);
+  assert.doesNotMatch(section('coaching2-story'), /data-fluid-glass-copy/);
   assert.match(entry, /querySelectorAll\('\[data-fluid-glass-copy\]'\)/);
   assert.match(entry, /textLayers=\{textLayers\}/);
   assert.match(entry, /copy\.getBoundingClientRect\(\)/);
@@ -103,7 +104,8 @@ test('one FluidGlass instance measures only the title for its text texture', asy
 test('the statement uses the coaching grid width instead of collapsing into one track', async () => {
   const styles = await readFile(new URL('../style.css', import.meta.url), 'utf8');
 
-  assert.match(styles, /\.coaching-page-statement\s*\{[^}]*grid-column:\s*4\s*\/\s*-1/s);
+  assert.match(styles, /\.coaching2-step-content\s*\{[^}]*grid-template-columns:\s*repeat\(12,/s);
+  assert.match(styles, /\.coaching2-step-content > \*\s*\{[^}]*grid-column:\s*4\s*\/\s*-1/s);
 });
 
 test('the canvas remeasures the title throughout its entrance animation', async () => {
@@ -160,11 +162,11 @@ test('the shared prism canvas stays transparent outside the prism footprint', as
   assert.match(entry, /background="#f7f5f2"/);
 });
 
-test('hero credentials remain anchored in the hero and the scroll cue advances to the statement', () => {
+test('hero credentials remain anchored in the hero and the scroll cue advances to the story', () => {
   const hero = section('coaching-top');
 
   assert.match(hero, /class="coaching-page-credentials"/);
-  assert.match(hero, /href="#coaching-statement"/);
+  assert.match(hero, /href="#coaching2-story"/);
 });
 
 test('the coaching page mounts the official FluidGlass component instead of the custom port', async () => {
@@ -224,25 +226,25 @@ test('FluidGlass mounts without allocating disposable WebGL contexts', async () 
   assert.match(styles, /\.coaching-fluid-glass-stage \.fluid-glass\s*\{[^}]*width:\s*100%[^}]*height:\s*100%/s);
 });
 
-test('the coaching statement reaches full opacity before its scroll reveal finishes', async () => {
-  const script = await readFile(new URL('../script.js', import.meta.url), 'utf8');
+test('the accordion content is not controlled by the generic section wipe', async () => {
+  const [script, styles] = await Promise.all([
+    readFile(new URL('../script.js', import.meta.url), 'utf8'),
+    readFile(new URL('../style.css', import.meta.url), 'utf8')
+  ]);
+  const story = section('coaching2-story');
 
-  assert.match(script, /item\.matches\('\.coaching-page-statement'\)\s*\?\s*1\s*:\s*progress/);
+  assert.doesNotMatch(story, /class="[^"]*coaching-wipe/);
+  assert.doesNotMatch(script, /item\.matches\('\.coaching-page-statement'\)/);
+  assert.doesNotMatch(styles, /\.coaching-page-section--statement\s*\{/);
+  assert.doesNotMatch(styles, /\.coaching-page-statement\s*\{/);
 });
 
-test('the coaching statement is never clipped by the shared section wipe', async () => {
-  const script = await readFile(new URL('../script.js', import.meta.url), 'utf8');
-  const statementWipe = script.match(/coachingSectionWipes\.forEach\(\(item,index\)=>\{([\s\S]*?)\n      \}\);/)?.[1] ?? '';
-
-  assert.match(statementWipe, /item\.matches\('\.coaching-page-statement'\)\s*\?\s*'none'\s*:/);
-});
-
-test('the coaching statement section fills the viewport and separates what coaching is from what it is not', async () => {
+test('the coaching accordion fills the viewport and separates what coaching is from what it is not', async () => {
   const styles = await readFile(new URL('../style.css', import.meta.url), 'utf8');
-  const statement = section('coaching-statement');
+  const statement = section('coaching2-story');
 
-  assert.match(styles, /\.coaching-page-section--statement\s*\{[^}]*min-height:\s*100svh/s);
-  assert.match(statement, /aria-labelledby="coaching-about-title"[\s\S]*?class="coaching-page-label coaching-wipe" data-coaching-order="2" id="coaching-about-title">About coaching<\/p>/);
+  assert.match(styles, /\.coaching2-stage\s*\{[^}]*position:\s*sticky[^}]*height:\s*100svh/s);
+  assert.match(statement, /id="coaching2-trigger-about"[^>]*aria-expanded="true"/);
   for (const copy of [
     'Partnership:</strong> A shared process to explore what matters and decide what comes next, with shared intent.',
     'Fresh perspective:</strong> Questions that challenge familiar thinking and reveal new options you hadn’t seen.',
@@ -262,7 +264,7 @@ test('the coaching statement section fills the viewport and separates what coach
   assert.match(styles, /\.coaching-page-two-column,\s*\.coaching-packages-list\s*\{[^}]*grid-template-columns:\s*1fr[^}]*gap:\s*56px/s);
   assert.match(styles, /\.coaching-definition-group\s*\{[^}]*grid-column:\s*auto/s);
   assert.match(styles, /\.coaching-definition-group:last-child\s*\{[^}]*grid-column:\s*auto/s);
-  assert.match(styles, /\.coaching-page-section--statement\s*\{[^}]*display:\s*block/s);
+  assert.match(styles, /\.coaching2-step-content\s*\{[^}]*display:\s*block/s);
 });
 
 test('Coach on Call uses the same small section marker as the numbered packages', async () => {
@@ -317,14 +319,12 @@ test('the old upside-down custom renderer is removed', async () => {
   assert.equal(oldRendererExists, false);
 });
 
-test('the statement participates in existing coaching scroll reveals, with no prism below it', () => {
-  const statement = section('coaching-statement');
-  const audience = section('coaching-for');
-  const laterContent = html.slice(html.indexOf('id="coaching-for"'));
+test('the accordion has no prism below the hero', () => {
+  const statement = section('coaching2-story');
+  const laterContent = html.slice(html.indexOf('id="coaching2-story"'));
 
-  assert.match(statement, /class="coaching-page-statement coaching-wipe" data-coaching-order="2"/);
+  assert.match(statement, /class="coaching2-panel"/);
   assert.doesNotMatch(statement, /data-fluid-glass-copy/);
-  assert.doesNotMatch(audience, /data-fluid-glass-copy/);
   assert.equal([...laterContent.matchAll(/data-fluid-glass-copy/g)].length, 0);
 });
 

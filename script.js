@@ -180,6 +180,10 @@
     clearPageBounds(){this.pageMin=0;this.pageMax=Infinity;this.current=scrollY;this.target=scrollY;}
   }
   const smooth=new SmoothScroll();
+  window.siteScrollTo=(y)=>{
+    if(smooth.enabled)smooth.goTo(y);
+    else scrollTo({top:y,behavior:'smooth'});
+  };
   addEventListener('pageshow',()=>requestAnimationFrame(()=>{
     smooth.current=window.scrollY;
     smooth.target=window.scrollY;
@@ -1825,6 +1829,7 @@
   };
 
   document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+    if(a.hasAttribute('data-coaching-jump'))return;
     const target=document.querySelector(a.getAttribute('href'));if(!target)return;
     e.preventDefault();
     if(a.hasAttribute('data-nav-target')){
@@ -2069,9 +2074,8 @@
         const start=innerHeight*(.9-offset);
         const end=innerHeight*(.28-offset*.35);
         const progress=smoothstep(0,1,clamp((start-item.getBoundingClientRect().top)/Math.max(1,start-end),0,1));
-        const opacity=item.matches('.coaching-page-statement')?1:progress;
-        item.style.opacity=String(opacity);
-        item.style.clipPath=item.matches('.coaching-page-statement')?'none':`inset(0 0 ${(1-progress)*100}% 0)`;
+        item.style.opacity=String(progress);
+        item.style.clipPath=`inset(0 0 ${(1-progress)*100}% 0)`;
         item.style.transform=`translateY(${(1-progress)*8}px)`;
       });
     };

@@ -18,14 +18,14 @@ Private two-person NFL fantasy web app.
 - 9-player starting roster: QB, RB, RB, WR, WR, TE, FLEX, K, DEF, with an optional 6-slot bench controlled in League settings
 - One player cannot belong to both teams
 - Drop and replace players
-- Kickoff-aware game labels from the free schedule feed, with stats-feed fallback; every player remains addable, movable, replaceable, and droppable until the week is complete
+- Kickoff-aware game labels from the free schedule feed, with stats-feed fallback; every player remains addable, movable, replaceable, and droppable in every selected week, including after kickoff and after the week is complete
 - Live game labels such as `LIVE · Q3 08:21` when the schedule feed provides them
 - Move owned players between eligible lineup and bench slots when the bench setting is enabled, including safe swaps
 - Weekly PPR scoring
 - Clear actual PPR and projected points for each starter, plus projected team totals
 - Team totals and head-to-head matchup
 - Week 1–18 navigation
-- A separate saved lineup for each week, with completed weeks read-only
+- A separate saved lineup for each week; completed-week results remain visible while the selected week stays editable for later redrafting
 - Season W–L–T records, points for/against, and previous weekly scores
 - Transaction history
 - Adaptive weekly-stat and schedule refresh while the page is open
@@ -136,9 +136,9 @@ Completed weekly results are saved only when the selected schedule is fully fina
 
 When the League view opens, the app also checks previously saved `0–0` rows and quietly re-fetches those specific completed weeks so an outage-created placeholder can be corrected without reloading every week in the season.
 
-Kickoff status is informational during an open week: any player can be added, moved, dropped, or replaced even after that player's NFL game begins. A completed week remains read-only. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
+Kickoff status is informational only: any player can be added, moved, dropped, or replaced in any selected week, even after that player's NFL game begins or after the week is complete. A completed week shows its results when reliable stats exist; an unfinished week shows current actuals/projections and waits for results. A live game shows the feed's quarter/clock when available. If the schedule feed is unavailable, the app falls back conservatively to stats-feed participation and says so in the matchup status.
 
-Each week keeps its own lineup snapshot, so moving between weeks does not overwrite another week's choices. When every game in a selected week is final, that week's lineup and starter totals become read-only. A later official stat correction updates the saved score instead of creating a second result.
+Each week keeps its own lineup snapshot, so moving between weeks does not overwrite another week's choices. When every game in a selected week is final, the app shows the saved result, but that week's lineup and starter choices remain editable for later redrafting. A later official stat correction updates the saved score instead of creating a second result.
 
 ## Current visual direction
 
@@ -154,4 +154,4 @@ Each week keeps its own lineup snapshot, so moving between weeks does not overwr
 
 ## Lineup movement
 
-Open an owned player from the matchup or player list and choose `Move player`. The duplicate position slots are distinguished as `RB 1`/`RB 2` and `WR 1`/`WR 2`. Empty eligible slots are available directly; occupied eligible slots can be swapped even when the current occupant already played. New additions still must not have started. A completed week remains locked.
+Select a week from the matchup week picker, then open an owned player from the matchup or player list and choose `Move player`. The duplicate position slots are distinguished as `RB 1`/`RB 2` and `WR 1`/`WR 2`. Empty eligible slots are available directly; occupied eligible slots can be swapped even when the current occupant already played. Historical weeks remain editable by design.

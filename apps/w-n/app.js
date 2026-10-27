@@ -288,7 +288,7 @@ function selectWeekRoster(week){
   });
 }
 
-function weekRosterLocked(){
+function weekResultsReady(){
   return WEEK_LOCK.shouldLockWeek({result:resultForWeek(state.week), schedule:weeklySchedule});
 }
 
@@ -542,7 +542,8 @@ function formatKickoff(value){
 }
 
 function refreshSummary(){
-  if (weekRosterLocked()) return 'Week complete · lineup locked';
+  if (resultForWeek(state.week)) return 'Week complete · results available';
+  if (weekIsComplete()) return 'Week complete · waiting for results';
   if (scheduleUnavailable) return 'Stats fallback · auto 60s';
   const live = weeklySchedule.some(game => gameStatus(game).tone === 'live');
   if (live) return 'Live updates · 45s';
@@ -827,6 +828,12 @@ async function switchWeek(direction){
   if (!request.accepted || request.week === state.week) return;
 
   const requestedWeek=request.week;
+  await loadSelectedWeek(requestedWeek);
+}
+
+async function loadSelectedWeek(requestedWeek){
+  requestedWeek=WEEK_NAV.clampWeek(requestedWeek);
+  if (weekNavigationBusy || refreshPromise || requestedWeek === state.week) return;
   weekNavigationBusy=true;
   activateWeek(requestedWeek);
   renderAll();
@@ -864,7 +871,7 @@ function renderMatchup(){
       <section class="score-card">
         <div class="score-head">
           <span class="eyebrow">Head to head</span>
-          <div class="week-picker${navigationBusy?' is-loading':''}" aria-busy="${navigationBusy}"><button data-week="prev" aria-label="Previous week" title="Previous week"${navigationBusy || state.week <= 1 ? ' disabled' : ''}>←</button><span>Week ${state.week}</span><button data-week="next" aria-label="Next week" title="Next week"${navigationBusy || state.week >= 18 ? ' disabled' : ''}>→</button></div>
+          <div class="week-picker${navigationBusy?' is-loading':''}" aria-busy="${navigationBusy}"><button data-week="prev" aria-label="Previous week" title="Previous week"${navigationBusy || state.week <= 1 ? ' disabled' : ''}>←</button><select data-week-select aria-label="Select week to draft"${navigationBusy?' disabled':''}>${Array.from({length:18},(_,index)=>{const week=index+1;return `<option value="${week}"${week===state.week?' selected':''}>Week ${week}</option>`;}).join('')}</select><button data-week="next" aria-label="Next week" title="Next week"${navigationBusy || state.week >= 18 ? ' disabled' : ''}>→</button></div>
         </div>
         <div class="score-body">
           ${teamScoreBlock(a,aScore,false)}
@@ -875,7 +882,7 @@ function renderMatchup(){
       </section>
       <aside class="week-card">
         <div><span class="eyebrow">Season ${nflState.season || ''}</span><h2>Current week</h2></div>
-        <div><div class="big">${String(state.week).padStart(2,'0')}</div><div class="muted">NFL regular season</div><div class="week-status ${weekRosterLocked()?'closed':''}">${weekRosterLocked()?'Lineup locked':'Roster changes open'}</div></div>
+        <div><div class="big">${String(state.week).padStart(2,'0')}</div><div class="muted">NFL regular season</div><div class="week-status ${weekResultsReady()?'complete':''}">${resultForWeek(state.week)?'Results available':weekIsComplete()?'Waiting for results':'Roster changes open'}</div></div>
       </aside>
     </div>
     <div class="matchup-columns">
@@ -883,6 +890,8 @@ function renderMatchup(){
       ${rosterCard(b)}
     </div>`;
   $$('[data-week]', el).forEach(btn => btn.addEventListener('click', () => switchWeek(btn.dataset.week)));
+  const weekSelect=$('[data-week-select]', el);
+  if(weekSelect) weekSelect.addEventListener('change', () => loadSelectedWeek(weekSelect.value));
   $$('.player-row[data-player]', el).forEach(r => r.addEventListener('click', () => openPlayer(r.dataset.player)));
 }
 
@@ -921,8 +930,8 @@ function rosterRow(team, slot){
   const id = team.roster?.[slot];
   if (!id) return `<div class="player-row" data-empty-slot="${slot}" data-team="${team.id}"><div class="slot">${slotLabel(slot)}</div><div class="avatar"></div><div class="player-main"><div class="player-name">Empty slot</div><div class="player-sub">Assign from Players</div></div><div class="player-points"><strong>—</strong></div></div>`;
   const p = players.find(x=>x.id===id) || {id,name:id,team:'',position:slot};
-  const pts = pointsFor(id), locked = weekRosterLocked(), status = gameStatusForPlayer(p);
-  return `<div class="player-row ${locked?'locked':''}" data-player="${id}">
+  const pts = pointsFor(id), status = gameStatusForPlayer(p);
+  return `<div class="player-row" data-player="${id}">
     <div class="slot">${slotLabel(slot)}</div>
     <img class="avatar${playerImageClass(p)}" src="${playerPhoto(p)}" alt="" onerror="this.style.visibility='hidden'">
     <div class="player-main"><div class="player-name">${esc(p.name)}</div><div class="player-sub"><span>${esc(p.team||'FA')} · ${esc(p.position)}</span>${p.injury?`<span>${esc(p.injury)}</span>`:''}<span class="game-status ${status.tone}">${esc(gameLabelForPlayer(p))}</span></div></div>
@@ -1029,6 +1038,11 @@ function teamSetupCard(team){
   return `<section class="setup-card team-setup-card team-${team.id}"><div class="team-card-rail"><span class="eyebrow">${team.id==='a'?'Team one':'Team two'}</span><span class="team-index">${team.id==='a'?'01':'02'}</span></div><div class="team-identity">${logo(team)}<div><h2>${esc(team.name)}</h2><p>Give this side a name worth defending.</p></div></div><form data-team-form="${team.id}"><div class="field"><label>Display name</label><input name="name" value="${escAttr(team.name)}"></div><div class="field"><label>Team mark</label><div class="upload-row"><div class="logo-box logo-preview">${team.logo?`<img src="${team.logo}" alt="">`:esc(team.name.slice(0,2).toUpperCase())}</div><label class="file-picker"><span>Choose logo</span><small>PNG, JPG, or SVG · square works best</small><input type="file" accept="image/*" data-logo="${team.id}"></label></div></div><button class="primary save-team-btn" type="submit"><span>Save team</span><span class="button-arrow">↗</span></button></form></section>`;
 }
 
+async function saveRosterChange(){
+  await pushSharedState();
+  if (weekIsComplete()) await recordCompletedWeek();
+}
+
 function openPlayer(id){
   const p=players.find(x=>x.id===id); if(!p)return;
   const d=$('#playerDialog'); const owner=ownerOf(id); const s=getStat(id), proj=getProj(id), status=gameStatusForPlayer(p);
@@ -1036,12 +1050,11 @@ function openPlayer(id){
   $('.close-btn',d).addEventListener('click',()=>d.close());
   $$('[data-assign]',d).forEach(b=>b.addEventListener('click',()=>openAssignDialog(p.id,b.dataset.assign)));
   const move=$('[data-move]',d); if(move) move.addEventListener('click',()=>openMoveDialog(id));
-  const drop=$('[data-drop]',d); if(drop) drop.addEventListener('click',async()=>{ if(weekRosterLocked()){showToast('This week is complete');return;} await removePlayer(id); d.close(); });
+  const drop=$('[data-drop]',d); if(drop) drop.addEventListener('click',async()=>{ await removePlayer(id); d.close(); });
   d.showModal();
 }
 function assignmentButtons(p,owner){
-  const weekComplete=weekRosterLocked();
-  if(!ROSTER_POLICY.canChangeRoster({weekComplete})) return '<div class="dialog-note">Week complete · lineup changes are locked</div>';
+  if(!ROSTER_POLICY.canChangeRoster()) return '<div class="dialog-note">Roster changes are unavailable</div>';
   if(owner) return `<button class="primary" data-move="${p.id}">Move player</button><button class="danger" data-drop="${p.id}">Drop player</button>`;
   return state.teams.map(t=>`<button class="primary" data-assign="${t.id}">Add to ${esc(t.name)}</button>`).join('');
 }
@@ -1053,7 +1066,6 @@ function rosterSlot(team,id){
 function openMoveDialog(id){
   const p=players.find(x=>x.id===id), owner=ownerOf(id), current=owner && rosterSlot(owner,id), d=$('#teamDialog');
   if(!p || !owner || !current) return;
-  if(weekRosterLocked()){ showToast('This week is complete'); return; }
   const options=activeRosterSlots().filter(slot=>slot!==current && slotEligible(p.position,slot)).map(slot=>{
     const occupantId=owner.roster?.[slot];
     const occupant=occupantId && players.find(x=>x.id===occupantId);
@@ -1072,7 +1084,6 @@ function openMoveDialog(id){
 
 async function moveRosterPlayer(id,teamId,targetSlot){
   const team=state.teams.find(t=>t.id===teamId), p=players.find(x=>x.id===id);
-  if(weekRosterLocked()){ showToast('This week is complete'); return false; }
   if(!team || !p) return false;
   const current=rosterSlot(team,id), existing=team.roster?.[targetSlot];
   if(!current || current===targetSlot || !slotEligible(p.position,targetSlot)) return false;
@@ -1087,7 +1098,7 @@ async function moveRosterPlayer(id,teamId,targetSlot){
   team.roster[targetSlot]=id;
   const detail=existing ? `swapped ${p.name} with ${players.find(x=>x.id===existing)?.name || existing}` : `moved ${p.name} from ${slotLabel(current)} to ${slotLabel(targetSlot)}`;
   state.transactions.push({ts:Date.now(),text:`${team.name} ${detail}`});
-  await pushSharedState();
+  await saveRosterChange();
   renderAll();
   showToast(`${p.name} moved to ${slotLabel(targetSlot)}`);
   return true;
@@ -1095,7 +1106,6 @@ async function moveRosterPlayer(id,teamId,targetSlot){
 function openAssignDialog(id,teamId){
   const p=players.find(x=>x.id===id), team=state.teams.find(t=>t.id===teamId), d=$('#teamDialog');
   if(!p || !team) return;
-  if(weekRosterLocked()){ showToast('This week is complete'); return; }
   const eligible=activeRosterSlots().filter(slot=>slotEligible(p.position,slot));
   d.innerHTML=`<div class="dialog-content"><div class="dialog-top"><div><span class="eyebrow">Assign player</span><h2 style="margin:8px 0 0">${esc(p.name)}</h2></div><button class="close-btn" aria-label="Close">×</button></div><div class="dialog-actions" style="margin-top:24px">${eligible.map(slot=>`<button class="secondary" data-slot="${slot}">${slotLabel(slot)}${team.roster?.[slot]?' · replace':''}</button>`).join('')}</div></div>`;
   $('.close-btn',d).addEventListener('click',()=>d.close());
@@ -1107,7 +1117,7 @@ function openAssignDialog(id,teamId){
     const existingPlayer=existing && players.find(x=>x.id===existing);
     const action=existing ? `replaced ${existingPlayer?.name || existing} with ${p.name} in ${slotLabel(slot)}` : `added ${p.name} to ${slotLabel(slot)}`;
     state.transactions.push({ts:Date.now(),text:`${team.name} ${action}`});
-    await pushSharedState(); d.close(); $('#playerDialog').close(); renderAll(); showToast(`${p.name} added`);
+    await saveRosterChange(); d.close(); $('#playerDialog').close(); renderAll(); showToast(`${p.name} added`);
   }));
   d.showModal();
 }
@@ -1120,8 +1130,7 @@ function slotEligible(pos,slot){
   return baseSlot==='BENCH' || pos===baseSlot || (baseSlot==='FLEX' && ['RB','WR','TE'].includes(pos));
 }
 async function removePlayer(id,log=true){
-  if(weekRosterLocked()){showToast('This week is complete');return false;}
-  for(const t of state.teams){ for(const [slot,pid] of Object.entries(t.roster||{})){ if(pid===id){ delete t.roster[slot]; if(log){ const p=players.find(x=>x.id===id); state.transactions.push({ts:Date.now(),text:`${t.name} dropped ${p?.name||id}`}); } await pushSharedState(); renderAll(); return true; } } }
+  for(const t of state.teams){ for(const [slot,pid] of Object.entries(t.roster||{})){ if(pid===id){ delete t.roster[slot]; if(log){ const p=players.find(x=>x.id===id); state.transactions.push({ts:Date.now(),text:`${t.name} dropped ${p?.name||id}`}); } await saveRosterChange(); renderAll(); return true; } } }
   return false;
 }
 

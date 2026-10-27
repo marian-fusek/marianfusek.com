@@ -83,6 +83,8 @@ main { padding: 52px 0 96px; }
 .week-picker button { border: 0; background: transparent; color: white; cursor: pointer; font-size: 22px; padding: 3px 6px; opacity: .8; }
 .week-picker button:hover { opacity: 1; }
 .week-picker button:disabled { cursor: wait; opacity: .35; }
+.week-picker select { border: 0; background: transparent; color: white; cursor: pointer; font-size: 13px; font-weight: 600; padding: 6px 2px; }
+.week-picker select:disabled { cursor: wait; opacity: .45; }
 .score-body { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin-top: 18px; }
 .team-score { min-width: 0; }
 .team-score.right { text-align: right; }

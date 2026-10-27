@@ -42,7 +42,7 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Never display a prior week’s stats or projections as if they belonged to the selected week. Clear in-memory weekly data when changing weeks; retain only same-week cached data during a failed refresh.
 - The free public ESPN NFL scoreboard feed is the schedule/live-status source only. Use it for kickoff, game state, and quarter/clock labels; never use it for player identity or fantasy scoring.
 - Defense rows use the committed local helmet assets in `media/defense-helmets/`; keep those assets available for the player list, roster rows, and detail dialog. Do not replace them with arbitrary remote hotlinks.
-- Never fabricate live status, quarter/clock values, scores, projections, or kickoff times. The current build uses the schedule feed when available to prevent new additions after kickoff and falls back conservatively to stats-feed participation when that schedule feed is unavailable; always make that fallback visible.
+- Never fabricate live status, quarter/clock values, scores, projections, or kickoff times. The current build uses the schedule feed for informational game labels and falls back conservatively to stats-feed participation when that schedule feed is unavailable; roster actions are never blocked by kickoff.
 - Refresh sparingly: cached player data, weekly data refresh while the app is open, slower refresh before games, roughly 30–60 seconds during live play, and stop when games are finished. Do not poll continuously when it adds no value.
 
 ## Roster, scoring, and game-lock rules
@@ -51,11 +51,11 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Keep actual PPR points and provider projections visibly separate: large numbers are actual PPR, while smaller `Proj` values are forecasts and may be unavailable until the projection feed returns.
 - Count only the nine starter slots in the team total. When the bench setting is on, all six bench slots are visible and movable but do not score; when it is off, bench slots are hidden and not draftable.
 - Preserve a separate lineup snapshot for every week. Switching weeks must restore that week’s snapshot instead of sharing one mutable roster across the season.
-- Once a week is complete or has a saved result, treat that week as read-only: no add, drop, replace, or lineup move, while later weeks remain editable.
+- Keep every selected week editable for add, drop, replace, and lineup moves. A completed week’s result is display data, not an edit lock.
 - Enforce slot eligibility: position slots accept their position; `FLEX` accepts `RB`, `WR`, or `TE`; every enabled bench slot accepts any supported fantasy position.
-- Use kickoff status as informational context only during an open week. Any player may be added, moved, dropped, or replaced after their game begins; this is intentional for the manual weekly redraft. A completed week remains read-only.
-- Do not reintroduce a kickoff-based roster-action block. The only roster lock is a fully completed week.
-- A completed week remains read-only. Preserve the per-player game status and the distinction between an already-rostered player and a new addition.
+- Use kickoff status as informational context only. Any player may be added, moved, dropped, or replaced in any selected week, including after their game begins or after the week is complete; this is intentional for the manual weekly redraft.
+- Results remain visible for completed weeks, but results never lock roster editing. A selected week with unfinished games shows current projections/actuals and waits for final stats.
+- Keep Week 1–18 navigation and direct week selection reliable. The selected week owns the active roster snapshot; Weeks 8+ must not be prefilled when Week 7 is seeded.
 - Keep Week 1–18 navigation, matchup totals, winner/lead state, weekly results, and the ability to reflect official stat corrections.
 
 ## Responsive behavior and UX expectations
@@ -64,7 +64,7 @@ Keep state and provider boundaries small and recognizable. Store league state lo
 - Mobile: stack the matchup into a readable vertical comparison without losing the head-to-head relationship; keep rows scannable and controls comfortably tappable. The bottom navigation treatment may remain fixed on small screens.
 - Player setup must feel editorial: searchable large rows, all NFL teams selected by default, deselectable team chips, position filters, ownership filters (`Available`, either team), active/injured filters, top-rated sorting by default, projection/name alternatives, and a focused detail view with photo, status, rank, projection, and weekly stats.
 - Make ownership, availability, projection, score, lock/open state, live state, and sync state clear without forcing the user to infer them.
-- Keep the League view’s concise `Weekly redraft setup` guide visible. It must explain the public shared URL, two-team manual weekly redraft flow, weekly lineup movement, the kickoff rule for new additions, and the difference between shared sync and local-only mode.
+- Keep the League view’s concise `Weekly redraft setup` guide visible. It must explain the public shared URL, two-team manual weekly redraft flow, weekly lineup movement, the fact that kickoff does not block drafting, and the difference between shared sync and local-only mode.
 - Preserve manual refresh, visible sync feedback, loading/empty/error states, confirmation for destructive reset, and accessible labels/dialog close behavior.
 - Keep the interface usable with long names, missing photos, missing stats, slow feeds, and narrow screens.
 
@@ -74,7 +74,7 @@ Do not add accounts, public leagues, payments, messaging, commissioner tooling, 
 
 ## Testing expectations
 
-Before handing off a change, run a syntax check where useful and serve the folder with a tiny local web server. Smoke-test both desktop and narrow mobile layouts. Verify local mode first, then shared mode if Supabase is configured. Exercise the League setup guide, player loading/search/filter/sort/detail, ownership and health filters, assigning to both teams, both duplicate RB and WR slots, slot eligibility, replacing/dropping, moving/swapping, transaction history, Week 1–18 navigation with lineup snapshots, completed-week read-only behavior, starter-vs-bench totals, season records/results, refresh/cache behavior, and per-player lock behavior. Check the browser console and network failures; do not treat a blank or stale UI as an acceptable fallback.
+Before handing off a change, run a syntax check where useful and serve the folder with a tiny local web server. Smoke-test both desktop and narrow mobile layouts. Verify local mode first, then shared mode if Supabase is configured. Exercise the League setup guide, player loading/search/filter/sort/detail, ownership and health filters, assigning to both teams, both duplicate RB and WR slots, slot eligibility, replacing/dropping, moving/swapping, transaction history, Week 1–18 navigation with lineup snapshots, editing a completed week while preserving its visible result, starter-vs-bench totals, season records/results, refresh/cache behavior, and informational player game status. Check the browser console and network failures; do not treat a blank or stale UI as an acceptable fallback.
 
 ## Change discipline
 

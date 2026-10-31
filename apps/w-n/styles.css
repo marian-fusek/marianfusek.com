@@ -172,6 +172,46 @@ main { padding: 52px 0 96px; }
 .owner-tag { font-size: 11px; background: var(--soft); border-radius: 999px; padding: 7px 9px; text-align: center; white-space: nowrap; }
 .owner-tag.free { background: transparent; border: 1px solid var(--line); }
 
+.rivalry-scoreboard { display: grid; grid-template-columns: minmax(0,1fr) 110px minmax(0,1fr); gap: 24px; align-items: center; padding: 34px; margin-bottom: 18px; border-radius: var(--radius); background: var(--ink); color: white; box-shadow: 0 24px 70px rgba(17,17,17,.15); }
+.rivalry-team-profile { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.rivalry-team-profile .logo-box { width: 86px; height: 86px; border-radius: 25px; background: #2a2a28; }
+.rivalry-team-profile .eyebrow { color: #aaa9a1; }
+.rivalry-team-profile h2 { margin: 7px 0 14px; font-size: clamp(22px, 3vw, 38px); letter-spacing: -.07em; line-height: .95; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rivalry-record { display: block; font-size: clamp(42px, 5vw, 68px); font-weight: 500; letter-spacing: -.1em; line-height: .8; }
+.rivalry-record-label { display: block; margin-top: 10px; color: #aaa9a1; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+.rivalry-team-b { justify-content: flex-end; text-align: right; }
+.rivalry-team-b .logo-box { order: 2; }
+.rivalry-versus { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #aaa9a1; text-align: center; text-transform: uppercase; }
+.rivalry-versus span { font-size: 10px; letter-spacing: .13em; line-height: 1.25; }
+.rivalry-versus strong { color: white; font-size: 25px; font-weight: 500; letter-spacing: -.05em; }
+.rivalry-versus small { font-size: 10px; }
+.rivalry-points { display: flex; justify-content: space-between; gap: 14px; padding-top: 22px; border-top: 1px solid #3b3b37; color: #aaa9a1; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.rivalry-points-a { grid-column: 1 / 2; }
+.rivalry-points-b { grid-column: 3 / 4; text-align: right; }
+.rivalry-points span { display: flex; flex-direction: column; gap: 6px; }
+.rivalry-points strong { color: white; font-size: 19px; font-weight: 500; letter-spacing: -.04em; }
+.rivalry-section { padding: 30px; margin-bottom: 18px; border-radius: var(--radius); background: var(--paper); border: 1px solid rgba(0,0,0,.035); box-shadow: 0 20px 60px rgba(28,26,20,.05); }
+.rivalry-section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin-bottom: 22px; }
+.rivalry-section h2 { margin: 8px 0 0; font-size: clamp(28px, 4vw, 46px); font-weight: 500; letter-spacing: -.075em; line-height: .94; }
+.rivalry-facts { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.rivalry-fact { min-height: 146px; padding: 18px; border-radius: 18px; background: var(--soft); }
+.rivalry-fact .eyebrow { display: block; }
+.rivalry-fact strong { display: block; margin-top: 25px; font-size: 25px; font-weight: 500; letter-spacing: -.055em; line-height: .95; }
+.rivalry-fact small { display: block; margin-top: 10px; color: var(--muted); font-size: 11px; line-height: 1.35; }
+.rivalry-lower-grid { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr); gap: 42px; }
+.rivalry-note { max-width: 360px; margin: -7px 0 22px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.rivalry-leader-list, .rivalry-results { border-top: 1px solid var(--line); }
+.rivalry-leader-row { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: 12px; align-items: center; min-height: 72px; border-bottom: 1px solid var(--line); }
+.rivalry-rank { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.rivalry-leader-row strong { display: block; font-size: 14px; font-weight: 600; letter-spacing: -.025em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rivalry-leader-row span:not(.rivalry-rank), .rivalry-leader-points span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+.rivalry-leader-points { text-align: right; }
+.rivalry-leader-points strong { font-size: 20px; font-weight: 500; }
+.rivalry-result-row { display: grid; grid-template-columns: 70px minmax(0,1fr) auto; gap: 12px; align-items: center; min-height: 56px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.rivalry-result-row strong { font-weight: 600; }
+.rivalry-result-row > span:last-child { color: var(--muted); }
+.rivalry-empty { padding: 18px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+
 .league-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .setup-card { padding: 30px; }
 .setup-card h2 { margin: 0 0 20px; font-size: 34px; letter-spacing: -.07em; font-weight: 500; }
@@ -299,6 +339,11 @@ main { padding: 52px 0 96px; }
   .view-intro p { max-width: 420px; margin: 0; }
   .hero-grid, .matchup-columns, .league-grid { grid-template-columns: 1fr; }
   .season-card, .guide-card { grid-column: auto; }
+  .rivalry-scoreboard { grid-template-columns: 1fr; gap: 22px; }
+  .rivalry-versus { order: 0; }
+  .rivalry-points-a, .rivalry-points-b { grid-column: auto; }
+  .rivalry-points-b { text-align: left; }
+  .rivalry-lower-grid { grid-template-columns: 1fr; gap: 34px; }
   .guide-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sync-setup { grid-template-columns: 1fr; }
   .sync-steps { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -340,6 +385,13 @@ main { padding: 52px 0 96px; }
   .guide-head { flex-direction: column; }
   .guide-steps { grid-template-columns: 1fr; }
   .sync-steps { grid-template-columns: 1fr; }
+  .rivalry-scoreboard, .rivalry-section { padding: 22px; }
+  .rivalry-team-profile { gap: 12px; }
+  .rivalry-team-profile .logo-box { width: 68px; height: 68px; border-radius: 20px; }
+  .rivalry-team-profile h2 { font-size: 26px; }
+  .rivalry-facts { grid-template-columns: 1fr; }
+  .rivalry-fact { min-height: 116px; }
+  .rivalry-fact strong { margin-top: 18px; }
   .move-list { grid-template-columns: 1fr; }
   .players-toolbar { grid-template-columns: 1fr; }
   .search-box { grid-column: auto; }

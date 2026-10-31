@@ -24,6 +24,7 @@ Private two-person NFL fantasy web app.
 - Weekly PPR scoring
 - Clear actual PPR and projected points for each starter, plus projected team totals
 - Team totals and head-to-head matchup
+- Rivalry tab with shared W–L–T records, weekly results, top scorers from recorded weeks, and biggest-win / closest-matchup / highest-combined fun stats
 - Week 1–18 navigation
 - A separate saved lineup for each week; completed-week results remain visible while the selected week stays editable for later redrafting
 - Season W–L–T records, points for/against, and previous weekly scores
@@ -133,6 +134,8 @@ A player's fantasy score updates when Sleeper updates the weekly stats feed.
 If a selected week’s stats or projection request fails, cached data for that same week can remain visible, including after a manual refresh; switching weeks clears the prior week’s data before loading the new week so scores and forecasts are never silently carried across weeks.
 
 Completed weekly results are saved only when the selected schedule is fully final and every starter has a corresponding stats row. A partial or empty stats response cannot be recorded as a false `0–0`; revisiting or refreshing a completed week with reliable stats repairs its saved result.
+
+The `Rivalry` tab uses those saved results for the shared record and weekly receipts. Once a final week is saved, the app also keeps a compact snapshot of its nine starter scores so individual top scorers can be compared across recorded weeks. Older saved results are quietly refreshed when Rivalry or League opens so they can populate the leaderboard without storing raw NFL feed data.
 
 When the League view opens, the app also checks previously saved `0–0` rows and quietly re-fetches those specific completed weeks so an outage-created placeholder can be corrected without reloading every week in the season.
 

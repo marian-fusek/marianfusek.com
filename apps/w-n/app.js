@@ -15,6 +15,7 @@ const RESULT_READINESS = window.WN_RESULT_READINESS;
 const SAFE_STORAGE = window.WN_SAFE_STORAGE;
 const ROSTER_POLICY = window.WN_ROSTER_POLICY;
 const REFRESH_HELPERS = window.WN_REFRESH_HELPERS;
+const RIVALRY = window.WN_RIVALRY;
 const FEED_TIMEOUT_MS = 12_000;
 
 let nflState = { week: 1, season: new Date().getFullYear().toString(), season_type: 'regular' };
@@ -740,9 +741,17 @@ async function recordCompletedWeek(statsResult={}){
   const [a,b] = state.teams;
   const aScore = teamTotal(a), bScore = teamTotal(b);
   const winner = aScore === bScore ? 'tie' : aScore > bScore ? a.id : b.id;
-  const next = {aScore, bScore, winner, updatedAt: Date.now()};
+  const playerScores = RIVALRY.buildPlayerScoreSnapshot({
+    teams: state.teams,
+    starterSlots: STARTER_SLOTS,
+    playerById: Object.fromEntries(players.map(player=>[player.id, player])),
+    scoreFor: pointsFor
+  });
+  const next = {aScore, bScore, winner, playerScores, updatedAt: Date.now()};
   const previous = resultForWeek(state.week);
-  if (previous && previous.aScore === next.aScore && previous.bScore === next.bScore && previous.winner === next.winner) return false;
+  const sameScore = previous && previous.aScore === next.aScore && previous.bScore === next.bScore && previous.winner === next.winner;
+  const samePlayers = JSON.stringify(previous?.playerScores || []) === JSON.stringify(next.playerScores);
+  if (sameScore && samePlayers) return false;
   state.results = {...(state.results || {}), [state.week]: next};
   await pushSharedState();
   return true;
@@ -751,7 +760,7 @@ async function recordCompletedWeek(statsResult={}){
 async function repairKnownIncompleteResults(){
   if (resultRepairPromise) return resultRepairPromise;
   const weeks = Object.entries(state.results || {})
-    .filter(([, result]) => RESULT_READINESS.needsResultRepair(result))
+    .filter(([, result]) => RESULT_READINESS.needsResultRepair(result) || !Array.isArray(result?.playerScores))
     .map(([week]) => Number(week))
     .filter(week => Number.isInteger(week) && week >= 1 && week <= 18);
   if (!weeks.length) return 0;
@@ -820,7 +829,7 @@ function setBootState(message, visible){
   el.classList.toggle('visible', Boolean(visible));
 }
 
-function renderAll(){ renderMatchup(); renderPlayers(); renderLeague(); setBootState('', false); }
+function renderAll(){ renderMatchup(); renderPlayers(); renderRivalry(); renderLeague(); setBootState('', false); }
 
 async function switchWeek(direction){
   if (weekNavigationBusy || refreshPromise) return;
@@ -978,6 +987,48 @@ function renderPlayers(){
 function playerListRow(p,i){
   const owner=ownerOf(p.id), pts=projectedFor(p.id), status=gameStatusForPlayer(p);
   return `<div class="player-row" data-player="${p.id}"><div class="rank">${Math.min(p.rank,9999)===9999?'—':p.rank}</div><img class="avatar${playerImageClass(p)}" src="${playerPhoto(p)}" alt="" onerror="this.style.visibility='hidden'"><div class="player-main"><div class="player-name">${esc(p.name)}</div><div class="player-sub"><span>${p.team}</span><span>${p.position}</span>${p.injury?`<span>${esc(p.injury)}</span>`:''}<span class="game-status ${status.tone}">${esc(gameLabelForPlayer(p))}</span></div></div><div class="player-points"><strong>${pts?fmt(pts):'—'}</strong><span>proj.</span></div><div class="owner-tag ${owner?'':'free'}">${owner?esc(owner.name):'Available'}</div></div>`;
+}
+
+function renderRivalry(){
+  const el=$('#view-rivalry');
+  if(!el || !RIVALRY) return;
+  const teams=state.teams.slice(0,2);
+  const summary=RIVALRY.summarizeRivalry({
+    teams,
+    results:state.results,
+    playerById:Object.fromEntries(players.map(player=>[player.id, player]))
+  });
+  const a=teams[0], b=teams[1];
+  const ar=summary.records[a.id] || {wins:0,losses:0,ties:0,pointsFor:0,pointsAgainst:0};
+  const br=summary.records[b.id] || {wins:0,losses:0,ties:0,pointsFor:0,pointsAgainst:0};
+  el.innerHTML=`
+    <div class="view-intro rivalry-intro"><div><span class="eyebrow">Season ${esc(nflState.season || '')} · head to head</span><h1>The season,<br>in receipts.</h1></div><p>Two teams, one running tally. The numbers remember more than either of you will admit.</p></div>
+    <section class="rivalry-scoreboard">
+      ${rivalryTeamProfile(a,ar,'a')}
+      <div class="rivalry-versus"><span>Head<br>to head</span><strong>${summary.totals.played}</strong><small>weeks played</small></div>
+      ${rivalryTeamProfile(b,br,'b')}
+      <div class="rivalry-points rivalry-points-a"><span>Points for <strong>${fmt(ar.pointsFor)}</strong></span><span>Points against <strong>${fmt(ar.pointsAgainst)}</strong></span></div>
+      <div class="rivalry-points rivalry-points-b"><span>Points for <strong>${fmt(br.pointsFor)}</strong></span><span>Points against <strong>${fmt(br.pointsAgainst)}</strong></span></div>
+    </section>
+    <section class="rivalry-section"><div class="rivalry-section-head"><div><span class="eyebrow">Small trophies</span><h2>Things worth bringing up later.</h2></div><span class="small">${summary.totals.played ? `${summary.totals.played} recorded week${summary.totals.played===1?'':'s'}` : 'No recorded weeks yet'}</span></div><div class="rivalry-facts">${rivalryFact('Biggest win', summary.funStats.biggestWin ? summary.funStats.biggestWin.winnerName : 'Not yet', summary.funStats.biggestWin ? `Week ${summary.funStats.biggestWin.week} · ${fmt(summary.funStats.biggestWin.margin)} pt margin` : 'Needs a completed non-tie matchup')}${rivalryFact('Closest matchup', summary.funStats.closestMatchup ? summary.funStats.closestMatchup.score : 'Not yet', summary.funStats.closestMatchup ? `Week ${summary.funStats.closestMatchup.week} · ${summary.funStats.closestMatchup.winnerName}` : 'Needs a completed non-tie matchup')}${rivalryFact('Highest combined', summary.funStats.highestCombined ? `${fmt(summary.funStats.highestCombined.combined)} PPR` : 'Not yet', summary.funStats.highestCombined ? `Week ${summary.funStats.highestCombined.week} · ${summary.funStats.highestCombined.score}` : 'Needs a recorded matchup')}</div></section>
+    <section class="rivalry-section rivalry-lower-grid"><div><div class="rivalry-section-head"><div><span class="eyebrow">Individual form</span><h2>Top scorers.</h2></div></div><p class="rivalry-note">Actual starter PPR from recorded weeks. Projections are politely excluded from the bragging rights.</p><div class="rivalry-leader-list">${summary.topScorers.length ? summary.topScorers.map((scorer,index)=>rivalryScorerRow(scorer,index)).join('') : '<div class="rivalry-empty">Top scorers appear after a final week is saved. No imaginary zeros here.</div>'}</div></div><div><div class="rivalry-section-head"><div><span class="eyebrow">The receipts</span><h2>Weekly results.</h2></div></div><div class="rivalry-results">${summary.weeklyResults.length ? summary.weeklyResults.map(rivalryResultRow).join('') : '<div class="rivalry-empty">No completed weeks yet. The season has not supplied evidence.</div>'}</div></div></section>`;
+}
+
+function rivalryTeamProfile(team,record,side){
+  return `<div class="rivalry-team-profile rivalry-team-${side}">${logo(team)}<div><span class="eyebrow">${team.id==='a'?'Team one':'Team two'}</span><h2>${esc(team.name)}</h2><strong class="rivalry-record">${record.wins}–${record.losses}–${record.ties}</strong><span class="rivalry-record-label">W–L–T</span></div></div>`;
+}
+
+function rivalryFact(label,value,detail){
+  return `<div class="rivalry-fact"><span class="eyebrow">${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(detail)}</small></div>`;
+}
+
+function rivalryScorerRow(scorer,index){
+  const teams=scorer.teamNames?.length ? scorer.teamNames.join(' · ') : 'Team history unavailable';
+  return `<div class="rivalry-leader-row"><span class="rivalry-rank">${String(index+1).padStart(2,'0')}</span><div><strong>${esc(scorer.name)}</strong><span>${esc(scorer.position)} · ${esc(scorer.nflTeam)} · ${esc(teams)}</span></div><div class="rivalry-leader-points"><strong>${fmt(scorer.total)}</strong><span>${scorer.weeks} wk${scorer.weeks===1?'':'s'} · best ${fmt(scorer.best)}</span></div></div>`;
+}
+
+function rivalryResultRow(result){
+  return `<div class="rivalry-result-row"><span>Week ${result.week}</span><strong>${esc(result.winnerName)}</strong><span>${esc(result.score)}</span></div>`;
 }
 
 function renderLeague(){
@@ -1143,7 +1194,7 @@ function showToast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add
 $$('.nav-btn').forEach(btn=>btn.addEventListener('click',()=>{
   $$('.nav-btn').forEach(b=>b.classList.toggle('active',b===btn));
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${btn.dataset.view}`));
-  if (btn.dataset.view === 'league') void repairKnownIncompleteResults();
+  if (btn.dataset.view === 'league' || btn.dataset.view === 'rivalry') void repairKnownIncompleteResults();
 }));
 $('#refreshBtn').addEventListener('click',()=>loadNFLData(true));
 
